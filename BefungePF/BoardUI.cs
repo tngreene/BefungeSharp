@@ -68,7 +68,7 @@ namespace BefungePF
         public void ClearArea(BoardMode mode)
         {
             Console.SetCursorPosition(0, UI_TOP);
-            for (int i = 0; i < Console.BufferHeight; i++)
+            for (int i = 3; i > 0; i--)
             {
                 for (int j = 0; j < Console.BufferWidth; j++)
                 {

@@ -292,19 +292,48 @@ namespace BefungePF
                     break;
             }
 
+            //Based on the direction move or wrap the pointer around
             switch (direction)
             {
                 case Direction.North:
-                    IP_Y -= 1;
+                    if (IP_Y > 0)
+                    {
+                        IP_Y -= 1;
+                    }
+                    else
+                    {
+                        IP_Y = 24;
+                    }
                     break;
                 case Direction.East:
-                    IP_X += 1;
+                    if (IP_X < 79 - 1)
+                    {
+                        IP_X += 1;
+                    }
+                    else
+                    {
+                        IP_X = 0;
+                    }
                     break;
                 case Direction.South:
-                    IP_Y += 1;
+                    if (IP_Y < 24-1)
+                    {
+                        IP_Y += 1;
+                    }
+                    else
+                    {
+                        IP_Y = 0;
+                    }
                     break;
                 case Direction.West:
-                    IP_Y -= 1;
+                    if (IP_X > 0)
+                    {
+                        IP_X -= 1;
+                    }
+                    else
+                    {
+                        IP_X = 79;
+                    }
                     break;
             }
             return returnType;
