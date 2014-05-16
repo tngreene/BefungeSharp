@@ -139,19 +139,21 @@ namespace BefungePF
             }
 
             //TODO: Array size checking to make sure it will not be out of bounds?
-
-            //Fill board it initial strings, if initChars is null this will skip
-            //For the number of rows
-            for (int y = 0; y < initChars.Length; y++)
+            if (initChars != null)
             {
-                //Get the current line
-                string currentLine = initChars[y];
-
-                //For all the charecters in the line
-                for (int x = 0; x < currentLine.Length; x++)
+                //Fill board it initial strings, if initChars is null this will skip
+                //For the number of rows
+                for (int y = 0; y < initChars.Length; y++)
                 {
-                    //Insert them into the array
-                    InsertChar(y, x, currentLine[x]);
+                    //Get the current line
+                    string currentLine = initChars[y];
+
+                    //For all the charecters in the line
+                    for (int x = 0; x < currentLine.Length; x++)
+                    {
+                        //Insert them into the array
+                        InsertChar(y, x, currentLine[x]);
+                    }
                 }
             }
             //Console.SetCursorPosition(0, 0);
@@ -213,7 +215,7 @@ namespace BefungePF
             {
                 //Get the current keys
                 ConsoleKeyInfo[] keysHit = HandleInput();
-                //CommandType type;
+                CommandType type;
                 //Based on what mode it is handle those keys
                 switch (curMode)
                 {
@@ -222,12 +224,16 @@ namespace BefungePF
                     case BoardMode.Run_MEDIUM:
                     case BoardMode.Run_SLOW:
                     case BoardMode.Run_STEP:
-                        bInterp.Update();
+                        type = bInterp.Update();
+                        //if (type != CommandType.Movement ||
+                          //  type != CommandType.
+                        //{
+                            bUI.Draw(curMode);
+                        //}
                         break;
                     case BoardMode.Edit:
                         Console.CursorVisible = true;
-                        #region
-                        //--HandleInput-------------
+                        #region --HandleInput-------------
                         for (int i = 0; i < keysHit.Length; i++)
                         {
                             switch (keysHit[i].Key)
@@ -271,7 +277,7 @@ namespace BefungePF
                                 case ConsoleKey.F5:
                                     curMode = BoardMode.Run_MEDIUM;
                                     Console.CursorVisible = false;
-                                   
+                                    bUI.ClearArea(curMode);
                                     break;
                                 case ConsoleKey.Escape:
                                     return;//Go back to the main menu
@@ -294,22 +300,13 @@ namespace BefungePF
                         }
                         #endregion HandleInput-------------
                         
-                        if (needsRedraw == true)
-                        {
-                            Console.CursorVisible = false;
-                            //DrawUI(curMode);
-                            Console.CursorVisible = true;
-
-                            //After the cursor has finished its drawing restore it to the old position
-                            Console.SetCursorPosition(editCursorL, editCursorT);
-
-                        }
-
-
-                        //Based on the mode sleep the program so it does not scream by
-                        System.Threading.Thread.Sleep((int)curMode);
+                        //After the cursor has finished its drawing restore it to the old position
+                        Console.SetCursorPosition(editCursorL, editCursorT);
                         break;
                 }//switch(currentMode)
+
+                //Based on the mode sleep the program so it does not scream by
+                System.Threading.Thread.Sleep((int)curMode);
             }//while(true)
         }//Update()
         
