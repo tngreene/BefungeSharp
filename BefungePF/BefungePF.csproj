@@ -46,6 +46,7 @@
     <Compile Include="BoardManager.cs" />
     <Compile Include="BoardUI.cs" />
     <Compile Include="BoardInterpreter.cs" />
+    <Compile Include="ExamplePrograms.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

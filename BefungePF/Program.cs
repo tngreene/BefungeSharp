@@ -108,18 +108,8 @@ namespace BefungePF
                         board.UpdateBoard();
                         break;
                     case ProgramMode.OpenFile:
-                        string[] initLines =
-                            /*{"&>:.:1-|",
-                             " >3*^ @",
-                             " |%2: <",
-                             " v>2/>+"};*/
-                            {">25*\"!dlrow ,olleH\":v",
-                             "                   v:,_@",
-                             "                   >  ^"};
-
-                        /*{"qwer\n",
-                        "asdf\n",
-                        "zxvc\n"};*/
+                        string[] initLines = ExamplePrograms.calculator;
+                            
                         int[] initInputs = {0, 97, 52, 120 };
                         board = new BoardManager(25, 80, initLines, initInputs);
                         board.UpdateBoard();
