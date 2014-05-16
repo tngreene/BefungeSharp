@@ -377,7 +377,7 @@ namespace BefungePF
         /// </summary>
         /// <param name="inChar">The charecter to reference</param>
         /// <returns>The corisponding color</returns>
-        private ConsoleColor LookupColor(char inChar)
+        public static ConsoleColor LookupColor(char inChar)
         {
             switch (inChar)
             {

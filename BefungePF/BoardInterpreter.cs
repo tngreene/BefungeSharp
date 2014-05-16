@@ -65,7 +65,7 @@ namespace BefungePF
             char prevChar = '\0';
             //Change the background color to what it should be
             Console.BackgroundColor = ConsoleColor.Black;
-
+            
             switch (direction)
             {
                 case Direction.North:
@@ -73,6 +73,7 @@ namespace BefungePF
                     if (prevChar != '\0')
                     {
                         Console.SetCursorPosition(IP_X, IP_Y + 1);
+                        Console.ForegroundColor = BoardManager.LookupColor(prevChar);
                         Console.Write(prevChar);
                     }
                     break;
@@ -81,6 +82,7 @@ namespace BefungePF
                     if (prevChar != '\0')
                     {
                         Console.SetCursorPosition(IP_X - 1, IP_Y);
+                        Console.ForegroundColor = BoardManager.LookupColor(prevChar);
                         Console.Write(prevChar);
                     }
                     break;
@@ -89,6 +91,7 @@ namespace BefungePF
                     if (prevChar != '\0')
                     {
                         Console.SetCursorPosition(IP_X, IP_Y - 1);
+                        Console.ForegroundColor = BoardManager.LookupColor(prevChar);
                         Console.Write(prevChar);
                     }
                     break;
@@ -97,16 +100,10 @@ namespace BefungePF
                     if (prevChar != '\0')
                     {
                         Console.SetCursorPosition(IP_X + 1, IP_Y);
+                        Console.ForegroundColor = BoardManager.LookupColor(prevChar);
                         Console.Write(prevChar);
                     }
                     break;
-            }
-            
-
-            //If its a valid charecter to write
-            if (prevChar != '\0')
-            {
-                
             }
 
             //Get the current ip's
@@ -114,6 +111,7 @@ namespace BefungePF
             Console.SetCursorPosition(IP_X, IP_Y);
             //Change the background color and write it
             Console.BackgroundColor = ConsoleColor.Gray;
+            Console.ForegroundColor = BoardManager.LookupColor(charecterUnder);
             Console.Write(charecterUnder);
             //Change it back for safety
             Console.BackgroundColor = ConsoleColor.Black;
