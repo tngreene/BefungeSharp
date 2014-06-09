@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 
 namespace BefungePF
 {
+    //2D cardinal directions
     enum Direction
     {
         North,
@@ -14,25 +15,71 @@ namespace BefungePF
         West
     }
 
-    enum CommandType
+    //Types of commands that there could be
+    public enum CommandType
     {
-        Logic,
-        Movement,
-        Arithmatic,
-        Numbers,
-        StackManipulation,
-        IO,
-        DataStorage,
-        StopExecution,
-        NotImplemented
+              //These are not necissarily complete lists
+        Logic,//!_|`
+        Movement,//>v^<?#
+        Arithmatic,//Operators like +-*/
+        Numbers,//0-9,a-f that will be pushed onto the stack
+        StackManipulation,//:$
+        IO,//&~,.
+        DataStorage,//gp
+        StopExecution,//@
+        String,
+        NotImplemented//Many of the Funge-98 instructions
+    }
+
+    /// <summary>
+    /// Stores some information about a command
+    /// </summary>
+    public struct CommandInfo
+    {
+        public char name;//What is the name of it, such as < or | or 4
+        public CommandType type;//What type the command is
+        public ConsoleColor color;//What color to display it as
+        public int numToPop;//Could be 0 (for things like direction),
+        //1 for things like _ or |, 2 for most things, or 3 for the rare g and p
+        //-1 signifies we are pushing
+
+        /// <summary>
+        /// A struct to store information relating to a command
+        /// </summary>
+        /// <param name="inName">The char representing it</param>
+        /// <param name="inType">The command type it is</param>
+        /// <param name="inColor">How the console should display it</param>
+        /// <param name="numToPop">How many pop operations you'll need (-1 for push)</param>
+        public CommandInfo(char inName, CommandType inType, ConsoleColor inColor, int numToPop)
+        {
+            name = inName;
+            type = inType;
+            color = inColor;
+            this.numToPop = numToPop;
+        }
+    }
+
+    struct Vector2D
+    {
+        public int x;
+        public int y;
     }
 
     class BoardInterpreter
     {
-        private BoardManager boardRef;
+        //Constants for directions
+        const int NORTH = -1;
+        const int EAST = 1;
+        const int SOUTH = 1;
+        const int WEST = -1;
+
+        private BoardManager bRef;
 
         //Direction of the instruction pointer
-        private Direction direction;
+        private Vector2D direction;
+
+        //For if we are currently picking up chars in a string mode
+        private bool isStringMode;
 
         //Instruction Pointer X(column) and Y(row)
         private int IP_X;
@@ -40,11 +87,16 @@ namespace BefungePF
         public int X { get { return IP_X; } }
         public int Y { get { return IP_Y; } }
 
+        /// <summary>
+        /// Controls the intepretation and execution of commands
+        /// </summary>
+        /// <param name="mgr">A reference to the manager</param>
         public BoardInterpreter(BoardManager mgr)
         {
-            boardRef = mgr;
+            bRef = mgr;
+            isStringMode = false;
+            SetDirection(Direction.East);
 
-            direction = Direction.East;
             IP_X = 0;
             IP_Y = 0;
         }
@@ -59,131 +111,431 @@ namespace BefungePF
 
         private void DrawIP()
         {
+            //TODO: Fix the wrap around problem
+
             //Get the previous charecter, where the ip just was
             //Set the cursor's position
             //Write the charecter
             char prevChar = '\0';
             //Change the background color to what it should be
             Console.BackgroundColor = ConsoleColor.Black;
+
+            Direction direct = GetDirection();
             
-            switch (direction)
+            switch (direct)
             {
                 case Direction.North:
-                    prevChar = boardRef.GetCharecter(IP_Y+1, IP_X);
+                    prevChar = bRef.GetCharecter(IP_Y+1, IP_X);
                     if (prevChar != '\0')
                     {
                         Console.SetCursorPosition(IP_X, IP_Y + 1);
-                        Console.ForegroundColor = BoardManager.LookupColor(prevChar);
+                        Console.ForegroundColor = BoardManager.LookupInfo(prevChar).color;
                         Console.Write(prevChar);
                     }
                     break;
                 case Direction.East:
-                    prevChar = boardRef.GetCharecter(IP_Y, IP_X-1);
+                    prevChar = bRef.GetCharecter(IP_Y, IP_X-1);
                     if (prevChar != '\0')
                     {
                         Console.SetCursorPosition(IP_X - 1, IP_Y);
-                        Console.ForegroundColor = BoardManager.LookupColor(prevChar);
+                        Console.ForegroundColor = BoardManager.LookupInfo(prevChar).color;
                         Console.Write(prevChar);
                     }
                     break;
                 case Direction.South:
-                    prevChar = boardRef.GetCharecter(IP_Y-1, IP_X);
+                    prevChar = bRef.GetCharecter(IP_Y-1, IP_X);
                     if (prevChar != '\0')
                     {
                         Console.SetCursorPosition(IP_X, IP_Y - 1);
-                        Console.ForegroundColor = BoardManager.LookupColor(prevChar);
+                        Console.ForegroundColor = BoardManager.LookupInfo(prevChar).color;
                         Console.Write(prevChar);
                     }
                     break;
                 case Direction.West:
-                    prevChar = boardRef.GetCharecter(IP_Y, IP_X+1);
+                    prevChar = bRef.GetCharecter(IP_Y, IP_X+1);
                     if (prevChar != '\0')
                     {
                         Console.SetCursorPosition(IP_X + 1, IP_Y);
-                        Console.ForegroundColor = BoardManager.LookupColor(prevChar);
+                        Console.ForegroundColor = BoardManager.LookupInfo(prevChar).color;
                         Console.Write(prevChar);
                     }
                     break;
             }
 
             //Get the current ip's
-            char charecterUnder = boardRef.GetCharecter(IP_Y, IP_X);
+            char charecterUnder = bRef.GetCharecter(IP_Y, IP_X);
             Console.SetCursorPosition(IP_X, IP_Y);
             //Change the background color and write it
             Console.BackgroundColor = ConsoleColor.Gray;
-            Console.ForegroundColor = BoardManager.LookupColor(charecterUnder);
+            Console.ForegroundColor = BoardManager.LookupInfo(charecterUnder).color;
             Console.Write(charecterUnder);
             //Change it back for safety
             Console.BackgroundColor = ConsoleColor.Black;
         }
-
         
+        /// <summary>
+        /// Gets the direction the IP is going
+        /// </summary>
+        /// <returns>The direction the IP is going</returns>
+        private Direction GetDirection()
+        {
+            //If x is not 0 then we are going E or W
+            if (direction.x != 0)
+            {
+                if (direction.x == -1)
+                {
+                    return Direction.West;
+                }
+                else
+                {
+                    return Direction.East;
+                }
+            }
+            else//else we are going N or S
+            {
+                if (direction.y == -1)
+                {
+                    return Direction.North;
+                }
+                else
+                {
+                    return Direction.South;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Changes the IP's direction where you want it to go
+        /// </summary>
+        /// <param name="intendedDirection">The direction you'd like to set the IP to</param>
+        private void SetDirection(Direction intendedDirection)
+        {
+            switch (intendedDirection)
+            {
+                case Direction.North:
+                    direction.x = 0;
+                    direction.y = NORTH;
+                    break;
+                case Direction.East:
+                    direction.x = EAST;
+                    direction.y = 0;
+                    break;
+                case Direction.South:
+                    direction.x = 0;
+                    direction.y = SOUTH;
+                    break;
+                case Direction.West:
+                    direction.x = WEST;
+                    direction.y = 0;
+                    break;
+            }
+        }
+
+        private void MoveIP(int extraAmount = 0)
+        {
+            //Based on the direction move or wrap the pointer around
+            Direction dir = GetDirection();
+            switch (dir)
+            {
+                case Direction.North:
+                    if (IP_Y > 0)
+                    {
+                        IP_Y -= 1+extraAmount;
+                    }
+                    else
+                    {
+                        IP_Y = 24+extraAmount;
+                    }
+                    break;
+                case Direction.East:
+                    if (IP_X < 79 - 1)
+                    {
+                        IP_X += 1+extraAmount;
+                    }
+                    else
+                    {
+                        IP_X = 0;
+                    }
+                    break;
+                case Direction.South:
+                    if (IP_Y < 24 - 1)
+                    {
+                        IP_Y += 1+extraAmount;
+                    }
+                    else
+                    {
+                        IP_Y = 0+extraAmount;
+                    }
+                    break;
+                case Direction.West:
+                    if (IP_X > 0)
+                    {
+                        IP_X -= 1+extraAmount;
+                    }
+                    else
+                    {
+                        IP_X = 79 + extraAmount;
+                    }
+                    break;
+            }
+        }
+
         private CommandType TakeStep()
         {
             /* 1.) Find out what is under the IP
-             * 2.) Execute command
-             * 3.) Move along delta
+             * 2.) Lookup Info about it
+             * 3.) Based on number to pop check to make sure the stack has enough to keep going
+             * 4.) Execute Command
+             * 5.) Move along delta
              */
-            char cmd = boardRef.GetCharecter(IP_Y, IP_X);
-            CommandType returnType;
+            char cmd = bRef.GetCharecter(IP_Y, IP_X);
+
+            CommandInfo info = BoardManager.LookupInfo(cmd);
+
+            //If we are currently in string mode
+            //And its not a space and not a " (so we can leave string mode)
+            if (isStringMode == true && cmd != ' ' && cmd != '"')
+            {
+                //Push the charecter value, move and return
+                bRef.GlobalStack.Push((int)cmd);
+                MoveIP();
+                return CommandType.String;
+            }
+
+            //Ensure that there will always be enough in the stack
+            while (bRef.GlobalStack.Count < info.numToPop)
+            {
+                bRef.GlobalStack.Push(0);
+            }
+
             switch (cmd)
             {
                 //Logic
-                case '!':
-                case '_':
-                case '|':
-                case '`':
-                    returnType = CommandType.Logic;
+                case '!'://not
+                    if (bRef.GlobalStack.Pop() != 0)
+                    {
+                        bRef.GlobalStack.Push(0);
+                    }
+                    else
+                    {
+                        bRef.GlobalStack.Push(1);
+                    }
                     break;
+                case '_':
+                    if (bRef.GlobalStack.Pop() == 0)
+                    {
+                        SetDirection(Direction.East);
+                    }
+                    else
+                    {
+                        SetDirection(Direction.West);
+                    }
+                    break;
+                case '|':
+                    if (bRef.GlobalStack.Pop() == 0)
+                    {
+                        SetDirection(Direction.South);
+                    }
+                    else
+                    {
+                        SetDirection(Direction.North);
+                    }
+                    break;
+                case '`'://Greater than 
+                    {
+                        int a = bRef.GlobalStack.Pop();
+                        int b = bRef.GlobalStack.Pop();
+
+                        if (b > a)
+                        {
+                            bRef.GlobalStack.Push(1);
+                        }
+                        else
+                        {
+                            bRef.GlobalStack.Push(0);
+                        }
+                    }
+                    break;
+                case 'w'://Funge98 compare function
+                    {
+                        //Pop a and b off the stack
+                        int a = bRef.GlobalStack.Pop();
+                        int b = bRef.GlobalStack.Pop();
+                        
+                        //Get our current direction
+                        Direction currentDir = GetDirection();
+                        
+                        if (b < a)//If b is less than turn left
+                        {
+                            switch (currentDir)
+                            {
+                                case Direction.North:
+                                    SetDirection(Direction.West);
+                                    break;
+                                case Direction.East:
+                                    SetDirection(Direction.North);
+                                    break;
+                                case Direction.South:
+                                    SetDirection(Direction.East);
+                                    break;
+                                case Direction.West:
+                                    SetDirection(Direction.South);
+                                    break;
+                            }
+                        }
+                        else if (b > a)//if b is more turn right
+                        {
+                            switch (currentDir)
+                            {
+                                case Direction.North:
+                                    SetDirection(Direction.East);
+                                    break;
+                                case Direction.East:
+                                    SetDirection(Direction.South);
+                                    break;
+                                case Direction.South:
+                                    SetDirection(Direction.West);
+                                    break;
+                                case Direction.West:
+                                    SetDirection(Direction.North);
+                                    break;
+                            }
+                        }
+                        else //if b = a do nothing
+                        {
+                            if (b != a)
+                            {
+                                int we_have_a_problem = 0;
+                                throw new Exception("WTF?!");
+                            }
+                        }
+                    }
+                    break;
+
                 //Flow control
                 case '^':
-                    direction = Direction.North;
-                    returnType = CommandType.Movement;
+                    SetDirection(Direction.North);
                     break;
                 case '>':
-                    direction = Direction.East;
-                    returnType = CommandType.Movement;
+                    SetDirection(Direction.East);
                     break;
                 case '<':
-                    direction = Direction.West;
-                    returnType = CommandType.Movement;
+                    SetDirection(Direction.West);
                     break;
                 case 'v':
-                    direction = Direction.South;
-                    returnType = CommandType.Movement;
+                    SetDirection(Direction.South);
                     break;
                 case '?':
                     Random rnd = new Random();
-                    direction = (Direction)rnd.Next(0, 4);
-                    returnType = CommandType.Movement;
+                    SetDirection((Direction)rnd.Next(0, 4));
                     break;
                 case '#':
-                    returnType = CommandType.Movement;
-                    break;
-                case '@':
-                    returnType = CommandType.StopExecution;
+                    MoveIP();//Skip one space
                     break;
                 //Funge-98 flow control
+                case '['://Rotate 90 degrees counter clockwise
+                    {
+                        Direction currentDir = GetDirection();
+                        switch (currentDir)
+                        {
+                            case Direction.North:
+                                SetDirection(Direction.West);
+                                break;
+                            case Direction.East:
+                                SetDirection(Direction.North);
+                                break;
+                            case Direction.South:
+                                SetDirection(Direction.East);
+                                break;
+                            case Direction.West:
+                                SetDirection(Direction.South);
+                                break;
+                        }
+                    }
+                    break;
+                case ']'://Rotate 90's clockwise
+                    {
+                        Direction currentDir = GetDirection();
+                        switch (currentDir)
+                        {
+                            case Direction.North:
+                                SetDirection(Direction.East);
+                                break;
+                            case Direction.East:
+                                SetDirection(Direction.South);
+                                break;
+                            case Direction.South:
+                                SetDirection(Direction.West);
+                                break;
+                            case Direction.West:
+                                SetDirection(Direction.North);
+                                break;
+                        }
+                    }
+                    break;
+                //--Not implemented instructions that will act like r
+                //---------------------------------------------------
+                case 'r':
+                    {
+                        Direction currentDir = GetDirection();
+                        switch (currentDir)
+                        {
+                            case Direction.North:
+                                SetDirection(Direction.South);
+                                break;
+                            case Direction.East:
+                                SetDirection(Direction.West);
+                                break;
+                            case Direction.South:
+                                SetDirection(Direction.North);
+                                break;
+                            case Direction.West:
+                                SetDirection(Direction.East);
+                                break;
+                        }
+                    }
+                    break;
+                case ';':
+                case 'x'://Absolute delta                 
                 case 'j':
                 case 'k':
-                case 'q':
-                case '[':
-                case ']':
-                case 'r':
-                case ';':
-                    returnType = CommandType.Movement;
                     break;
+                case '@':
+                    
+                case 'q'://Not fully implimented
+                    return CommandType.StopExecution;
+                    break;           
 
-                case '"':
-                case '\''://This is the ' charector
+
                 //Arithmatic
-                case '*':
                 case '+':
-                case '-':
-                case '/':
-                case '%':
-                    returnType = CommandType.Arithmatic;
+                    bRef.GlobalStack.Push(bRef.GlobalStack.Pop() + bRef.GlobalStack.Pop());
                     break;
+                case '-'://Subtract b-a
+                    {
+                        int a = bRef.GlobalStack.Pop();
+                        int b = bRef.GlobalStack.Pop();
+                        bRef.GlobalStack.Push(b - a);
+                    }
+                    break;
+                case '*':
+                    bRef.GlobalStack.Push(bRef.GlobalStack.Pop() * bRef.GlobalStack.Pop());
+                    break;
+                case '/'://Divide b/a
+                    {
+                        int a = bRef.GlobalStack.Pop();
+                        int b = bRef.GlobalStack.Pop();
+                        double result = b / a;
+                        bRef.GlobalStack.Push((int)Math.Round(result));
+                    }
+                    break;
+                case '%'://modulous b % a
+                    {
+                        int a = bRef.GlobalStack.Pop();
+                        int b = bRef.GlobalStack.Pop();
+                        bRef.GlobalStack.Push(b % a);
+                    }
+                    break;              
                 //Numbers
                 case '0':
                 case '1':
@@ -194,10 +546,8 @@ namespace BefungePF
                 case '6':
                 case '7':
                 case '8':
-                case '9':
-                    //Push the number (offset by the ascii code number)
-                    boardRef.PushValue(boardRef.GlobalStack, (int)cmd - 48);
-                    returnType = CommandType.Numbers;
+                case '9':                    
+                    bRef.GlobalStack.Push((int)cmd-48);
                     break;
                 case 'a':
                 case 'b':
@@ -205,53 +555,97 @@ namespace BefungePF
                 case 'd':
                 case 'e':
                 case 'f':
-                    //Push the number (offset by the ascii code number-10)
-                    boardRef.PushValue(boardRef.GlobalStack, (int)cmd - 97 - 10);
-                    returnType = CommandType.Numbers;
+                    bRef.GlobalStack.Push((int)cmd - 87);
                     break;
                 //Stack Manipulation
-                case ':':
-                case '=':
-                case '\\':
-                case '$':
-                    returnType = CommandType.Numbers;
+                case ':'://Duplication
+                    bRef.GlobalStack.Push(bRef.GlobalStack.Peek());
                     break;
-                //IO
-                case '&':
-                case '~':
-                case ',':
-                case '.':
+                case '$'://Discard Top Value
+                    bRef.GlobalStack.Pop();
+                    break;
+                case '\\'://Swap the top two values
+                    {
+                        int a = bRef.GlobalStack.Pop();
+                        int b = bRef.GlobalStack.Pop();
+
+                        bRef.GlobalStack.Push(a);
+                        bRef.GlobalStack.Push(b);//Now b is on top
+                    }
+                    break;
+                case 'n'://Clear stack
+                    bRef.GlobalStack.Clear();
+                    break;
+                    //IO
+                case '&'://Read int
+                    string input = Console.ReadLine();
+                    int outResult = 0;
+                    bool succeded = int.TryParse(input,out outResult);
+                    if (succeded == true)
+                    {
+                        bRef.GlobalStack.Push(outResult);
+                    }
+                    else
+                    {
+                        bRef.GlobalStack.Push(0);
+                    }
+                    break;
+                case '~'://Read char
+                    char charInput = Console.ReadKey(true).KeyChar;
+                    bRef.GlobalStack.Push((int)charInput);
+                    break;
+                case ','://Output charecter
+                    {
+                        char outChar = (char)bRef.GlobalStack.Pop();
+                        string outVal = outChar.ToString();
+
+                        bRef.BUI.OutputList.Add(outVal);
+                    }
+                    break;
+                case '.'://Output as number
+                    bRef.BUI.OutputList.Add(Convert.ToString(bRef.GlobalStack.Pop()));
+                    break;
+                //Funge 98 stack manipulation
+                case 'u':
+                case '{':
+                case '}':
+                    break;
                 //Funge-98
                 case 'i':
                 case 'o':
-                    returnType = CommandType.IO;
+                    try
+                    {
+
+                    }
+                    catch (Exception e)
+                    {
+
+                    }
+                    finally
+                    {
+
+                    }
                     break;
                 //Data Storage
                 case 'g':
                 case 'p':
-                    returnType = CommandType.DataStorage;
-                    break;
-                case 'h':
-
-
-                case 'l':
-                case 'm':
-                case 'n':
-
-
-
+                    
                 case 's':
-                case 't':
-                case 'u':
-                case 'w':
-                case 'x':
 
-                case 'z':
-                case '{':
-                case '}':
+                    break;
+                //String Manipulation
+                case '"':
+                    //Negates and assaigns, a fancy toggle
+                    isStringMode = !isStringMode;
+                    break;
+                case '\''://' "Fetch Charecter", 
+                //pushes the next charecter at (pos + delta)'s char value
+                //and skips over it, like a # command
+
+                case 't'://Split IP Concurrent
 
                 //Funge-98 ONLY Schematics
-
+                case '=':
                 //Handprint stuff
                 case 'y':
                 //Footprint stuff
@@ -283,58 +677,18 @@ namespace BefungePF
                 case 'X':
                 case 'Y':
                 case 'Z':
-                    returnType = CommandType.NotImplemented;
                     break;
-                default:
-                    returnType = CommandType.NotImplemented;
+
+                //Trefunge or more
+                case 'h':
+                case 'l':
+                case 'm':
+                case 'z'://No operation
                     break;
             }
 
-            //Based on the direction move or wrap the pointer around
-            switch (direction)
-            {
-                case Direction.North:
-                    if (IP_Y > 0)
-                    {
-                        IP_Y -= 1;
-                    }
-                    else
-                    {
-                        IP_Y = 24;
-                    }
-                    break;
-                case Direction.East:
-                    if (IP_X < 79 - 1)
-                    {
-                        IP_X += 1;
-                    }
-                    else
-                    {
-                        IP_X = 0;
-                    }
-                    break;
-                case Direction.South:
-                    if (IP_Y < 24-1)
-                    {
-                        IP_Y += 1;
-                    }
-                    else
-                    {
-                        IP_Y = 0;
-                    }
-                    break;
-                case Direction.West:
-                    if (IP_X > 0)
-                    {
-                        IP_X -= 1;
-                    }
-                    else
-                    {
-                        IP_X = 79;
-                    }
-                    break;
-            }
-            return returnType;
+            MoveIP();
+            return info.type;
         }
     }
 }

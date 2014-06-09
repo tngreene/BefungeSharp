@@ -37,6 +37,11 @@ namespace BefungePF
             while (runProgram)
             {
                 Console.Clear();
+
+                //A silly bit of fun to make the menu look cooler
+                Random rnd = new Random();
+                Console.ForegroundColor = (ConsoleColor)rnd.Next(7,16);
+                
                 //Ask what they would like to do
                 Console.WriteLine("Welcome to BefungePF! Please select an option:\n");
                 Console.WriteLine("1.) New File");
@@ -100,7 +105,7 @@ namespace BefungePF
                 //Create the board and inialize it based on the above
                 //(you also have the potential to enter the options or help
                 BoardManager board;
-                //= new BoardManager();
+
                 switch (programMode)
                 {
                     case ProgramMode.NewFile:
@@ -109,9 +114,7 @@ namespace BefungePF
                         break;
                     case ProgramMode.OpenFile:
                         string[] initLines = ExamplePrograms.calculator;
-                            
-                        int[] initInputs = {0, 97, 52, 120 };
-                        board = new BoardManager(25, 80, initLines, initInputs);
+                        board = new BoardManager(25, 80, initLines);
                         board.UpdateBoard();
                         break;
                     case ProgramMode.Options:

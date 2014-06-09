@@ -53,6 +53,8 @@ namespace BefungePF
 
         private BoardField bF;
         private BoardUI bUI;
+        public BoardUI BUI { get { return bUI; } }
+
         private BoardInterpreter bInterp;
 
         //The current mode of the board
@@ -104,26 +106,26 @@ namespace BefungePF
         /// Each element in the array represents a row of text.
         /// If you wish a blank board pass in an empty array
         /// </param>
-        /// <param name="initInput">Initialize the input stack with preset numbers</param>
+        /// <param name="initGlobalStack">Initialize the input stack with preset numbers</param>
         /// <param name="mode">Chooses what mode you would like to start the board in</param>
         public BoardManager(int rows, int columns, string[] initChars = null,
-                            int[] initInput = null, BoardMode mode = BoardMode.Edit)
+                            int[] initGlobalStack = null, BoardMode mode = BoardMode.Edit)
         {
             //Intialize the board array to be the size of the board
             boardArray = new List<List<char>>(rows);
 
             //Initialize stacks
-            globalStack = new Stack<int>();
+            //globalStack = new Stack<int>();
             localStacks = new Stack<Stack<int>>();
 
             //Copy all the data from the initialInput
-            if (initInput != null)
+            if (initGlobalStack != null)
             {
-                inputStack = new Stack<int>(initInput);
+                globalStack = new Stack<int>(initGlobalStack);
             }
             else
             {
-                inputStack = new Stack<int>();
+                globalStack = new Stack<int>();
             }
             needsRedraw = true;
             curMode = mode;
@@ -192,7 +194,7 @@ namespace BefungePF
             {
                 boardArray[row][column] = charecter;
                 Console.SetCursorPosition(column, row);
-                Console.ForegroundColor = LookupColor(charecter);
+                Console.ForegroundColor = LookupInfo(charecter).color;
                 Console.Write(charecter);
                 //needsRedraw = true;
                 return true;
@@ -225,11 +227,19 @@ namespace BefungePF
                     case BoardMode.Run_SLOW:
                     case BoardMode.Run_STEP:
                         type = bInterp.Update();
-                        //if (type != CommandType.Movement ||
-                          //  type != CommandType.
-                        //{
+                        
+                        bUI.ClearArea(curMode);
+                        bUI.Draw(curMode);
+                       
+                        if (type == CommandType.StopExecution)
+                        {
+                            curMode = BoardMode.Edit;
+                            //Draw the field and ui and reset the position
+                            bF.Draw(curMode);
+                            bUI.ClearArea(curMode);
                             bUI.Draw(curMode);
-                        //}
+                            Console.SetCursorPosition(0, 0);
+                        }
                         break;
                     case BoardMode.Edit:
                         Console.CursorVisible = true;
@@ -263,6 +273,13 @@ namespace BefungePF
                                         editCursorL++;
                                     }
                                     break;
+                                case ConsoleKey.Spacebar:
+                                    InsertChar(editCursorT, editCursorL, ' ');
+                                    if (editCursorL < Console.WindowWidth - 1)
+                                    {
+                                        editCursorL++;
+                                    }
+                                    break;
                                 case ConsoleKey.Backspace:
                                     if (editCursorL > 0)
                                     {
@@ -277,7 +294,13 @@ namespace BefungePF
                                 case ConsoleKey.F5:
                                     curMode = BoardMode.Run_MEDIUM;
                                     Console.CursorVisible = false;
+
+                                    //Reset UI
+                                    bUI.OutputList.Clear();
                                     bUI.ClearArea(curMode);
+
+                                    //Reset Interpreter
+                                    bInterp = new BoardInterpreter(this);
                                     break;
                                 case ConsoleKey.Escape:
                                     return;//Go back to the main menu
@@ -309,9 +332,7 @@ namespace BefungePF
                 System.Threading.Thread.Sleep((int)curMode);
             }//while(true)
         }//Update()
-        
-       
-        
+
         /// <summary>
         /// Gets a charecter at a certain row and column
         /// </summary>
@@ -320,6 +341,7 @@ namespace BefungePF
         /// <returns>The given charecter, or '\0' if it is out of bounds or had an error</returns>
         public char GetCharecter(int row, int column)
         {
+            //Make sure the row and column are in range
             if (row > boardArray.Count-1 || row < 0)
             {
                 return '\0';
@@ -329,18 +351,10 @@ namespace BefungePF
                 return '\0';
             }
 
+            //If it is, return the charecter
             return boardArray[row][column];
         }
 
-        public int PopValue(Stack<int> inStack)
-        {
-            return inStack.Pop();
-        }
-
-        public void PushValue(Stack<int> inStack, int value)
-        {
-            inStack.Push(value);
-        }
         /// <summary>
         /// Get which keys are currently pressed down and return them
         /// </summary>
@@ -373,11 +387,11 @@ namespace BefungePF
         }
 
         /// <summary>
-        /// Based on the charecter return the console color to use
+        /// Based on the charecter return the CommandInfo associated with it
         /// </summary>
         /// <param name="inChar">The charecter to reference</param>
-        /// <returns>The corisponding color</returns>
-        public static ConsoleColor LookupColor(char inChar)
+        /// <returns>The corisponding CommandInfo</returns>
+        public static CommandInfo LookupInfo(char inChar)
         {
             switch (inChar)
             {
@@ -385,35 +399,45 @@ namespace BefungePF
                 case '!':
                 case '_':
                 case '|':
+                    return new CommandInfo(inChar, CommandType.Logic, ConsoleColor.DarkGreen, 1);
                 case '`':
-                    return ConsoleColor.DarkGreen;
+                case 'w':
+                    return new CommandInfo(inChar, CommandType.Logic, ConsoleColor.DarkGreen, 2);
+
                 //Flow control
                 case '^':
                 case '>':
                 case '<':
                 case 'v':
                 case '?':
-                case '#':
-
+                case '#':  
                 //Funge-98 flow control
-                case 'j':
-                case 'k':
-                case 'q':
                 case '[':
                 case ']':
                 case 'r':
                 case ';':
-                    return ConsoleColor.Cyan;
-
-                case '"':
-                case '\''://This is the ' charector
+                    CommandInfo flowCommand = new CommandInfo(inChar, CommandType.Movement, ConsoleColor.Cyan, 0);
+                    return flowCommand;
+                case 'j':
+                case 'k':
+                    CommandInfo flowCommand98 = new CommandInfo(inChar, CommandType.Movement, ConsoleColor.Cyan, 1);
+                    return flowCommand98;
+                case 'x':
+                    return new CommandInfo(inChar, CommandType.Movement, ConsoleColor.Cyan, 2);
+                case '@':
+                case 'q':
+                    CommandInfo stopCommand = new CommandInfo(inChar, CommandType.StopExecution, ConsoleColor.Red, 0);
+                    return stopCommand;
+                    
+                
                 //Arithmatic
                 case '*':
                 case '+':
                 case '-':
                 case '/':
                 case '%':
-                    return ConsoleColor.Blue;
+                    CommandInfo arithmaticCommand = new CommandInfo(inChar, CommandType.Arithmatic, ConsoleColor.Green, 2);
+                    return arithmaticCommand;
                 //Numbers
                 case '0':
                 case '1':
@@ -431,48 +455,62 @@ namespace BefungePF
                 case 'd':
                 case 'e':
                 case 'f':
-                    return ConsoleColor.Magenta;
+                    CommandInfo numberCommand = new CommandInfo(inChar, CommandType.Numbers, ConsoleColor.Magenta, -1);
+                    return numberCommand;
+
                 //Stack Manipulation
+                CommandInfo stackManipCommand;
                 case ':':
-                case '=':
-                case '@':
-                case '\\':
+                    stackManipCommand = new CommandInfo(inChar, 
+                                                        CommandType.StackManipulation, 
+                                                        ConsoleColor.DarkYellow, 1);//Technically we're not poping
+                                                                                    //But it does require something on the stack
+                    return stackManipCommand;
                 case '$':
-                    return ConsoleColor.DarkMagenta;
+                    stackManipCommand = new CommandInfo(inChar, CommandType.StackManipulation, ConsoleColor.DarkYellow, 1);
+                    return stackManipCommand;
+                case '\\':
+                    stackManipCommand = new CommandInfo(inChar, CommandType.StackManipulation, ConsoleColor.DarkYellow, 2);
+                    return stackManipCommand;
+                case 'n':
+                    return new CommandInfo(inChar, CommandType.StackManipulation, ConsoleColor.DarkYellow, 1);//Op must be >=1 on stack
+                    
                 //IO
+                CommandInfo ioCommand;
                 case '&':
                 case '~':
+                    ioCommand = new CommandInfo(inChar, CommandType.IO, ConsoleColor.Gray, -1);
+                    return ioCommand;
                 case ',':
                 case '.':
+                    ioCommand = new CommandInfo(inChar, CommandType.IO, ConsoleColor.Gray, 1);
+                    return ioCommand;
                 //Funge-98
                 case 'i':
                 case 'o':
-                    return ConsoleColor.Gray;
+                    return new CommandInfo(inChar,
+                                           CommandType.IO,
+                                           ConsoleColor.Gray,-Int32.MaxValue);//Beware, must be a try catch operation!
                 //Data Storage
                 case 'g':
                 case 'p':
-
-                case 'h':
-
-
-                case 'l':
-                case 'm':
-                case 'n':
-
-
-
+                    return new CommandInfo(inChar, CommandType.DataStorage, ConsoleColor.Green, 3);
+                //String Manipulation
+                case '"':
+                    return new CommandInfo(inChar, CommandType.String, ConsoleColor.Green, 0);
                 case 's':
-                case 't':
-                case 'u':
-                case 'w':
-                case 'x':
 
-                case 'z':
+                case '\''://This is the ' charector
+            
+                case 't':
+
+                //Stack-Stack Manipulation 98
+                case 'u':
                 case '{':
                 case '}':
 
                 //Funge-98 ONLY Schematics
-
+                case '=':
                 //Handprint stuff
                 case 'y':
                 //Footprint stuff
@@ -504,9 +542,16 @@ namespace BefungePF
                 case 'X':
                 case 'Y':
                 case 'Z':
-                    break;
+
+                //--Will never be implemented
+                case 'h'://Go high, 3D movement
+                case 'l'://Go low, 3D movement
+                case 'm'://3D if statment
+                case 'z'://Does not exist
+                //---------------------------
+                    return new CommandInfo(inChar, CommandType.NotImplemented, ConsoleColor.DarkRed, 0);
             }
-            return ConsoleColor.White;
+            return new CommandInfo();
         }
     }
 }
