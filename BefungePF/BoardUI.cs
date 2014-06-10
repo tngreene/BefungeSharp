@@ -63,7 +63,7 @@ namespace BefungePF
                     Console.CursorTop = UI_TOP;
                     Console.CursorLeft = 0;
                    
-                    Console.WriteLine("New File - Ctrl-N  | Save - Ctrl-S | Run (Medium) - F5 | Main Menu - Escape");
+                    Console.WriteLine("New File - Ctrl-N  | Save - Alt - S | Run (Medium) - F5 | Main Menu - Escape");
                     break;
             }
         }

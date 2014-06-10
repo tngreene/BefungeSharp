@@ -245,7 +245,7 @@ namespace BefungePF
                         Console.CursorVisible = true;
                         #region --HandleInput-------------
                         for (int i = 0; i < keysHit.Length; i++)
-                        {
+                        {                                   
                             switch (keysHit[i].Key)
                             {
                                 //Arrow Keys move the cursor
@@ -286,7 +286,6 @@ namespace BefungePF
                                         editCursorL--;
                                     }
                                     InsertChar(editCursorT, editCursorL, ' ');
-                                    //editCursorL--;
                                     break;
                                 case ConsoleKey.Enter:
                                     Console.SetCursorPosition(0, editCursorT + 1);
@@ -302,15 +301,32 @@ namespace BefungePF
                                     //Reset Interpreter
                                     bInterp = new BoardInterpreter(this);
                                     break;
+                                case ConsoleKey.S:
+                                    if (keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Alt))
+                                    {
+                                        SaveBoard();
+                                    }
+                                    else
+                                    {
+                                        bool success = InsertChar(editCursorT, editCursorL, keysHit[0].KeyChar);
+
+                                        //Go to the next space, if you can
+                                        if (editCursorL < Console.WindowWidth - 1 && success == true)
+                                        {
+                                            editCursorL++;
+                                        }
+                                    }
+                                    break;
                                 case ConsoleKey.Escape:
                                     return;//Go back to the main menu
+                                
                                 case ConsoleKey.End:
                                     Environment.Exit(1);//End the program
                                     break;
                                 default:
                                     if (keysHit[0].KeyChar > 32 && keysHit[0].KeyChar < 126)
                                     {
-                                       bool success = InsertChar(editCursorT, editCursorL, keysHit[0].KeyChar);
+                                        bool success = InsertChar(editCursorT, editCursorL, keysHit[0].KeyChar);
 
                                         //Go to the next space, if you can
                                         if (editCursorL < Console.WindowWidth - 1 && success == true)
@@ -502,7 +518,7 @@ namespace BefungePF
 
                 case '\''://This is the ' charector
             
-                case 't':
+                case 't'://Split IP, for concurrent Funge
 
                 //Stack-Stack Manipulation 98
                 case 'u':
@@ -553,5 +569,70 @@ namespace BefungePF
             }
             return new CommandInfo();
         }
-    }
-}
+
+        /// <summary>
+        /// Saves the current board to the default save location
+        /// </summary>
+        private void SaveBoard()
+        {
+            //Clears the screen and writes info
+            Console.Clear();
+            Console.Write("File Name: ");
+
+            //Read filename from user
+            string input;
+            bool goodInput = false;
+            do
+            {
+                input = Console.ReadLine();
+
+                if (input == "" || input == "\n" || input == "\r\n")
+                {
+                    //TODO checking if the file name is dumb if(!input.Contains((string)System.IO.Path.GetInvalidFileNameChars()[0]))
+
+                    Console.WriteLine("Please put in a valid name");
+                }
+                else
+                {
+                    goodInput = true;
+                }
+            }
+            while(goodInput == false);
+
+            //Test the ending
+            string extention = System.IO.Path.GetExtension(input);
+            switch (extention)
+            {
+                //If they have included either a .txt or .bf then its okay
+                case ".txt":
+                case ".bf":
+                    break;
+                default:
+                    //Otherwise use the default extension
+                    input += ".txt";//OptionsManager.OptionsDictionary["Default extension"]
+                    break;
+            }
+            List<string> outStrings = new List<string>();
+
+            for (int y = 0; y < boardArray.Count; y++)
+            {
+                string currentLine = null;
+                for (int x = 0; x < boardArray[y].Count; x++)
+                {
+                    currentLine += boardArray[y][x].ToString();
+                }
+                outStrings.Add(currentLine);
+            }
+            
+            BefungePF.Program.WriteFile(System.IO.Directory.GetCurrentDirectory() + "\\" + input, outStrings);
+
+            Console.Clear();
+
+            //Draw the field and ui and reset the position
+            bF.Draw(curMode);
+            bUI.ClearArea(curMode);
+            bUI.Draw(curMode);
+            Console.SetCursorPosition(0, 0);
+        }
+    }//class BoardManager
+}//Namespace BefungePF

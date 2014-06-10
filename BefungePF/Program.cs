@@ -120,6 +120,15 @@ namespace BefungePF
                     case ProgramMode.Options:
                         //Set up the options menu
                         //Run its loop
+
+                        //A test for the write file function
+                        List<string> outOptions = new List<string>();
+                        outOptions.Add("DEFAULTRUNSPEED=MEDIUM");
+                        outOptions.Add("DISPLAYASASCII=FALSE");
+                        outOptions.Add("BREAKONZ=FALSE");
+                        outOptions.Add("DEFAULTEXTENSION=.txt");
+
+                        WriteFile(Directory.GetCurrentDirectory() + "\\options.txt", outOptions);
                         break;
                     case ProgramMode.Help:
                         //Set up the options menu
@@ -128,32 +137,82 @@ namespace BefungePF
                 }//Program mode initalization and running
             }//While(runProgram)
         }//Main(string[]args)
-    }//class Program
-}//Namespace BefungePF
 
+        /// <summary>
+        /// A wrapper around StreamReader operations
+        /// </summary>
+        /// <param name="filePath">Full path to the file you want to open</param>
+        /// <returns>A list of strings containing the lines of the file</returns>
+        public static List<string> ReadFile(string filePath)
+        {
+            //The stream for reading the file
+            StreamReader rStream = null;
 
-/*StreamReader rStream;
-            StreamWriter wStream;
-            Console.BufferHeight = Console.WindowHeight;
-            //Try to find the options file
+            //The final list of strings
+            List<string> inStrings = new List<string>();
+            
             try
             {
-                string currentPath = Directory.GetCurrentDirectory();
-                //If there
-                if (Directory.GetFiles(currentPath, "options.txt") != null)
+                //Create the stream reader from the file path
+                rStream = new StreamReader(filePath);
+
+                string currentLine;
+
+                //While the next charecter is not null
+                while(rStream.Peek() != 0)
                 {
-                    rStream = new StreamReader(currentPath + "options.txt");
+                    //Read a line and add it
+                    currentLine = rStream.ReadLine();
+                    inStrings.Add(currentLine);
                 }
             }
             catch (Exception e)
             {
+                Console.WriteLine("Error reading: " + e.Message);
             }
             finally
             {
-                //if (rStream != null)
+                //Make sure we close the stream
+                if (rStream != null)
                 {
-                    //     rStream.Close();
+                    rStream.Close();
                 }
-                //wStream.Close();
             }
-            */
+            return inStrings;
+        }
+
+        /// <summary>
+        /// A wraper around StreamWriter operations
+        /// </summary>
+        /// <param name="filePath">Full path to the file you want to open</param>
+        /// <param name="outStrings">The list of strings you want to write out</param>
+        public static void WriteFile(string filePath, List<string> outStrings)
+        {
+            //The stream for writing the file
+            StreamWriter wStream = null;
+
+            try
+            {
+                //Create the stream writer from the file path
+                wStream = new StreamWriter(filePath);
+
+                for (int i = 0; i < outStrings.Count; i++)
+                {
+                    wStream.WriteLine(outStrings[i]);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error reading: " + e.Message);
+            }
+            finally
+            {
+                //Make sure we close the stream
+                if (wStream != null)
+                {
+                    wStream.Close();
+                }
+            }
+        }//void WriteFile
+    }//class Program
+}//Namespace BefungePF
