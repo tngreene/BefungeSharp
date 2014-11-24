@@ -28,12 +28,9 @@ namespace BefungePF
              * 4.) Check if the program should switch to a different mode
              * 5.) When its time to exit, do so
              */
-            Console.CursorVisible = true;
-            Console.BufferWidth = 81;
-            Console.WindowWidth = 81;
-            Console.BufferHeight = 32;
-            Console.WindowHeight = 32;
+            ConEx.ConEx_Draw.InitConsoleHelper(81, 32);
             bool runProgram = true;
+            Console.TreatControlCAsInput = true;
             while (runProgram)
             {
                 Console.Clear();
@@ -113,8 +110,10 @@ namespace BefungePF
                         board.UpdateBoard();
                         break;
                     case ProgramMode.OpenFile:
-                        string[] initLines = ExamplePrograms.calculator;
-                        board = new BoardManager(25, 80, initLines);
+                        //Clear the previous window
+                        Console.Clear();
+
+                        board = new BoardManager(25, 80, OpenSubMenu());
                         board.UpdateBoard();
                         break;
                     case ProgramMode.Options:
@@ -159,7 +158,7 @@ namespace BefungePF
                 string currentLine;
 
                 //While the next charecter is not null
-                while(rStream.Peek() != 0)
+                while(rStream.EndOfStream == false)
                 {
                     //Read a line and add it
                     currentLine = rStream.ReadLine();
@@ -214,5 +213,46 @@ namespace BefungePF
                 }
             }
         }//void WriteFile
+
+        static List<string> OpenSubMenu()
+        {
+            Console.Write("Open a .txt or bf, paths relative to current directory\n");
+            Console.Write("For example, \\examples\\calculator.bf\n");
+            Console.Write("\\");
+            //Create the output list
+            List<string> outputLines = new List<string>();
+            int timeoutCounter = 0;
+            string inString;
+
+            do
+            {
+                //Increase the time out
+                timeoutCounter++;
+
+                //Get the string, such as examples\mything.txt
+                inString = Console.ReadLine();
+                
+                //Apppend C:\Users\...etc + \ + my words
+                string fileString = Directory.GetCurrentDirectory() + '\\' + inString;
+                Console.WriteLine("\n Attempting to load {0}",fileString);
+                outputLines = ReadFile(fileString);
+
+                if (outputLines.Count == 0)
+                {
+                    Console.WriteLine("\nPlease try again");
+                }
+            }
+            while (outputLines.Count == 0 && timeoutCounter < 3);
+
+            if (timeoutCounter >= 3)
+            {
+                Console.WriteLine("Could not open the file you wanted, starting in \"New File\" mode");
+            }
+            else if (outputLines.Count == 0)
+            {
+                Console.WriteLine("It appears the file had no lines, starting in \"New File\" mode");
+            }
+            return outputLines;
+        }
     }//class Program
 }//Namespace BefungePF

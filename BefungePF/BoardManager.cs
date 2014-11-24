@@ -11,91 +11,53 @@ namespace BefungePF
     /// </summary>
     enum BoardMode
     {
-        Run_MAX = 0,//Program runs instantanously, user will mostlikely not be able to see the IP or The stacks changing
+        Run_MAX = 1,//Program runs instantanously, user will mostlikely not be able to see the IP or The stacks changing
         Run_FAST = 50,//Program delayed by 50ms. The IP and stacks will move rapidly but visibly
         Run_MEDIUM = 100,//Program delayed by 100ms. IP and stack changes are more easy to follow
         Run_SLOW = 200,//Program delayed by 200ms. IP and stack changes are slow enough to follow on paper
         Run_STEP = 101,//Program delayed until user presses the "Next Step" Key
-        Edit = 20//Program is running in edit mode
+        Edit = 0//Program is running in edit mode
     }
     
-
     class BoardManager
     {
         /// <summary>
         /// Represents a 2 dimensional space of charecters, non jagged
         /// Accessed with boardArray[row+i][column+j]
         /// </summary>
-        private List<List<char>> boardArray;
-        public List<List<char>> BoardArray { get { return boardArray; } }
+        private List<List<char>> _boardArray;
+        public List<List<char>> BoardArray { get { return _boardArray; } }
 
         /// <summary>
         /// Represents the main stack
         /// </summary>
-        private Stack<int> globalStack;
+        private Stack<int> _globalStack;
 
-        public Stack<int> GlobalStack { get { return globalStack; } }
+        public Stack<int> GlobalStack { get { return _globalStack; } }
 
         /// <summary>
         /// A stack of stacks for our custom foot prints allowing functions and local stacks
         /// </summary>
-        private Stack<Stack<int>> localStacks;
+        private Stack<Stack<int>> _localStacks;
 
         /// <summary>
         /// A stack that the input values are in put in
         /// </summary>
-        private Stack<int> inputStack;
+        private Stack<int> _inputStack;
 
         /// <summary>
         /// Flag to determine if the board needs to be redrawn
         /// </summary>
-        private bool needsRedraw;
+        private bool _needsRedraw;
+        public bool NeedsRedraw { get; set; }
 
-        private BoardField bF;
-        private BoardUI bUI;
-        public BoardUI BUI { get { return bUI; } }
+        private BoardUI _bUI;
+        public BoardUI BUI { get { return _bUI; } }
 
-        private BoardInterpreter bInterp;
+        private BoardInterpreter _bInterp;
 
         //The current mode of the board
-        private BoardMode curMode;
-
-        /*/// <summary>
-        /// Creates a completely blank board
-        /// </summary>
-        /// <param name="rows">Number of rows</param>
-        /// <param name="columns">Number of rows</param>
-        public BoardManager(int rows, int columns)
-        {
-            boardArray = new List<List<char>>(rows);
-
-            //Fill up the whole rectangle with spaces
-            for (int y = 0; y < rows; y++)
-            {
-                boardArray.Add(new List<char>());
-                for (int x = 0; x < columns; x++)
-                {
-                    boardArray[y].Add(' ');
-                }
-            }
-
-            //Initialize stacks
-            globalStack = new Stack<int>();
-            localStacks = new Stack<Stack<int>>();
-            inputStack = new Stack<int>();
-
-            //Nothing yet to draw
-            needsRedraw = true;
-            curMode = BoardMode.Edit;
-//            DrawUI(curMode);
-//            DrawField();
-            Console.SetCursorPosition(0, 0);
-            
-            
-            bF = new BoardField(this);
-            bUI = new BoardUI(this);
-            bInterp = new BoardInterpreter(this);
-        }*/
+        private BoardMode _curMode;
 
         /// <summary>
         /// Creates a new BoardManager with the options to set up its entire intial state and run type
@@ -108,35 +70,31 @@ namespace BefungePF
         /// </param>
         /// <param name="initGlobalStack">Initialize the input stack with preset numbers</param>
         /// <param name="mode">Chooses what mode you would like to start the board in</param>
-        public BoardManager(int rows, int columns, string[] initChars = null,
+        public BoardManager(int rows, int columns, List<string> initChars = null,
                             int[] initGlobalStack = null, BoardMode mode = BoardMode.Edit)
         {
             //Intialize the board array to be the size of the board
-            boardArray = new List<List<char>>(rows);
-
-            //Initialize stacks
-            //globalStack = new Stack<int>();
-            localStacks = new Stack<Stack<int>>();
+            _boardArray = new List<List<char>>(rows);
 
             //Copy all the data from the initialInput
             if (initGlobalStack != null)
             {
-                globalStack = new Stack<int>(initGlobalStack);
+                _globalStack = new Stack<int>(initGlobalStack);
             }
             else
             {
-                globalStack = new Stack<int>();
+                _globalStack = new Stack<int>();
             }
-            needsRedraw = true;
-            curMode = mode;
+
+            _curMode = mode;
 
             //Fill up the whole rectangle with spaces
             for (int y = 0; y < rows; y++)
             {
-                boardArray.Add(new List<char>());
+                _boardArray.Add(new List<char>());
                 for (int x = 0; x < columns; x++)
                 {
-                    boardArray[y].Add(' ');
+                    _boardArray[y].Add(' ');
                 }
             }
 
@@ -145,7 +103,7 @@ namespace BefungePF
             {
                 //Fill board it initial strings, if initChars is null this will skip
                 //For the number of rows
-                for (int y = 0; y < initChars.Length; y++)
+                for (int y = 0; y < initChars.Count; y++)
                 {
                     //Get the current line
                     string currentLine = initChars[y];
@@ -158,18 +116,14 @@ namespace BefungePF
                     }
                 }
             }
-            //Console.SetCursorPosition(0, 0);
-            //DrawUI(curMode);
-            //DrawField();
 
-            //Create the components
-            bF = new BoardField(this);
-            bUI = new BoardUI(this);
-            bInterp = new BoardInterpreter(this);
+            _bUI = new BoardUI(this);
+            _bInterp = new BoardInterpreter(this);
 
             //Draw the field and ui and reset the position
-            bF.Draw(curMode);
-            bUI.Draw(curMode);
+            _bUI.Draw(_curMode);
+
+            ConEx.ConEx_Draw.DrawScreen();
             Console.SetCursorPosition(0, 0);
         }
 
@@ -182,21 +136,19 @@ namespace BefungePF
         /// <return>If it was able to insert the charecter</return>
         public bool InsertChar(int row, int column, char charecter)
         {
-            if (row > boardArray.Count-1)
+            if (row > _boardArray.Count-1 || row < 0)
             {
                 return false;
             }
-            if (column > boardArray[row].Count - 1)
+            if (column > _boardArray[row].Count - 1 || column < 0)
             {
                 return false;
             }
             else
             {
-                boardArray[row][column] = charecter;
-                Console.SetCursorPosition(column, row);
-                Console.ForegroundColor = LookupInfo(charecter).color;
-                Console.Write(charecter);
-                //needsRedraw = true;
+                _boardArray[row][column] = charecter;
+                ConEx.ConEx_Draw.InsertCharacter(charecter, row, column, LookupInfo(charecter).color, ConsoleColor.Black);
+                _needsRedraw = true;
                 return true;
             }
         }
@@ -206,118 +158,82 @@ namespace BefungePF
         /// </summary>     
         public void UpdateBoard()
         {
-            //Stores the cursor left position
-            int editCursorL = Console.CursorLeft;
-
-            //Stores the cursor top position
-            int editCursorT = Console.CursorTop;
-
             //Keep going until we return something
             while (true)
             {
                 //Get the current keys
-                ConsoleKeyInfo[] keysHit = HandleInput();
+                ConsoleKeyInfo[] keysHit = GetInput();
                 CommandType type;
+                
                 //Based on what mode it is handle those keys
-                switch (curMode)
+                switch (_curMode)
                 {
                     case BoardMode.Run_MAX:
                     case BoardMode.Run_FAST:
                     case BoardMode.Run_MEDIUM:
                     case BoardMode.Run_SLOW:
                     case BoardMode.Run_STEP:
-                        type = bInterp.Update();
-                        
-                        bUI.ClearArea(curMode);
-                        bUI.Draw(curMode);
-                       
+                        type = _bInterp.Update();
+
+                        _bUI.Draw(_curMode);
                         if (type == CommandType.StopExecution)
                         {
-                            curMode = BoardMode.Edit;
-                            //Draw the field and ui and reset the position
-                            bF.Draw(curMode);
-                            bUI.ClearArea(curMode);
-                            bUI.Draw(curMode);
+                            _curMode = BoardMode.Edit;
+                            
+                            _bUI.ClearArea(_curMode);
+                            _bUI.Draw(_curMode);
                             Console.SetCursorPosition(0, 0);
                         }
+
                         break;
                     case BoardMode.Edit:
                         Console.CursorVisible = true;
+
                         #region --HandleInput-------------
                         for (int i = 0; i < keysHit.Length; i++)
                         {                                   
                             switch (keysHit[i].Key)
                             {
-                                //Arrow Keys move the cursor
                                 case ConsoleKey.UpArrow:
-                                    if (editCursorT > 0)
-                                    {
-                                        editCursorT--;
-                                    }
-                                    break;
                                 case ConsoleKey.LeftArrow:
-                                    if (editCursorL > 0)
-                                    {
-                                        editCursorL--;
-                                    }
-                                    break;
                                 case ConsoleKey.DownArrow:
-                                    if (editCursorT < boardArray.Count-1)
-                                    {
-                                        editCursorT++;
-                                    }
-                                    break;
                                 case ConsoleKey.RightArrow:
-                                    if (editCursorL < Console.WindowWidth - 1)
-                                    {
-                                        editCursorL++;
-                                    }
-                                    break;
                                 case ConsoleKey.Spacebar:
-                                    InsertChar(editCursorT, editCursorL, ' ');
-                                    if (editCursorL < Console.WindowWidth - 1)
-                                    {
-                                        editCursorL++;
-                                    }
-                                    break;
                                 case ConsoleKey.Backspace:
-                                    if (editCursorL > 0)
-                                    {
-                                        editCursorL--;
-                                    }
-                                    InsertChar(editCursorT, editCursorL, ' ');
-                                    break;
                                 case ConsoleKey.Enter:
-                                    Console.SetCursorPosition(0, editCursorT + 1);
+                                    MoveCursor(keysHit[i].Key);
                                     break;
                                 case ConsoleKey.F5:
-                                    curMode = BoardMode.Run_MEDIUM;
+                                    _curMode = BoardMode.Run_MEDIUM;
                                     Console.CursorVisible = false;
 
                                     //Reset UI
-                                    bUI.OutputList.Clear();
-                                    bUI.ClearArea(curMode);
+                                    _bUI.OutputList.Clear();
+                                    _bUI.ClearArea(_curMode);
+                                    _needsRedraw = true;
 
                                     //Reset Interpreter
-                                    bInterp = new BoardInterpreter(this);
+                                    _bInterp = new BoardInterpreter(this);
                                     break;
                                 case ConsoleKey.S:
-                                    if (keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Alt))
+                                    if (keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Control))
                                     {
                                         SaveBoard();
                                     }
                                     else
                                     {
-                                        bool success = InsertChar(editCursorT, editCursorL, keysHit[0].KeyChar);
+                                        bool success = InsertChar(Console.CursorTop, Console.CursorLeft, keysHit[0].KeyChar);
 
                                         //Go to the next space, if you can
-                                        if (editCursorL < Console.WindowWidth - 1 && success == true)
+                                        if (Console.CursorLeft < Console.WindowWidth - 1 && success == true)
                                         {
-                                            editCursorL++;
+                                            Console.CursorLeft++;
+                                            _needsRedraw = true;
                                         }
                                     }
                                     break;
                                 case ConsoleKey.Escape:
+                                    ConEx.ConEx_Draw.FillScreen(' ');
                                     return;//Go back to the main menu
                                 
                                 case ConsoleKey.End:
@@ -326,26 +242,34 @@ namespace BefungePF
                                 default:
                                     if (keysHit[0].KeyChar > 32 && keysHit[0].KeyChar < 126)
                                     {
-                                        bool success = InsertChar(editCursorT, editCursorL, keysHit[0].KeyChar);
+                                        bool success = InsertChar(Console.CursorTop, Console.CursorLeft, keysHit[0].KeyChar);
 
                                         //Go to the next space, if you can
-                                        if (editCursorL < Console.WindowWidth - 1 && success == true)
+                                        if (Console.CursorLeft < Console.WindowWidth - 1 && success == true)
                                         {
-                                            editCursorL++;
+                                            Console.CursorLeft++;
+                                            _needsRedraw = true;
                                         }
                                     }
                                     break;
                             }
                         }
                         #endregion HandleInput-------------
-                        
+
                         //After the cursor has finished its drawing restore it to the old position
-                        Console.SetCursorPosition(editCursorL, editCursorT);
+                        //Console.SetCursorPosition(Console.CursorLeft, Console.CursorTop);
                         break;
                 }//switch(currentMode)
-
+                
+                if (true)
+                {
+                    _bUI.Draw(_curMode);
+                    
+                    ConEx.ConEx_Draw.DrawScreen();
+                    _needsRedraw = false;
+                }
                 //Based on the mode sleep the program so it does not scream by
-                System.Threading.Thread.Sleep((int)curMode);
+                System.Threading.Thread.Sleep((int)_curMode);
             }//while(true)
         }//Update()
 
@@ -358,23 +282,82 @@ namespace BefungePF
         public char GetCharecter(int row, int column)
         {
             //Make sure the row and column are in range
-            if (row > boardArray.Count-1 || row < 0)
+            if (row > _boardArray.Count-1 || row < 0)
             {
                 return '\0';
             }
-            if (column > boardArray[row].Count - 1 || column < 0)
+            if (column > _boardArray[row].Count - 1 || column < 0)
             {
                 return '\0';
             }
 
             //If it is, return the charecter
-            return boardArray[row][column];
+            return _boardArray[row][column];
         }
 
         /// <summary>
+        /// Extracts all the "basic cursor movement cases from the board updater
+        /// </summary>
+        /// <param name="mode">The key pressed</param>
+        private void MoveCursor(ConsoleKey mode)
+        {
+            switch (mode)
+            {
+                //Arrow Keys move the cursor
+                case ConsoleKey.UpArrow:
+                    if (Console.CursorTop > 0)
+                    {
+                        Console.CursorTop--;
+                        _needsRedraw = true;
+                    }
+                    break;
+                case ConsoleKey.LeftArrow:
+                    if (Console.CursorLeft > 0)
+                    {
+                        Console.CursorLeft--;
+                        _needsRedraw = true;
+                    }
+                    break;
+                case ConsoleKey.DownArrow:
+                    if (Console.CursorTop < _boardArray.Count - 1)
+                    {
+                        Console.CursorTop++;
+                        _needsRedraw = true;
+                    }
+                    break;
+                case ConsoleKey.RightArrow:
+                    if (Console.CursorLeft < Console.WindowWidth - 1)
+                    {
+                        Console.CursorLeft++;
+                        _needsRedraw = true;
+                    }
+                    break;
+                case ConsoleKey.Spacebar:
+                    InsertChar(Console.CursorTop, Console.CursorLeft, ' ');
+                    if (Console.CursorLeft < Console.WindowWidth - 1)
+                    {
+                        Console.CursorLeft++;
+                        _needsRedraw = true;
+                    }
+                    break;
+                case ConsoleKey.Backspace:
+                    if (Console.CursorLeft > 0)
+                    {
+                        Console.CursorLeft--;
+                        _needsRedraw = true;
+                    }
+                    InsertChar(Console.CursorTop, Console.CursorLeft, ' ');
+                    break;
+                case ConsoleKey.Enter:
+                    Console.SetCursorPosition(0, Console.CursorTop + 1);
+                    _needsRedraw = true;
+                    break;
+            }
+        }
+        /// <summary>
         /// Get which keys are currently pressed down and return them
         /// </summary>
-        private ConsoleKeyInfo[] HandleInput()
+        private ConsoleKeyInfo[] GetInput()
         {
             // A list of characters
             List<ConsoleKeyInfo> input = new List<ConsoleKeyInfo>();
@@ -492,15 +475,12 @@ namespace BefungePF
                     return new CommandInfo(inChar, CommandType.StackManipulation, ConsoleColor.DarkYellow, 1);//Op must be >=1 on stack
                     
                 //IO
-                CommandInfo ioCommand;
                 case '&':
                 case '~':
-                    ioCommand = new CommandInfo(inChar, CommandType.IO, ConsoleColor.Gray, -1);
-                    return ioCommand;
+                    return new CommandInfo(inChar, CommandType.IO, ConsoleColor.Gray, -1);
                 case ',':
                 case '.':
-                    ioCommand = new CommandInfo(inChar, CommandType.IO, ConsoleColor.Gray, 1);
-                    return ioCommand;
+                    return new CommandInfo(inChar, CommandType.IO, ConsoleColor.Gray, 1);
                 //Funge-98
                 case 'i':
                 case 'o':
@@ -509,6 +489,7 @@ namespace BefungePF
                                            ConsoleColor.Gray,-Int32.MaxValue);//Beware, must be a try catch operation!
                 //Data Storage
                 case 'g':
+                    return new CommandInfo(inChar, CommandType.DataStorage, ConsoleColor.Green, 2);
                 case 'p':
                     return new CommandInfo(inChar, CommandType.DataStorage, ConsoleColor.Green, 3);
                 //String Manipulation
@@ -563,7 +544,7 @@ namespace BefungePF
                 case 'h'://Go high, 3D movement
                 case 'l'://Go low, 3D movement
                 case 'm'://3D if statment
-                case 'z'://Does not exist
+                case 'z'://Does not exist - TODO its actually nop
                 //---------------------------
                     return new CommandInfo(inChar, CommandType.NotImplemented, ConsoleColor.DarkRed, 0);
             }
@@ -614,12 +595,12 @@ namespace BefungePF
             }
             List<string> outStrings = new List<string>();
 
-            for (int y = 0; y < boardArray.Count; y++)
+            for (int y = 0; y < _boardArray.Count; y++)
             {
                 string currentLine = null;
-                for (int x = 0; x < boardArray[y].Count; x++)
+                for (int x = 0; x < _boardArray[y].Count; x++)
                 {
-                    currentLine += boardArray[y][x].ToString();
+                    currentLine += _boardArray[y][x].ToString();
                 }
                 outStrings.Add(currentLine);
             }
@@ -628,10 +609,9 @@ namespace BefungePF
 
             Console.Clear();
 
-            //Draw the field and ui and reset the position
-            bF.Draw(curMode);
-            bUI.ClearArea(curMode);
-            bUI.Draw(curMode);
+            //
+            _bUI.ClearArea(_curMode);
+            _bUI.Draw(_curMode);
             Console.SetCursorPosition(0, 0);
         }
     }//class BoardManager

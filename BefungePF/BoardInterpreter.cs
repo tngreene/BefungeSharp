@@ -113,64 +113,51 @@ namespace BefungePF
         {
             //TODO: Fix the wrap around problem
 
-            //Get the previous charecter, where the ip just was
-            //Set the cursor's position
-            //Write the charecter
-            char prevChar = '\0';
-            //Change the background color to what it should be
-            Console.BackgroundColor = ConsoleColor.Black;
-
             Direction direct = GetDirection();
             
+            //Get the last place we were, reset it's color
+            //Get our current place, set it's color
+
+            char prevChar = '\0';
             switch (direct)
             {
                 case Direction.North:
                     prevChar = bRef.GetCharecter(IP_Y+1, IP_X);
                     if (prevChar != '\0')
                     {
-                        Console.SetCursorPosition(IP_X, IP_Y + 1);
-                        Console.ForegroundColor = BoardManager.LookupInfo(prevChar).color;
-                        Console.Write(prevChar);
+                        ConEx.ConEx_Draw.SetAttributes(IP_Y + 1, IP_X, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
                     }
                     break;
                 case Direction.East:
                     prevChar = bRef.GetCharecter(IP_Y, IP_X-1);
                     if (prevChar != '\0')
                     {
-                        Console.SetCursorPosition(IP_X - 1, IP_Y);
-                        Console.ForegroundColor = BoardManager.LookupInfo(prevChar).color;
-                        Console.Write(prevChar);
+                        ConEx.ConEx_Draw.SetAttributes(IP_Y, IP_X - 1, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
                     }
                     break;
                 case Direction.South:
                     prevChar = bRef.GetCharecter(IP_Y-1, IP_X);
                     if (prevChar != '\0')
                     {
-                        Console.SetCursorPosition(IP_X, IP_Y - 1);
-                        Console.ForegroundColor = BoardManager.LookupInfo(prevChar).color;
-                        Console.Write(prevChar);
+                        ConEx.ConEx_Draw.SetAttributes(IP_Y - 1, IP_X, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
+                        
                     }
                     break;
                 case Direction.West:
                     prevChar = bRef.GetCharecter(IP_Y, IP_X+1);
                     if (prevChar != '\0')
                     {
-                        Console.SetCursorPosition(IP_X + 1, IP_Y);
-                        Console.ForegroundColor = BoardManager.LookupInfo(prevChar).color;
-                        Console.Write(prevChar);
+                        ConEx.ConEx_Draw.SetAttributes(IP_Y, IP_X + 1, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
                     }
                     break;
             }
 
             //Get the current ip's
             char charecterUnder = bRef.GetCharecter(IP_Y, IP_X);
+            ConEx.ConEx_Draw.SetAttributes(IP_Y, IP_X, BoardManager.LookupInfo(charecterUnder).color, ConsoleColor.Gray);
+
             Console.SetCursorPosition(IP_X, IP_Y);
-            //Change the background color and write it
-            Console.BackgroundColor = ConsoleColor.Gray;
-            Console.ForegroundColor = BoardManager.LookupInfo(charecterUnder).color;
-            Console.Write(charecterUnder);
-            //Change it back for safety
-            Console.BackgroundColor = ConsoleColor.Black;
+            bRef.NeedsRedraw = true;
         }
         
         /// <summary>
@@ -628,8 +615,27 @@ namespace BefungePF
                     break;
                 //Data Storage
                 case 'g':
+                    {
+                        int y = bRef.GlobalStack.Pop();
+                        int x = bRef.GlobalStack.Pop();
+                        char foundChar = bRef.GetCharecter(y,x);
+                        bRef.GlobalStack.Push((int)foundChar);
+                    }
+                    break;
                 case 'p':
-                    
+                    {
+                        int y = bRef.GlobalStack.Pop();
+                        int x = bRef.GlobalStack.Pop();
+                        int charToPlace = bRef.GlobalStack.Pop();
+                        bool couldPlace = bRef.InsertChar(y,x,(char)charToPlace);
+
+                        //Do this?
+                        //if (couldPlace == false)
+                        //{
+                            //return CommandType.StopExecution;
+                        //}
+                    }
+                    break;
                 case 's':
 
                     break;
@@ -678,12 +684,17 @@ namespace BefungePF
                 case 'Y':
                 case 'Z':
                     break;
-
+                
+                //no operations
+                case ' ':
+                    break;
+                case 'z'://nop, in 98 it consumes a tick making it different than a simple space
+                    break;
                 //Trefunge or more
                 case 'h':
                 case 'l':
                 case 'm':
-                case 'z'://No operation
+                
                     break;
             }
 
