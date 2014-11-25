@@ -28,9 +28,10 @@ namespace BefungePF
              * 4.) Check if the program should switch to a different mode
              * 5.) When its time to exit, do so
              */
-            ConEx.ConEx_Draw.InitConsoleHelper(81, 32);
+            ConEx.ConEx_Draw.InitConEx_Draw(81, 32);
+            
             bool runProgram = true;
-            Console.TreatControlCAsInput = true;
+            ConEx.ConEx_Input.TreatControlCAsInput = true;
             while (runProgram)
             {
                 Console.Clear();
@@ -55,6 +56,11 @@ namespace BefungePF
                 {
                     //Get their input
                     string input = Console.ReadLine();
+                    
+                    if (input == "")
+                    {
+                        continue;
+                    }
 
                     //For all the options try to match their number or other parts of the name
                     //Save the program mode selected
@@ -216,9 +222,9 @@ namespace BefungePF
 
         static List<string> OpenSubMenu()
         {
-            Console.Write("Open a .txt or bf, paths relative to current directory\n");
-            Console.Write("For example, \\examples\\calculator.bf\n");
-            Console.Write("\\");
+            Console.Write("Open a .txt or .bf, .b93, .b98, paths relative to current directory\n");
+            Console.Write("For example, examples\\calculator.bf\n");
+            
             //Create the output list
             List<string> outputLines = new List<string>();
             int timeoutCounter = 0;

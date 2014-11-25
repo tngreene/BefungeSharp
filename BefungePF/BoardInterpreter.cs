@@ -82,10 +82,11 @@ namespace BefungePF
         private bool isStringMode;
 
         //Instruction Pointer X(column) and Y(row)
-        private int IP_X;
-        private int IP_Y;
-        public int X { get { return IP_X; } }
-        public int Y { get { return IP_Y; } }
+        private Vector2D IP;
+        private Vector2D Last_IP;
+
+        public int X { get { return IP.x; } }
+        public int Y { get { return IP.y; } }
 
         /// <summary>
         /// Controls the intepretation and execution of commands
@@ -97,15 +98,16 @@ namespace BefungePF
             isStringMode = false;
             SetDirection(Direction.East);
 
-            IP_X = 0;
-            IP_Y = 0;
+            IP.x = 0;
+            IP.y = 0;
         }
 
         public CommandType Update()
         {
-            DrawIP();
+            //Save the last position because we're about to take a step
+            Last_IP = IP;
             CommandType type = TakeStep();
-                        
+            DrawIP();        
             return type;
         }
 
@@ -119,44 +121,52 @@ namespace BefungePF
             //Get our current place, set it's color
 
             char prevChar = '\0';
+
+            prevChar = bRef.GetCharecter(Last_IP.y, Last_IP.x);
+            if (prevChar != '\0')
+            {
+                ConEx.ConEx_Draw.SetAttributes(Last_IP.y, Last_IP.x, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
+            }
+            /*
+
             switch (direct)
             {
                 case Direction.North:
-                    prevChar = bRef.GetCharecter(IP_Y+1, IP_X);
+                    prevChar = bRef.GetCharecter(Last_IP.y, Last_IP.y);
                     if (prevChar != '\0')
                     {
-                        ConEx.ConEx_Draw.SetAttributes(IP_Y + 1, IP_X, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
+                        ConEx.ConEx_Draw.SetAttributes(Last_IP.y, Last_IP.y, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
                     }
                     break;
                 case Direction.East:
-                    prevChar = bRef.GetCharecter(IP_Y, IP_X-1);
+                    prevChar = bRef.GetCharecter(IP.y, IP.x-1);
                     if (prevChar != '\0')
                     {
-                        ConEx.ConEx_Draw.SetAttributes(IP_Y, IP_X - 1, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
+                        ConEx.ConEx_Draw.SetAttributes(IP.y, IP.x - 1, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
                     }
                     break;
                 case Direction.South:
-                    prevChar = bRef.GetCharecter(IP_Y-1, IP_X);
+                    prevChar = bRef.GetCharecter(IP.y-1, IP.x);
                     if (prevChar != '\0')
                     {
-                        ConEx.ConEx_Draw.SetAttributes(IP_Y - 1, IP_X, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
+                        ConEx.ConEx_Draw.SetAttributes(IP.y - 1, IP.x, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
                         
                     }
                     break;
                 case Direction.West:
-                    prevChar = bRef.GetCharecter(IP_Y, IP_X+1);
+                    prevChar = bRef.GetCharecter(IP.y, IP.x+1);
                     if (prevChar != '\0')
                     {
-                        ConEx.ConEx_Draw.SetAttributes(IP_Y, IP_X + 1, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
+                        ConEx.ConEx_Draw.SetAttributes(IP.y, IP.x + 1, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
                     }
                     break;
             }
-
+            */
             //Get the current ip's
-            char charecterUnder = bRef.GetCharecter(IP_Y, IP_X);
-            ConEx.ConEx_Draw.SetAttributes(IP_Y, IP_X, BoardManager.LookupInfo(charecterUnder).color, ConsoleColor.Gray);
+            char charecterUnder = bRef.GetCharecter(IP.y, IP.x);
+            ConEx.ConEx_Draw.SetAttributes(IP.y, IP.x, BoardManager.LookupInfo(charecterUnder).color, ConsoleColor.Gray);
 
-            Console.SetCursorPosition(IP_X, IP_Y);
+            Console.SetCursorPosition(IP.x, IP.y);
             bRef.NeedsRedraw = true;
         }
         
@@ -225,43 +235,43 @@ namespace BefungePF
             switch (dir)
             {
                 case Direction.North:
-                    if (IP_Y > 0)
+                    if (IP.y > 0)
                     {
-                        IP_Y -= 1+extraAmount;
+                        IP.y -= 1+extraAmount;
                     }
                     else
                     {
-                        IP_Y = 24+extraAmount;
+                        IP.y = 24+extraAmount;
                     }
                     break;
                 case Direction.East:
-                    if (IP_X < 79 - 1)
+                    if (IP.x < 79 - 1)
                     {
-                        IP_X += 1+extraAmount;
+                        IP.x += 1+extraAmount;
                     }
                     else
                     {
-                        IP_X = 0;
+                        IP.x = 0;
                     }
                     break;
                 case Direction.South:
-                    if (IP_Y < 24 - 1)
+                    if (IP.y < 24 - 1)
                     {
-                        IP_Y += 1+extraAmount;
+                        IP.y += 1+extraAmount;
                     }
                     else
                     {
-                        IP_Y = 0+extraAmount;
+                        IP.y = 0+extraAmount;
                     }
                     break;
                 case Direction.West:
-                    if (IP_X > 0)
+                    if (IP.x > 0)
                     {
-                        IP_X -= 1+extraAmount;
+                        IP.x -= 1+extraAmount;
                     }
                     else
                     {
-                        IP_X = 79 + extraAmount;
+                        IP.x = 79 + extraAmount;
                     }
                     break;
             }
@@ -275,7 +285,7 @@ namespace BefungePF
              * 4.) Execute Command
              * 5.) Move along delta
              */
-            char cmd = bRef.GetCharecter(IP_Y, IP_X);
+            char cmd = bRef.GetCharecter(IP.y, IP.x);
 
             CommandInfo info = BoardManager.LookupInfo(cmd);
 
