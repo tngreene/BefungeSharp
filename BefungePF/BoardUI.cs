@@ -22,6 +22,10 @@ namespace BefungePF
          * [31,0]                 [31,79]
          * */
         const int UI_TOP = 26;
+        private string _TOSSstackRep;
+        private string _outputRep;
+        private string _inputRep;
+
         private List<string> outputList;
         public List<string> OutputList { get { return outputList; } }
 
@@ -29,6 +33,7 @@ namespace BefungePF
         {
             _boardRef = mgr;
             outputList = new List<string>();
+            outputList.Add("");
         }
 
         /// <summary>
@@ -37,7 +42,7 @@ namespace BefungePF
         /// <param name="mode">The mode of the board</param>
         public void Draw(BoardMode mode)
         {
-            
+            #region Draw Field
             //Create the boarder of the playing field
             for (int row = 0; row < _boardRef.BoardArray.Count; row++)
             {
@@ -46,10 +51,16 @@ namespace BefungePF
             
             string bottom = new string('_', _boardRef.BoardArray[0].Count);
             ConEx.ConEx_Draw.InsertString(bottom, _boardRef.BoardArray.Count, 0, false);
+            #endregion
+
+            #region DrawCursorPosition
+            //Clears off the previous thing
+            ConEx.ConEx_Draw.InsertString("     ", ConEx.ConEx_Draw.Dimensions.height - 1, ConEx.ConEx_Draw.Dimensions.width - 1 - 5, false);
             
-            string IP_Pos = Console.CursorTop + ", " + Console.CursorLeft;
-            ConEx.ConEx_Draw.InsertString(IP_Pos, ConEx.ConEx_Draw.Dimensions.height-1, ConEx.ConEx_Draw.Dimensions.width - 1 - IP_Pos.Length, false);
-            
+            string IP_Pos = Console.CursorTop + "," + Console.CursorLeft;
+            ConEx.ConEx_Draw.InsertString(IP_Pos, ConEx.ConEx_Draw.Dimensions.height-1, ConEx.ConEx_Draw.Dimensions.width - 1 - IP_Pos.Length, false, ConsoleColor.Cyan);//Color should be the same as movement color
+            #endregion
+
             switch (mode)
             {
                 case BoardMode.Run_MAX:
@@ -58,12 +69,40 @@ namespace BefungePF
                 case BoardMode.Run_SLOW:
                 case BoardMode.Run_STEP:
 
-                    string outstring = "";// = new string("");
-                    for (int i = 0; i < outputList.Count; i++)
+                    string stackString = "S:";
+                    for (int i = 0; i < _boardRef.GlobalStack.Count; i++)
 			        {
-			            outstring += outputList[i] += "|";
+                        stackString += _boardRef.GlobalStack.ElementAt(i).ToString();
+                        stackString += '|';
+
+                        //ConEx.ConEx_Draw.InsertCharacter('|', UI_TOP, i+1, ConsoleColor.DarkGreen);
+                        //ConEx.ConEx_Draw.InsertCharacter(_boardRef.GlobalStack.ElementAt(i).ToString()[0], UI_TOP, j);
 			        }
-                    ConEx.ConEx_Draw.InsertString(outstring, UI_TOP, 0, true);
+
+                    for (int i = 0; i < stackString.Length; i++)
+                    {
+                        ConsoleColor fore = ConsoleColor.White;
+                        if(stackString[i] == '|')
+                        {
+                            fore = ConsoleColor.DarkGreen;
+                        }
+                        ConEx.ConEx_Draw.InsertCharacter(stackString[i], UI_TOP, i, fore);
+                    }
+
+                    if (this.outputList.Count > 0)
+                    {
+                        string outstring = "O:" + this.outputList[0];
+
+                        for (int i = 0; i < outstring.Length; i++)
+                        {
+                            ConsoleColor fore = ConsoleColor.White;
+                            if (outstring[i] == '|')
+                            {
+                                fore = ConsoleColor.DarkBlue;
+                            }
+                            ConEx.ConEx_Draw.InsertCharacter(outstring[i], UI_TOP + 1, i, fore);
+                        }
+                    }
                     break;
                 case BoardMode.Edit:
                     ConEx.ConEx_Draw.InsertString("New File - Ctrl-N  | Save - Alt - S | Run (Medium) - F5 | Main Menu - Escape", UI_TOP,0,false);
@@ -111,7 +150,7 @@ namespace BefungePF
         
         public void ClearArea(BoardMode mode)
         {
-            //Create the boarder of the playing field
+            //De-create the boarder of the playing field
             for (int row = 0; row < _boardRef.BoardArray.Count; row++)
             {
                 ConEx.ConEx_Draw.InsertCharacter(' ', row, _boardRef.BoardArray[0].Count);

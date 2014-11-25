@@ -101,6 +101,15 @@ namespace BefungePF
             IP.x = 0;
             IP.y = 0;
         }
+        
+        public void Reset()
+        {
+            isStringMode = false;
+            SetDirection(Direction.East);
+            bRef.GlobalStack.Clear();
+            IP.x = 0;
+            IP.y = 0;
+        }
 
         public CommandType Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
@@ -199,8 +208,7 @@ namespace BefungePF
                                 break;
                             case ConsoleKey.Backspace:
                                 {
-                                    SetDirection(Direction.West);
-                                    bool success = bRef.InsertChar(IP.y, IP.x, ' ');
+                                    bool success = bRef.InsertChar(IP.y, IP.x-1, ' ');
                                     if (success)
                                     {
                                         needsMove = true;
@@ -212,6 +220,7 @@ namespace BefungePF
                                 needsMove = true;
                                 break;
                             case ConsoleKey.F5:
+                                Reset();
                                 bRef.CurMode = BoardMode.Run_MEDIUM;
                                 break;
                             case ConsoleKey.F12:
@@ -223,7 +232,7 @@ namespace BefungePF
                                 Environment.Exit(1);//End the program
                                 break;
                             default:
-                                if (keysHit[0].KeyChar > 32 && keysHit[0].KeyChar < 126)
+                                if (keysHit[0].KeyChar >= 32 && keysHit[0].KeyChar <= 126)
                                 {
                                     bool success = bRef.InsertChar(IP.y, IP.x, keysHit[0].KeyChar);
                                     if (success)
@@ -686,7 +695,7 @@ namespace BefungePF
                         char outChar = (char)bRef.GlobalStack.Pop();
                         string outVal = outChar.ToString();
 
-                        bRef.BUI.OutputList.Add(outVal);
+                        bRef.BUI.OutputList[0] += outVal;
                     }
                     break;
                 case '.'://Output as number

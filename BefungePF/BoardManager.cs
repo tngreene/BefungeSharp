@@ -200,7 +200,9 @@ namespace BefungePF
                                 case ConsoleKey.Backspace:
                                 case ConsoleKey.Enter:
                                     break;
-                                
+                                case ConsoleKey.F5:
+                                    _bUI.ClearArea(_curMode);
+                                    break;
                                 case ConsoleKey.S:
                                     if (keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Alt))
                                     {
@@ -225,6 +227,7 @@ namespace BefungePF
                 
                 if (true)
                 {
+                    _bUI.ClearArea(_curMode);
                     _bUI.Draw(_curMode);
                     
                     ConEx.ConEx_Draw.DrawScreen();
