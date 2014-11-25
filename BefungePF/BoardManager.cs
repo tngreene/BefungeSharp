@@ -58,6 +58,7 @@ namespace BefungePF
 
         //The current mode of the board
         private BoardMode _curMode;
+        public BoardMode CurMode { get { return _curMode; } set { _curMode = value; } }
 
         /// <summary>
         /// Creates a new BoardManager with the options to set up its entire intial state and run type
@@ -120,11 +121,11 @@ namespace BefungePF
             _bUI = new BoardUI(this);
             _bInterp = new BoardInterpreter(this);
 
+            Console.CursorVisible = false;
             //Draw the field and ui and reset the position
             _bUI.Draw(_curMode);
 
             ConEx.ConEx_Draw.DrawScreen();
-            Console.SetCursorPosition(0, 0);
         }
 
         /// <summary>
@@ -162,9 +163,10 @@ namespace BefungePF
             while (true)
             {
                 //Get the current keys
-                ConsoleKeyInfo[] keysHit = GetInput();
+                ConsoleKeyInfo[] keysHit = ConEx.ConEx_Input.GetInput();
                 CommandType type;
-                
+                type = _bInterp.Update(_curMode, keysHit);
+
                 //Based on what mode it is handle those keys
                 switch (_curMode)
                 {
@@ -173,25 +175,21 @@ namespace BefungePF
                     case BoardMode.Run_MEDIUM:
                     case BoardMode.Run_SLOW:
                     case BoardMode.Run_STEP:
-                        type = _bInterp.Update();
 
-                        _bUI.Draw(_curMode);
                         if (type == CommandType.StopExecution)
                         {
                             _curMode = BoardMode.Edit;
                             
                             _bUI.ClearArea(_curMode);
-                            _bUI.Draw(_curMode);
-                            Console.SetCursorPosition(0, 0);
                         }
-
                         break;
                     case BoardMode.Edit:
-                        Console.CursorVisible = true;
-
                         #region --HandleInput-------------
                         for (int i = 0; i < keysHit.Length; i++)
-                        {                                   
+                        {
+                            System.ConsoleKey k = keysHit[i].Key;
+                            var m = keysHit[i].Modifiers;
+
                             switch (keysHit[i].Key)
                             {
                                 case ConsoleKey.UpArrow:
@@ -201,63 +199,27 @@ namespace BefungePF
                                 case ConsoleKey.Spacebar:
                                 case ConsoleKey.Backspace:
                                 case ConsoleKey.Enter:
-                                    MoveCursor(keysHit[i].Key);
                                     break;
-                                case ConsoleKey.F5:
-                                    _curMode = BoardMode.Run_MEDIUM;
-                                    Console.CursorVisible = false;
-
-                                    //Reset UI
-                                    _bUI.OutputList.Clear();
-                                    _bUI.ClearArea(_curMode);
-                                    _needsRedraw = true;
-
-                                    //Reset Interpreter
-                                    _bInterp = new BoardInterpreter(this);
-                                    break;
+                                
                                 case ConsoleKey.S:
-                                    if (keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Control))
+                                    if (keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Alt))
                                     {
                                         SaveBoard();
-                                    }
-                                    else
-                                    {
-                                        bool success = InsertChar(Console.CursorTop, Console.CursorLeft, keysHit[0].KeyChar);
-
-                                        //Go to the next space, if you can
-                                        if (Console.CursorLeft < Console.WindowWidth - 1 && success == true)
-                                        {
-                                            Console.CursorLeft++;
-                                            _needsRedraw = true;
-                                        }
                                     }
                                     break;
                                 case ConsoleKey.Escape:
                                     ConEx.ConEx_Draw.FillScreen(' ');
                                     return;//Go back to the main menu
-                                
                                 case ConsoleKey.End:
                                     Environment.Exit(1);//End the program
                                     break;
                                 default:
-                                    if (keysHit[0].KeyChar > 32 && keysHit[0].KeyChar < 126)
-                                    {
-                                        bool success = InsertChar(Console.CursorTop, Console.CursorLeft, keysHit[0].KeyChar);
-
-                                        //Go to the next space, if you can
-                                        if (Console.CursorLeft < Console.WindowWidth - 1 && success == true)
-                                        {
-                                            Console.CursorLeft++;
-                                            _needsRedraw = true;
-                                        }
-                                    }
                                     break;
                             }
                         }
                         #endregion HandleInput-------------
 
                         //After the cursor has finished its drawing restore it to the old position
-                        //Console.SetCursorPosition(Console.CursorLeft, Console.CursorTop);
                         break;
                 }//switch(currentMode)
                 
@@ -353,36 +315,6 @@ namespace BefungePF
                     _needsRedraw = true;
                     break;
             }
-        }
-        /// <summary>
-        /// Get which keys are currently pressed down and return them
-        /// </summary>
-        private ConsoleKeyInfo[] GetInput()
-        {
-            // A list of characters
-            List<ConsoleKeyInfo> input = new List<ConsoleKeyInfo>();
-
-            // Loop while keys are available or we hit 10 keys
-            for (int i = 0; Console.KeyAvailable && i < 10; i++)
-            {
-                // Read a key (preventing it from being printed) 
-                // and put it in the key list (if it's not in there yet)
-                ConsoleKeyInfo info = Console.ReadKey(true);
-                if (!input.Contains(info))
-                {
-                    input.Add(info);
-                }
-            }
-
-            // Use up any remaining key presses
-            while (Console.KeyAvailable)
-            {
-                // Read a single key
-                Console.ReadKey(true);
-            }
-
-            // Convert the list to an array and return
-            return input.ToArray();
         }
 
         /// <summary>
@@ -609,10 +541,8 @@ namespace BefungePF
 
             Console.Clear();
 
-            //
             _bUI.ClearArea(_curMode);
             _bUI.Draw(_curMode);
-            Console.SetCursorPosition(0, 0);
         }
     }//class BoardManager
 }//Namespace BefungePF

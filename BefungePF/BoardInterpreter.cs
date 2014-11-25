@@ -102,12 +102,148 @@ namespace BefungePF
             IP.y = 0;
         }
 
-        public CommandType Update()
+        public CommandType Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
             //Save the last position because we're about to take a step
             Last_IP = IP;
-            CommandType type = TakeStep();
-            DrawIP();        
+            CommandType type = CommandType.NotImplemented;
+
+            //Based on what mode it is handle those keys
+            switch (mode)
+            {
+                case BoardMode.Run_MAX:
+                case BoardMode.Run_FAST:
+                case BoardMode.Run_MEDIUM:
+                case BoardMode.Run_SLOW:
+                case BoardMode.Run_STEP:
+                    //If we're not in stepping mode take a step
+                    if (bRef.CurMode != BoardMode.Run_STEP)
+                    {
+                        type = TakeStep();
+                    }
+
+                    #region --HandleInput-------------
+                    for (int i = 0; i < keysHit.Length; i++)
+                    {
+                        switch (keysHit[i].Key)
+                        {
+                            //1-5 adjusts execution speed
+                            case ConsoleKey.D1:
+                                bRef.CurMode = BoardMode.Run_STEP;
+                                break;
+                            case ConsoleKey.D2:
+                                bRef.CurMode = BoardMode.Run_SLOW;
+                                break;
+                            case ConsoleKey.D3:
+                                bRef.CurMode = BoardMode.Run_MEDIUM;
+                                break;
+                            case ConsoleKey.D4:
+                                bRef.CurMode = BoardMode.Run_FAST;
+                                break;
+                            case ConsoleKey.D5:
+                                bRef.CurMode = BoardMode.Run_MAX;
+                                break;
+                            //Takes us back to editor mode
+                            case ConsoleKey.F12:
+                                bRef.CurMode = BoardMode.Edit;
+                                break;
+                            //Takes the next step
+                            case ConsoleKey.RightArrow:
+                                if (bRef.CurMode == BoardMode.Run_STEP)
+                                {
+                                    type = TakeStep();
+                                }
+                                break;
+                        }
+                    }
+                    break;
+                    #endregion
+                case BoardMode.Edit:
+                    bool needsMove = false;
+                    #region --HandleInput-------------
+                    for (int i = 0; i < keysHit.Length; i++)
+                    {
+                        //--Debugging key presses
+                        System.ConsoleKey k = keysHit[i].Key;
+                        var m = keysHit[i].Modifiers;
+                        //------------------------
+
+                        switch (keysHit[i].Key)
+                        {
+                            //Arrow keys change directions
+                            case ConsoleKey.UpArrow:
+                                SetDirection(Direction.North);
+                                needsMove = true;
+                                break;
+                            case ConsoleKey.LeftArrow:
+                                SetDirection(Direction.West);
+                                needsMove = true;
+                                break;
+                            case ConsoleKey.DownArrow:
+                                SetDirection(Direction.South);
+                                needsMove = true;
+                                break;
+                            case ConsoleKey.RightArrow:
+                                SetDirection(Direction.East);
+                                needsMove = true;
+                                break;
+                            case ConsoleKey.Delete:
+                                {
+                                    SetDirection(Direction.East);
+                                    bool success = bRef.InsertChar(IP.y, IP.x, ' ');
+                                    if (success)
+                                    {
+                                        needsMove = true;
+                                    }
+                                }
+                                break;
+                            case ConsoleKey.Backspace:
+                                {
+                                    SetDirection(Direction.West);
+                                    bool success = bRef.InsertChar(IP.y, IP.x, ' ');
+                                    if (success)
+                                    {
+                                        needsMove = true;
+                                    }
+                                }
+                                break;
+                            case ConsoleKey.Enter:
+                                SetDirection(Direction.East);
+                                needsMove = true;
+                                break;
+                            case ConsoleKey.F5:
+                                bRef.CurMode = BoardMode.Run_MEDIUM;
+                                break;
+                            case ConsoleKey.F12:
+                                bRef.CurMode = BoardMode.Run_MEDIUM;
+                                break;
+                            case ConsoleKey.Escape:
+                                return type = CommandType.StopExecution;//Go back to the main menu
+                            case ConsoleKey.End:
+                                Environment.Exit(1);//End the program
+                                break;
+                            default:
+                                if (keysHit[0].KeyChar > 32 && keysHit[0].KeyChar < 126)
+                                {
+                                    bool success = bRef.InsertChar(IP.y, IP.x, keysHit[0].KeyChar);
+                                    if (success)
+                                    {
+                                        needsMove = true;
+                                    }
+                                }
+                                break;
+                        }
+                    }
+                    if (needsMove)
+                    {
+                        MoveIP();//Move now that we've done some kind of moving input
+                    }
+                    #endregion HandleInput-------------
+                    break;
+            }//switch(currentMode)
+
+            
+            DrawIP();
             return type;
         }
 
@@ -127,41 +263,7 @@ namespace BefungePF
             {
                 ConEx.ConEx_Draw.SetAttributes(Last_IP.y, Last_IP.x, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
             }
-            /*
-
-            switch (direct)
-            {
-                case Direction.North:
-                    prevChar = bRef.GetCharecter(Last_IP.y, Last_IP.y);
-                    if (prevChar != '\0')
-                    {
-                        ConEx.ConEx_Draw.SetAttributes(Last_IP.y, Last_IP.y, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
-                    }
-                    break;
-                case Direction.East:
-                    prevChar = bRef.GetCharecter(IP.y, IP.x-1);
-                    if (prevChar != '\0')
-                    {
-                        ConEx.ConEx_Draw.SetAttributes(IP.y, IP.x - 1, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
-                    }
-                    break;
-                case Direction.South:
-                    prevChar = bRef.GetCharecter(IP.y-1, IP.x);
-                    if (prevChar != '\0')
-                    {
-                        ConEx.ConEx_Draw.SetAttributes(IP.y - 1, IP.x, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
-                        
-                    }
-                    break;
-                case Direction.West:
-                    prevChar = bRef.GetCharecter(IP.y, IP.x+1);
-                    if (prevChar != '\0')
-                    {
-                        ConEx.ConEx_Draw.SetAttributes(IP.y, IP.x + 1, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
-                    }
-                    break;
-            }
-            */
+            
             //Get the current ip's
             char charecterUnder = bRef.GetCharecter(IP.y, IP.x);
             ConEx.ConEx_Draw.SetAttributes(IP.y, IP.x, BoardManager.LookupInfo(charecterUnder).color, ConsoleColor.Gray);
@@ -235,43 +337,31 @@ namespace BefungePF
             switch (dir)
             {
                 case Direction.North:
-                    if (IP.y > 0)
+                    IP.y -= 1 + extraAmount;
+                    if (IP.y < 0)
                     {
-                        IP.y -= 1+extraAmount;
-                    }
-                    else
-                    {
-                        IP.y = 24+extraAmount;
+                        IP.y = 24 + IP.y + 1;
                     }
                     break;
                 case Direction.East:
-                    if (IP.x < 79 - 1)
+                    IP.x += 1 + extraAmount;
+                    if (IP.x > 79)
                     {
-                        IP.x += 1+extraAmount;
-                    }
-                    else
-                    {
-                        IP.x = 0;
+                        IP.x = IP.x - 79 - 1;
                     }
                     break;
                 case Direction.South:
-                    if (IP.y < 24 - 1)
+                    IP.y += 1 + extraAmount;
+                    if (IP.y > 24)
                     {
-                        IP.y += 1+extraAmount;
-                    }
-                    else
-                    {
-                        IP.y = 0+extraAmount;
+                        IP.y = IP.y - 24 - 1;
                     }
                     break;
                 case Direction.West:
-                    if (IP.x > 0)
+                    IP.x -= 1 + extraAmount;
+                    if (IP.x < 0)
                     {
-                        IP.x -= 1+extraAmount;
-                    }
-                    else
-                    {
-                        IP.x = 79 + extraAmount;
+                        IP.x = 79 + IP.x + 1;
                     }
                     break;
             }

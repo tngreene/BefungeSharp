@@ -28,7 +28,8 @@ namespace BefungePF
              * 4.) Check if the program should switch to a different mode
              * 5.) When its time to exit, do so
              */
-            ConEx.ConEx_Draw.InitConEx_Draw(81, 32);
+            ConEx.ConEx_Draw.Init(81, 32);
+            ConEx.ConEx_Input.Init();
             
             bool runProgram = true;
             ConEx.ConEx_Input.TreatControlCAsInput = true;
