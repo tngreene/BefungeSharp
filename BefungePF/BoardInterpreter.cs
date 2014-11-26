@@ -42,7 +42,7 @@ namespace BefungePF
         public int numToPop;//Could be 0 (for things like direction),
         //1 for things like _ or |, 2 for most things, or 3 for the rare g and p
         //-1 signifies we are pushing
-
+        
         /// <summary>
         /// A struct to store information relating to a command
         /// </summary>
@@ -75,6 +75,22 @@ namespace BefungePF
 
         private BoardManager bRef;
 
+        /// <summary>
+        /// Top Stack, like normal stack in BF-93
+        /// </summary>
+        private Stack<int> _TOSS;
+
+        /// <summary>
+        /// Second "local" stack, BF-98 only
+        /// </summary>
+        private Stack<int> _SOSS;
+
+        /// <summary>
+        ///Toggling which stack you are using,
+        ///True for using _TOSS, false for _SOSS
+        /// </summary>
+        private bool _usingTopStack;
+
         //Direction of the instruction pointer
         private Vector2D direction;
 
@@ -95,6 +111,14 @@ namespace BefungePF
         public BoardInterpreter(BoardManager mgr)
         {
             bRef = mgr;
+
+            _TOSS = new Stack<int>();
+            _TOSS.Push(0);
+
+            _SOSS = new Stack<int>();
+            _SOSS.Push(0);
+
+            _usingTopStack = true;
             isStringMode = false;
             SetDirection(Direction.East);
 
@@ -107,6 +131,7 @@ namespace BefungePF
             isStringMode = false;
             SetDirection(Direction.East);
             bRef.GlobalStack.Clear();
+            bRef.GlobalStack.Push(0);
             IP.x = 0;
             IP.y = 0;
         }
@@ -258,8 +283,6 @@ namespace BefungePF
 
         private void DrawIP()
         {
-            //TODO: Fix the wrap around problem
-
             Direction direct = GetDirection();
             
             //Get the last place we were, reset it's color
@@ -600,8 +623,6 @@ namespace BefungePF
                     
                 case 'q'://Not fully implimented
                     return CommandType.StopExecution;
-                    break;           
-
 
                 //Arithmatic
                 case '+':
@@ -680,26 +701,30 @@ namespace BefungePF
                     if (succeded == true)
                     {
                         bRef.GlobalStack.Push(outResult);
+                        bRef.BUI.AddText(input, BoardUI.Categories.IN);
                     }
                     else
                     {
                         bRef.GlobalStack.Push(0);
+                        bRef.BUI.AddText("0", BoardUI.Categories.IN);
                     }
                     break;
                 case '~'://Read char
+                    //TODO - allow for mass input
                     char charInput = Console.ReadKey(true).KeyChar;
                     bRef.GlobalStack.Push((int)charInput);
+                    bRef.BUI.AddText(charInput.ToString(), BoardUI.Categories.IN);
                     break;
                 case ','://Output charecter
                     {
                         char outChar = (char)bRef.GlobalStack.Pop();
                         string outVal = outChar.ToString();
 
-                        bRef.BUI.OutputList[0] += outVal;
+                        bRef.BUI.AddText(outVal,BoardUI.Categories.OUT);
                     }
                     break;
                 case '.'://Output as number
-                    bRef.BUI.OutputList.Add(Convert.ToString(bRef.GlobalStack.Pop()));
+                    bRef.BUI.AddText(bRef.GlobalStack.Pop().ToString(),BoardUI.Categories.OUT);
                     break;
                 //Funge 98 stack manipulation
                 case 'u':

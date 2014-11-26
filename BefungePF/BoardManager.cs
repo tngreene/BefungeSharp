@@ -85,6 +85,7 @@ namespace BefungePF
             else
             {
                 _globalStack = new Stack<int>();
+                _globalStack.Push(0);//We always have 0 on the stack
             }
 
             _curMode = mode;
@@ -118,11 +119,13 @@ namespace BefungePF
                 }
             }
 
-            _bUI = new BoardUI(this);
+            
             _bInterp = new BoardInterpreter(this);
-
+            _bUI = new BoardUI(this, _bInterp);
             Console.CursorVisible = false;
+
             //Draw the field and ui and reset the position
+            _bUI.ClearArea(_curMode);
             _bUI.Draw(_curMode);
 
             ConEx.ConEx_Draw.DrawScreen();
@@ -201,7 +204,6 @@ namespace BefungePF
                                 case ConsoleKey.Enter:
                                     break;
                                 case ConsoleKey.F5:
-                                    _bUI.ClearArea(_curMode);
                                     break;
                                 case ConsoleKey.S:
                                     if (keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Alt))

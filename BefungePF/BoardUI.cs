@@ -9,7 +9,7 @@ namespace BefungePF
     class BoardUI
     {
         private BoardManager _boardRef;
-
+        private BoardInterpreter _interpRef;
         /* The board UI area extends from a (currently arbitray/hardcoded area) from row 26 to row 31 and columns 0 through 80
          * except for the space [31,80] which makes it go to a new line
          * 
@@ -19,21 +19,51 @@ namespace BefungePF
          * 
          * 
          * 
-         * [31,0]                 [31,79]
+         * [31,0]                 [31,80]
          * */
         const int UI_TOP = 26;
+        const int UI_RIGHT = 80;
+        int UI_BOTTOM = 0;
+
+        public enum Categories
+        {
+            TOSS,
+            SOSS,
+            OUT,
+            IN
+        }
+        //a string to represent the piece of information
+        //and the row in which to start drawing it
         private string _TOSSstackRep;
+        private int _TOSSstackRow;
+
+        private string _SOSSstackRep;
+        private int _SOSSstackRow;
+
         private string _outputRep;
+        private int _outputRow;
+
         private string _inputRep;
-
-        private List<string> outputList;
-        public List<string> OutputList { get { return outputList; } }
-
-        public BoardUI(BoardManager mgr)
+        private int _inputRow;
+        
+        public BoardUI(BoardManager mgr, BoardInterpreter interp)
         {
             _boardRef = mgr;
-            outputList = new List<string>();
-            outputList.Add("");
+            _interpRef = interp;
+
+            //All of the rows follow after each other
+            _TOSSstackRep = "TS:";
+            _TOSSstackRow = UI_TOP;
+
+            _SOSSstackRep = "SS:";
+            _SOSSstackRow = -1;//Turn on when we implent stack stack/interpreter currently running in 98 mode//_TOSSstackRow + 1;
+
+            _outputRep = "O:";
+            _outputRow = _TOSSstackRow + 1;
+
+            _inputRep = "I:";
+            _inputRow = _outputRow + 1;
+            UI_BOTTOM = ConEx.ConEx_Draw.Dimensions.height - 1;
         }
 
         /// <summary>
@@ -44,21 +74,58 @@ namespace BefungePF
         {
             #region Draw Field
             //Create the boarder of the playing field
-            for (int row = 0; row < _boardRef.BoardArray.Count; row++)
+            for (int row = 0; row <= UI_BOTTOM; row++)
             {
-                ConEx.ConEx_Draw.InsertCharacter('|', row, _boardRef.BoardArray[0].Count);
+                ConEx.ConEx_Draw.InsertCharacter('|', row, UI_RIGHT);
             }
-            
-            string bottom = new string('_', _boardRef.BoardArray[0].Count);
-            ConEx.ConEx_Draw.InsertString(bottom, _boardRef.BoardArray.Count, 0, false);
+
+            string bottom = new string('_', UI_RIGHT);
+            ConEx.ConEx_Draw.InsertString(bottom, UI_TOP-1, 0, false);
             #endregion
 
-            #region DrawCursorPosition
-            //Clears off the previous thing
-            ConEx.ConEx_Draw.InsertString("     ", ConEx.ConEx_Draw.Dimensions.height - 1, ConEx.ConEx_Draw.Dimensions.width - 1 - 5, false);
+            #region Mode and DrawCursorPosition
+            string modeStr = "Mode: ";
+            switch (mode)
+            {
+                    //All strings padded so their right side is all uniform
+                case BoardMode.Run_MAX:
+                    modeStr += "Max";
+                    break;
+                case BoardMode.Run_FAST:
+                    modeStr += "Fast";
+                    break;
+                case BoardMode.Run_MEDIUM:
+                    modeStr += "Medium";
+                    break;
+                case BoardMode.Run_SLOW:
+                    modeStr += "Slow";
+                    break;
+                case BoardMode.Run_STEP:
+                    modeStr += "Step";
+                    break;
+                case BoardMode.Edit:
+                    modeStr += "Edit";
+                    break;
+            }
+
+            //Generates a strings which is always five chars wide, with the number stuck to the ','
+            //Like " 0,8 " , "17,5 " , "10,10", " 8,49"
+            string IP_Pos = "";
+            IP_Pos += _interpRef.Y.ToString().Length == 1 ? ' ' : _interpRef.Y.ToString()[0];
+            IP_Pos += _interpRef.Y.ToString().Length == 1 ? _interpRef.Y.ToString()[0] : _interpRef.Y.ToString()[1];
+            IP_Pos += ',';
+            IP_Pos += _interpRef.X.ToString().Length == 1 ? _interpRef.X.ToString()[0] : _interpRef.X.ToString()[0];
+            IP_Pos += _interpRef.X.ToString().Length == 1 ? ' ' : _interpRef.X.ToString()[1];
+
+            ConEx.ConEx_Draw.InsertString(IP_Pos, UI_BOTTOM, (UI_RIGHT - 1) - IP_Pos.Length, false);
+            ConEx.ConEx_Draw.InsertString(modeStr, UI_BOTTOM, 61/*(UI_RIGHT - 1) - (IP_Pos.Length - 1) - (modeStr.Length - 2 - 5)*/, false);
+
+            for (int i = 0; i < IP_Pos.Length; i++)
+            {
+                int col = (UI_RIGHT - 1) - (IP_Pos.Length + i);
+               ConEx.ConEx_Draw.SetAttributes(UI_BOTTOM, (UI_RIGHT - 1) - (IP_Pos.Length - i), ConsoleColor.Cyan, ConsoleColor.Black);//Color should be the same as movement color    
+            }
             
-            string IP_Pos = Console.CursorTop + "," + Console.CursorLeft;
-            ConEx.ConEx_Draw.InsertString(IP_Pos, ConEx.ConEx_Draw.Dimensions.height-1, ConEx.ConEx_Draw.Dimensions.width - 1 - IP_Pos.Length, false, ConsoleColor.Cyan);//Color should be the same as movement color
             #endregion
 
             switch (mode)
@@ -68,40 +135,88 @@ namespace BefungePF
                 case BoardMode.Run_MEDIUM:
                 case BoardMode.Run_SLOW:
                 case BoardMode.Run_STEP:
+#region TOSS
+                    _TOSSstackRep = "TS:";
+                    List<int> rStack = _boardRef.GlobalStack.ToList();
+                    rStack.Reverse();
 
-                    string stackString = "S:";
-                    for (int i = 0; i < _boardRef.GlobalStack.Count; i++)
-			        {
-                        stackString += _boardRef.GlobalStack.ElementAt(i).ToString();
-                        stackString += '|';
-
-                        //ConEx.ConEx_Draw.InsertCharacter('|', UI_TOP, i+1, ConsoleColor.DarkGreen);
-                        //ConEx.ConEx_Draw.InsertCharacter(_boardRef.GlobalStack.ElementAt(i).ToString()[0], UI_TOP, j);
-			        }
-
-                    for (int i = 0; i < stackString.Length; i++)
+                    for (int i = 0; i < rStack.Count; i++)
                     {
-                        ConsoleColor fore = ConsoleColor.White;
-                        if(stackString[i] == '|')
-                        {
-                            fore = ConsoleColor.DarkGreen;
-                        }
-                        ConEx.ConEx_Draw.InsertCharacter(stackString[i], UI_TOP, i, fore);
+                        _TOSSstackRep += rStack.ElementAt(i).ToString() + '|';
                     }
-
-                    if (this.outputList.Count > 0)
+                    
+                    for (int i = 0; i < _TOSSstackRep.Length; i++)
                     {
-                        string outstring = "O:" + this.outputList[0];
+                        if(_TOSSstackRep[i] == '|')
+                        {
+                            ConsoleColor fore = ConsoleColor.DarkGreen;
+                            ConEx.ConEx_Draw.SetAttributes(_TOSSstackRow, i, fore, ConsoleColor.Black);
+                        }
+                    }
+#endregion
+#region SOSS
+                    if (_SOSSstackRow != -1)
+                    {
+                        /*_SOSSstackRep = "SS:";
+                        List<int> rStack = _boardRef.GlobalStack.ToList();
+                        rStack.Reverse();
 
-                        for (int i = 0; i < outstring.Length; i++)
+                        for (int i = 0; i == rStack.Count - 1; i++)
+                        {
+                            _SOSSstackRep += rStack.ElementAt(i).ToString();
+                            _SOSSstackRep += '|';
+                        }
+                        
+
+                        for (int i = 0; i < _SOSSstackRep.Length; i++)
                         {
                             ConsoleColor fore = ConsoleColor.White;
-                            if (outstring[i] == '|')
+                            if (_SOSSstackRep[i] == '|')
                             {
-                                fore = ConsoleColor.DarkBlue;
+                                fore = ConsoleColor.DarkGreen;
+                                ConEx.ConEx_Draw.SetAttributes(_SOSSstackRow, i, fore, ConsoleColor.Black);
                             }
-                            ConEx.ConEx_Draw.InsertCharacter(outstring[i], UI_TOP + 1, i, fore);
+                        }*/
+                    }
+#endregion    
+                    //Insert the strings into the world
+                    ConEx.ConEx_Draw.InsertString(_TOSSstackRep, _TOSSstackRow, 0, false);
+                    //ConEx.ConEx_Draw.InsertString(_SOSSstackRep, _SOSSstackRow, 0, false);
+                    ConEx.ConEx_Draw.InsertString(_outputRep, _outputRow, 0, false);
+                    ConEx.ConEx_Draw.InsertString(_inputRep, _inputRow, 0, false);
+
+                    //For all strings color the pipe bars
+                    for (int i = 0; i < 4; i++)
+                    {
+                        string colorize = "";
+                        ConsoleColor pipeColor = ConsoleColor.White;
+                        switch (i)
+                        {
+                            case 0:
+                                colorize = _TOSSstackRep;
+                                pipeColor = ConsoleColor.DarkYellow;
+                                break;
+                            case 1:
+                                colorize = _SOSSstackRep;
+                                pipeColor = ConsoleColor.DarkMagenta;
+                                break;
+                            case 2:
+                                colorize = _outputRep;
+                                pipeColor = ConsoleColor.Gray;
+                                break;
+                            case 3:
+                                colorize = _inputRep;
+                                pipeColor = ConsoleColor.DarkGray;
+                                break;
                         }
+
+                        for (int j = 0; j < colorize.Length; j++)
+                        {
+                            if (colorize[j] == '|')
+                            {
+                                ConEx.ConEx_Draw.SetAttributes(_outputRow, j, pipeColor, ConsoleColor.Black);
+                            }
+                        }      
                     }
                     break;
                 case BoardMode.Edit:
@@ -113,41 +228,26 @@ namespace BefungePF
                     break;
             }
         }
-            
-            /*case BoardMode.Run_MAX:
-            case BoardMode.Run_FAST:
-            case BoardMode.Run_MEDIUM:
-            case BoardMode.Run_SLOW:
 
-            case BoardMode.Run_STEP:
-            */
-                
-            //Console.Write("({0},{1})", editCursorL, editCursorT);
-
-
-            /*    
-            Console.Write("             Global Stack");
-            Console.Write(' ');
-
-            for (int i = boardRef.GlobalStack.Count - 1; i >= 0; i-- )
+        public void AddText(string text, Categories catagory)
+        {
+            switch (catagory)
             {
-                bool displayStackAsASCII = false;
-                if (boardRef.GlobalStack.ElementAt(i) > 32 && boardRef.GlobalStack.ElementAt(i) < 127 && displayStackAsASCII == true )
-                {
-                    Console.Write("{0}|", (char)boardRef.GlobalStack.ElementAt(i));
-                }
-                else
-                {
-                    Console.Write("{0}|", boardRef.GlobalStack.ElementAt(i));
-                }
+                case Categories.TOSS:
+                    _TOSSstackRep += text;
+                    break;
+                case Categories.SOSS:
+                    _SOSSstackRep += text;
+                    break;
+                case Categories.OUT:
+                    _outputRep += text;
+                    break;
+                case Categories.IN:
+                    _inputRep += text + "|";
+                    break;
             }
-            Console.Write('\n');
-            Console.Write("Output: ");
-            for (int i = 0; i < outputList.Count; i++)
-            {
-                Console.Write(outputList[i]);
-            }*/
-        
+        }
+
         public void ClearArea(BoardMode mode)
         {
             //De-create the boarder of the playing field
@@ -162,7 +262,11 @@ namespace BefungePF
             ConEx.ConEx_Draw.FillArea('\0', UI_TOP, 0, ConEx.ConEx_Draw.Dimensions.width, ConEx.ConEx_Draw.Dimensions.height);
         }
 
-        public void Update(BoardMode mode)
+        public void SelectArea()
+        {
+
+        }
+        public void Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
             throw new NotImplementedException();
         }
