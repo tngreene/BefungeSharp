@@ -45,7 +45,9 @@ namespace BefungePF
 
         private string _inputRep;
         private int _inputRow;
-        
+
+        private ConEx.ConEx_Draw.SmallRect selection;
+
         public BoardUI(BoardManager mgr, BoardInterpreter interp)
         {
             _boardRef = mgr;
@@ -63,7 +65,10 @@ namespace BefungePF
 
             _inputRep = "I:";
             _inputRow = _outputRow + 1;
+
             UI_BOTTOM = ConEx.ConEx_Draw.Dimensions.height - 1;
+
+            selection.Top = selection.Right = selection.Bottom = selection.Left = 0;
         }
 
         /// <summary>
@@ -83,50 +88,8 @@ namespace BefungePF
             ConEx.ConEx_Draw.InsertString(bottom, UI_TOP-1, 0, false);
             #endregion
 
-            #region Mode and DrawCursorPosition
-            string modeStr = "Mode: ";
-            switch (mode)
-            {
-                    //All strings padded so their right side is all uniform
-                case BoardMode.Run_MAX:
-                    modeStr += "Max";
-                    break;
-                case BoardMode.Run_FAST:
-                    modeStr += "Fast";
-                    break;
-                case BoardMode.Run_MEDIUM:
-                    modeStr += "Medium";
-                    break;
-                case BoardMode.Run_SLOW:
-                    modeStr += "Slow";
-                    break;
-                case BoardMode.Run_STEP:
-                    modeStr += "Step";
-                    break;
-                case BoardMode.Edit:
-                    modeStr += "Edit";
-                    break;
-            }
-
-            //Generates a strings which is always five chars wide, with the number stuck to the ','
-            //Like " 0,8 " , "17,5 " , "10,10", " 8,49"
-            string IP_Pos = "";
-            IP_Pos += _interpRef.Y.ToString().Length == 1 ? ' ' : _interpRef.Y.ToString()[0];
-            IP_Pos += _interpRef.Y.ToString().Length == 1 ? _interpRef.Y.ToString()[0] : _interpRef.Y.ToString()[1];
-            IP_Pos += ',';
-            IP_Pos += _interpRef.X.ToString().Length == 1 ? _interpRef.X.ToString()[0] : _interpRef.X.ToString()[0];
-            IP_Pos += _interpRef.X.ToString().Length == 1 ? ' ' : _interpRef.X.ToString()[1];
-
-            ConEx.ConEx_Draw.InsertString(IP_Pos, UI_BOTTOM, (UI_RIGHT - 1) - IP_Pos.Length, false);
-            ConEx.ConEx_Draw.InsertString(modeStr, UI_BOTTOM, 61/*(UI_RIGHT - 1) - (IP_Pos.Length - 1) - (modeStr.Length - 2 - 5)*/, false);
-
-            for (int i = 0; i < IP_Pos.Length; i++)
-            {
-                int col = (UI_RIGHT - 1) - (IP_Pos.Length + i);
-               ConEx.ConEx_Draw.SetAttributes(UI_BOTTOM, (UI_RIGHT - 1) - (IP_Pos.Length - i), ConsoleColor.Cyan, ConsoleColor.Black);//Color should be the same as movement color    
-            }
+            DrawInfo(mode);
             
-            #endregion
 
             switch (mode)
             {
@@ -221,8 +184,6 @@ namespace BefungePF
                     break;
                 case BoardMode.Edit:
                     ConEx.ConEx_Draw.InsertString("New File - Ctrl-N  | Save - Alt - S | Run (Medium) - F5 | Main Menu - Escape", UI_TOP,0,false);
-                    
-                    
                     break;
                 default:
                     break;
@@ -262,10 +223,58 @@ namespace BefungePF
             ConEx.ConEx_Draw.FillArea('\0', UI_TOP, 0, ConEx.ConEx_Draw.Dimensions.width, ConEx.ConEx_Draw.Dimensions.height);
         }
 
-        public void SelectArea()
+        /// <summary>
+        /// Draws the information about the current mode and IP_Position
+        /// </summary>
+        /// <param name="mode">Mode of the program</param>
+        public void DrawInfo(BoardMode mode)
         {
+            string modeStr = "Mode: ";
+            switch (mode)
+            {
+                //All strings padded so their right side is all uniform
+                case BoardMode.Run_MAX:
+                    modeStr += "Max";
+                    break;
+                case BoardMode.Run_FAST:
+                    modeStr += "Fast";
+                    break;
+                case BoardMode.Run_MEDIUM:
+                    modeStr += "Medium";
+                    break;
+                case BoardMode.Run_SLOW:
+                    modeStr += "Slow";
+                    break;
+                case BoardMode.Run_STEP:
+                    modeStr += "Step";
+                    break;
+                case BoardMode.Edit:
+                    modeStr += "Edit";
+                    break;
+            }
 
+            //Generates a strings which is always five chars wide, with the number stuck to the ','
+            //Like " 0,8 " , "17,5 " , "10,10", " 8,49"
+            string IP_Pos = "";
+            IP_Pos += _interpRef.Y.ToString().Length == 1 ? ' ' : _interpRef.Y.ToString()[0];
+            IP_Pos += _interpRef.Y.ToString().Length == 1 ? _interpRef.Y.ToString()[0] : _interpRef.Y.ToString()[1];
+            IP_Pos += ',';
+            IP_Pos += _interpRef.X.ToString().Length == 1 ? _interpRef.X.ToString()[0] : _interpRef.X.ToString()[0];
+            IP_Pos += _interpRef.X.ToString().Length == 1 ? ' ' : _interpRef.X.ToString()[1];
+
+            ConEx.ConEx_Draw.InsertString(IP_Pos, UI_BOTTOM, (UI_RIGHT - 1) - IP_Pos.Length, false);
+
+            ConEx.ConEx_Draw.InsertString(modeStr, UI_BOTTOM, (UI_RIGHT - 1) - (IP_Pos.Length) - (1) - (12/*Maximum Possible Length for modeStr*/), false);
+
+            for (int i = 0; i < IP_Pos.Length; i++)
+            {
+                int col = (UI_RIGHT - 1) - (IP_Pos.Length + i);
+                ConEx.ConEx_Draw.SetAttributes(UI_BOTTOM, (UI_RIGHT - 1) - (IP_Pos.Length - i), ConsoleColor.Cyan, ConsoleColor.Black);//Color should be the same as movement color    
+            }
         }
+        
+        
+
         public void Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
             throw new NotImplementedException();
