@@ -28,11 +28,15 @@ namespace BefungePF
              * 4.) Check if the program should switch to a different mode
              * 5.) When its time to exit, do so
              */
-            ConEx.ConEx_Draw.Init(81, 32);
+                            //Size of field + border + width_of_sidebar
+            int width_of_sidebar = 36;//Seems right?
+            ConEx.ConEx_Draw.Init(80 + 1 + width_of_sidebar, 32);
+            //Console.OutputEncoding = Encoding.GetEncoding(437);
             ConEx.ConEx_Input.Init();
-            
-            bool runProgram = true;
             ConEx.ConEx_Input.TreatControlCAsInput = true;
+
+            bool runProgram = true;
+            
             while (runProgram)
             {
                 Console.Clear();
@@ -56,7 +60,8 @@ namespace BefungePF
                 do
                 {
                     //Get their input
-                    string input = Console.ReadLine();
+                    string input = "";
+                    input = Console.ReadLine();
                     
                     if (input == "")
                     {
@@ -113,7 +118,9 @@ namespace BefungePF
                 switch (programMode)
                 {
                     case ProgramMode.NewFile:
-                        board = new BoardManager(25,80);
+                        List<string> s = new List<string>();
+                        //s.Add("\"dlroW olleH\">:#,_@");
+                        board = new BoardManager(25,80,s);
                         board.UpdateBoard();
                         break;
                     case ProgramMode.OpenFile:

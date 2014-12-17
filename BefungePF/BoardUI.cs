@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BefungePF
 {
-    class BoardUI
+    public class BoardUI
     {
         private BoardManager _boardRef;
         private BoardInterpreter _interpRef;
@@ -100,7 +100,7 @@ namespace BefungePF
                 case BoardMode.Run_STEP:
 #region TOSS
                     _TOSSstackRep = "TS:";
-                    List<int> rStack = _boardRef.GlobalStack.ToList();
+                    List<int> rStack = _interpRef.GlobalStack.ToList();
                     rStack.Reverse();
 
                     for (int i = 0; i < rStack.Count; i++)
@@ -183,7 +183,7 @@ namespace BefungePF
                     }
                     break;
                 case BoardMode.Edit:
-                    ConEx.ConEx_Draw.InsertString("New File - Ctrl-N  | Save - Alt - S | Run (Medium) - F5 | Main Menu - Escape", UI_TOP,0,false);
+                    
                     break;
                 default:
                     break;
@@ -220,7 +220,7 @@ namespace BefungePF
             string bottom = new string(' ', _boardRef.BoardArray[0].Count);
             ConEx.ConEx_Draw.InsertString(bottom, _boardRef.BoardArray.Count, 0, false);
 
-            ConEx.ConEx_Draw.FillArea('\0', UI_TOP, 0, ConEx.ConEx_Draw.Dimensions.width, ConEx.ConEx_Draw.Dimensions.height);
+            ConEx.ConEx_Draw.FillArea(' ', UI_TOP, 0, ConEx.ConEx_Draw.Dimensions.width, ConEx.ConEx_Draw.Dimensions.height);
         }
 
         /// <summary>
@@ -256,11 +256,11 @@ namespace BefungePF
             //Generates a strings which is always five chars wide, with the number stuck to the ','
             //Like " 0,8 " , "17,5 " , "10,10", " 8,49"
             string IP_Pos = "";
-            IP_Pos += _interpRef.Y.ToString().Length == 1 ? ' ' : _interpRef.Y.ToString()[0];
-            IP_Pos += _interpRef.Y.ToString().Length == 1 ? _interpRef.Y.ToString()[0] : _interpRef.Y.ToString()[1];
+            IP_Pos += _interpRef.X.ToString().Length == 1 ? ' ' : _interpRef.X.ToString()[0];
+            IP_Pos += _interpRef.X.ToString().Length == 1 ? _interpRef.X.ToString()[0] : _interpRef.X.ToString()[1];
             IP_Pos += ',';
-            IP_Pos += _interpRef.X.ToString().Length == 1 ? _interpRef.X.ToString()[0] : _interpRef.X.ToString()[0];
-            IP_Pos += _interpRef.X.ToString().Length == 1 ? ' ' : _interpRef.X.ToString()[1];
+            IP_Pos += _interpRef.Y.ToString().Length == 1 ? _interpRef.Y.ToString()[0] : _interpRef.Y.ToString()[0];
+            IP_Pos += _interpRef.Y.ToString().Length == 1 ? ' ' : _interpRef.Y.ToString()[1];
 
             ConEx.ConEx_Draw.InsertString(IP_Pos, UI_BOTTOM, (UI_RIGHT - 1) - IP_Pos.Length, false);
 

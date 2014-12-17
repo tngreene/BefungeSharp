@@ -6,20 +6,7 @@ using System.Threading.Tasks;
 
 namespace BefungePF
 {
-    /// <summary>
-    /// An enum of how the board should behave while running
-    /// </summary>
-    enum BoardMode
-    {
-        Run_MAX = 1,//Program runs instantanously, user will mostlikely not be able to see the IP or The stacks changing
-        Run_FAST = 50,//Program delayed by 50ms. The IP and stacks will move rapidly but visibly
-        Run_MEDIUM = 100,//Program delayed by 100ms. IP and stack changes are more easy to follow
-        Run_SLOW = 200,//Program delayed by 200ms. IP and stack changes are slow enough to follow on paper
-        Run_STEP = 101,//Program delayed until user presses the "Next Step" Key
-        Edit = 0//Program is running in edit mode
-    }
-    
-    class BoardManager
+    public class BoardManager
     {
         /// <summary>
         /// Represents a 2 dimensional space of charecters, non jagged
@@ -28,37 +15,13 @@ namespace BefungePF
         private List<List<char>> _boardArray;
         public List<List<char>> BoardArray { get { return _boardArray; } }
 
-        /// <summary>
-        /// Represents the main stack
-        /// </summary>
-        private Stack<int> _globalStack;
-
-        public Stack<int> GlobalStack { get { return _globalStack; } }
-
-        /// <summary>
-        /// A stack of stacks for our custom foot prints allowing functions and local stacks
-        /// </summary>
-        private Stack<Stack<int>> _localStacks;
-
-        /// <summary>
-        /// A stack that the input values are in put in
-        /// </summary>
-        private Stack<int> _inputStack;
-
-        /// <summary>
-        /// Flag to determine if the board needs to be redrawn
-        /// </summary>
-        private bool _needsRedraw;
-        public bool NeedsRedraw { get; set; }
-
         private BoardUI _bUI;
         public BoardUI BUI { get { return _bUI; } }
 
+        private BoardSideBar _bSideBar;
         private BoardInterpreter _bInterp;
 
-        //The current mode of the board
-        private BoardMode _curMode;
-        public BoardMode CurMode { get { return _curMode; } set { _curMode = value; } }
+       
 
         /// <summary>
         /// Creates a new BoardManager with the options to set up its entire intial state and run type
@@ -72,23 +35,10 @@ namespace BefungePF
         /// <param name="initGlobalStack">Initialize the input stack with preset numbers</param>
         /// <param name="mode">Chooses what mode you would like to start the board in</param>
         public BoardManager(int rows, int columns, List<string> initChars = null,
-                            int[] initGlobalStack = null, BoardMode mode = BoardMode.Edit)
+                            Stack<int> initGlobalStack = null, BoardMode mode = BoardMode.Edit)
         {
             //Intialize the board array to be the size of the board
             _boardArray = new List<List<char>>(rows);
-
-            //Copy all the data from the initialInput
-            if (initGlobalStack != null)
-            {
-                _globalStack = new Stack<int>(initGlobalStack);
-            }
-            else
-            {
-                _globalStack = new Stack<int>();
-                _globalStack.Push(0);//We always have 0 on the stack
-            }
-
-            _curMode = mode;
 
             //Fill up the whole rectangle with spaces
             for (int y = 0; y < rows; y++)
@@ -120,14 +70,20 @@ namespace BefungePF
             }
 
             
-            _bInterp = new BoardInterpreter(this);
+            _bInterp = new BoardInterpreter(this,initGlobalStack,mode);
+
+           
+
             _bUI = new BoardUI(this, _bInterp);
+            _bSideBar = new BoardSideBar(this, _bInterp);
+
             Console.CursorVisible = false;
 
             //Draw the field and ui and reset the position
-            _bUI.ClearArea(_curMode);
-            _bUI.Draw(_curMode);
+            _bUI.ClearArea(_bInterp.CurMode);
+            _bUI.Draw(_bInterp.CurMode);
 
+            _bSideBar.Draw(_bInterp.CurMode);
             ConEx.ConEx_Draw.DrawScreen();
         }
 
@@ -152,7 +108,6 @@ namespace BefungePF
             {
                 _boardArray[row][column] = charecter;
                 ConEx.ConEx_Draw.InsertCharacter(charecter, row, column, LookupInfo(charecter).color, ConsoleColor.Black);
-                _needsRedraw = true;
                 return true;
             }
         }
@@ -168,23 +123,16 @@ namespace BefungePF
                 //Get the current keys
                 ConsoleKeyInfo[] keysHit = ConEx.ConEx_Input.GetInput();
                 CommandType type;
-                type = _bInterp.Update(_curMode, keysHit);
+                type = _bInterp.Update(_bInterp.CurMode, keysHit);
 
                 //Based on what mode it is handle those keys
-                switch (_curMode)
+                switch (_bInterp.CurMode)
                 {
                     case BoardMode.Run_MAX:
                     case BoardMode.Run_FAST:
                     case BoardMode.Run_MEDIUM:
                     case BoardMode.Run_SLOW:
                     case BoardMode.Run_STEP:
-
-                        if (type == CommandType.StopExecution)
-                        {
-                            _curMode = BoardMode.Edit;
-                            
-                            _bUI.ClearArea(_curMode);
-                        }
                         break;
                     case BoardMode.Edit:
                         #region --HandleInput-------------
@@ -203,7 +151,17 @@ namespace BefungePF
                                 case ConsoleKey.Backspace:
                                 case ConsoleKey.Enter:
                                     break;
-                                case ConsoleKey.F5:
+                                case ConsoleKey.N:
+                                    if (keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Control))
+                                    {
+                                        for (int y = 0; y < _boardArray.Count; y++)
+                                        {
+                                            for (int x = 0; x < _boardArray[0].Count; x++)
+                                            {
+                                                InsertChar(y,x,' ');
+                                            }
+                                        }
+                                    }
                                     break;
                                 case ConsoleKey.S:
                                     if (keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Alt))
@@ -229,14 +187,16 @@ namespace BefungePF
                 
                 if (true)
                 {
-                    _bUI.ClearArea(_curMode);
-                    _bUI.Draw(_curMode);
-                    
+                    _bUI.ClearArea(_bInterp.CurMode);
+                    _bUI.Draw(_bInterp.CurMode);
+
+                    _bSideBar.ClearArea(_bInterp.CurMode);
+                    _bSideBar.Draw(_bInterp.CurMode);
+
                     ConEx.ConEx_Draw.DrawScreen();
-                    _needsRedraw = false;
                 }
                 //Based on the mode sleep the program so it does not scream by
-                System.Threading.Thread.Sleep((int)_curMode);
+                System.Threading.Thread.Sleep((int)_bInterp.CurMode);
             }//while(true)
         }//Update()
 
@@ -260,66 +220,6 @@ namespace BefungePF
 
             //If it is, return the charecter
             return _boardArray[row][column];
-        }
-
-        /// <summary>
-        /// Extracts all the "basic cursor movement cases from the board updater
-        /// </summary>
-        /// <param name="mode">The key pressed</param>
-        private void MoveCursor(ConsoleKey mode)
-        {
-            switch (mode)
-            {
-                //Arrow Keys move the cursor
-                case ConsoleKey.UpArrow:
-                    if (Console.CursorTop > 0)
-                    {
-                        Console.CursorTop--;
-                        _needsRedraw = true;
-                    }
-                    break;
-                case ConsoleKey.LeftArrow:
-                    if (Console.CursorLeft > 0)
-                    {
-                        Console.CursorLeft--;
-                        _needsRedraw = true;
-                    }
-                    break;
-                case ConsoleKey.DownArrow:
-                    if (Console.CursorTop < _boardArray.Count - 1)
-                    {
-                        Console.CursorTop++;
-                        _needsRedraw = true;
-                    }
-                    break;
-                case ConsoleKey.RightArrow:
-                    if (Console.CursorLeft < Console.WindowWidth - 1)
-                    {
-                        Console.CursorLeft++;
-                        _needsRedraw = true;
-                    }
-                    break;
-                case ConsoleKey.Spacebar:
-                    InsertChar(Console.CursorTop, Console.CursorLeft, ' ');
-                    if (Console.CursorLeft < Console.WindowWidth - 1)
-                    {
-                        Console.CursorLeft++;
-                        _needsRedraw = true;
-                    }
-                    break;
-                case ConsoleKey.Backspace:
-                    if (Console.CursorLeft > 0)
-                    {
-                        Console.CursorLeft--;
-                        _needsRedraw = true;
-                    }
-                    InsertChar(Console.CursorTop, Console.CursorLeft, ' ');
-                    break;
-                case ConsoleKey.Enter:
-                    Console.SetCursorPosition(0, Console.CursorTop + 1);
-                    _needsRedraw = true;
-                    break;
-            }
         }
 
         /// <summary>
@@ -498,7 +398,7 @@ namespace BefungePF
             Console.Write("File Name: ");
 
             //Read filename from user
-            string input;
+            string input = "";
             bool goodInput = false;
             do
             {
@@ -546,8 +446,8 @@ namespace BefungePF
 
             Console.Clear();
 
-            _bUI.ClearArea(_curMode);
-            _bUI.Draw(_curMode);
+            _bUI.ClearArea(_bInterp.CurMode);
+            _bUI.Draw(_bInterp.CurMode);
         }
     }//class BoardManager
 }//Namespace BefungePF

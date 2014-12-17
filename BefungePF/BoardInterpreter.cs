@@ -6,13 +6,15 @@ using System.Threading.Tasks;
 
 namespace BefungePF
 {
-    //2D cardinal directions
-    enum Direction
+    //2D cardinal directions,
+    //Multiply by -1 to invert the direction
+    //Numbers 1 and 2 chosen arbitraily
+    public enum Direction
     {
-        North,
-        East,
-        South,
-        West
+        North = -2,
+        East = -1,
+        South = 2,
+        West = 1
     }
 
     //Types of commands that there could be
@@ -65,7 +67,20 @@ namespace BefungePF
         public int y;
     }
 
-    class BoardInterpreter
+    /// <summary>
+    /// An enum of how the board should behave while running
+    /// </summary>
+    public enum BoardMode
+    {
+        Run_MAX = 1,//Program runs instantanously, user will mostlikely not be able to see the IP or The stacks changing
+        Run_FAST = 50,//Program delayed by 50ms. The IP and stacks will move rapidly but visibly
+        Run_MEDIUM = 100,//Program delayed by 100ms. IP and stack changes are more easy to follow
+        Run_SLOW = 200,//Program delayed by 200ms. IP and stack changes are slow enough to follow on paper
+        Run_STEP = 101,//Program delayed until user presses the "Next Step" Key
+        Edit = 0//Program is running in edit mode
+    }
+
+    public class BoardInterpreter
     {
         //Constants for directions
         const int NORTH = -1;
@@ -75,21 +90,18 @@ namespace BefungePF
 
         private BoardManager bRef;
 
-        /// <summary>
-        /// Top Stack, like normal stack in BF-93
-        /// </summary>
-        private Stack<int> _TOSS;
+        private bool _debugMode;
 
         /// <summary>
-        /// Second "local" stack, BF-98 only
+        /// Represents the main stack
         /// </summary>
-        private Stack<int> _SOSS;
+        private Stack<int> _globalStack;
 
-        /// <summary>
-        ///Toggling which stack you are using,
-        ///True for using _TOSS, false for _SOSS
-        /// </summary>
-        private bool _usingTopStack;
+        public Stack<int> GlobalStack { get { return _globalStack; } }
+
+        //The current mode of the board
+        private BoardMode _curMode;
+        public BoardMode CurMode { get { return _curMode; } set { _curMode = value; } }
 
         //Direction of the instruction pointer
         private Vector2D direction;
@@ -108,17 +120,21 @@ namespace BefungePF
         /// Controls the intepretation and execution of commands
         /// </summary>
         /// <param name="mgr">A reference to the manager</param>
-        public BoardInterpreter(BoardManager mgr)
+        public BoardInterpreter(BoardManager mgr, Stack<int> stack = null, BoardMode mode = BoardMode.Edit)
         {
             bRef = mgr;
+            
+            //Copy all the data from the initialInput
+            if (stack != null)
+            {
+                _globalStack = new Stack<int>(stack);
+            }
+            else
+            {
+                _globalStack = new Stack<int>();
+                _globalStack.Push(0);//We always have 0 on the stack
+            }
 
-            _TOSS = new Stack<int>();
-            _TOSS.Push(0);
-
-            _SOSS = new Stack<int>();
-            _SOSS.Push(0);
-
-            _usingTopStack = true;
             isStringMode = false;
             SetDirection(Direction.East);
 
@@ -130,8 +146,8 @@ namespace BefungePF
         {
             isStringMode = false;
             SetDirection(Direction.East);
-            bRef.GlobalStack.Clear();
-            bRef.GlobalStack.Push(0);
+            GlobalStack.Clear();
+            GlobalStack.Push(0);
             IP.x = 0;
             IP.y = 0;
         }
@@ -151,7 +167,7 @@ namespace BefungePF
                 case BoardMode.Run_SLOW:
                 case BoardMode.Run_STEP:
                     //If we're not in stepping mode take a step
-                    if (bRef.CurMode != BoardMode.Run_STEP)
+                    if (_curMode != BoardMode.Run_STEP)
                     {
                         type = TakeStep();
                     }
@@ -163,27 +179,27 @@ namespace BefungePF
                         {
                             //1-5 adjusts execution speed
                             case ConsoleKey.D1:
-                                bRef.CurMode = BoardMode.Run_STEP;
+                                _curMode = BoardMode.Run_STEP;
                                 break;
                             case ConsoleKey.D2:
-                                bRef.CurMode = BoardMode.Run_SLOW;
+                                _curMode = BoardMode.Run_SLOW;
                                 break;
                             case ConsoleKey.D3:
-                                bRef.CurMode = BoardMode.Run_MEDIUM;
+                                _curMode = BoardMode.Run_MEDIUM;
                                 break;
                             case ConsoleKey.D4:
-                                bRef.CurMode = BoardMode.Run_FAST;
+                                _curMode = BoardMode.Run_FAST;
                                 break;
                             case ConsoleKey.D5:
-                                bRef.CurMode = BoardMode.Run_MAX;
+                                _curMode = BoardMode.Run_MAX;
                                 break;
                             //Takes us back to editor mode
                             case ConsoleKey.F12:
-                                bRef.CurMode = BoardMode.Edit;
+                                _curMode = BoardMode.Edit;
                                 break;
                             //Takes the next step
                             case ConsoleKey.RightArrow:
-                                if (bRef.CurMode == BoardMode.Run_STEP)
+                                if (_curMode == BoardMode.Run_STEP)
                                 {
                                     type = TakeStep();
                                 }
@@ -204,40 +220,91 @@ namespace BefungePF
 
                         switch (keysHit[i].Key)
                         {
-                            //Arrow keys change directions
+                            /*Arrow Keys
+                             * Shift + Arrow Key changes IP direction
+                             * Arrow Key press:
+                             * Save the old direction
+                             * Temporarily set the movement for how it should be
+                             * Move
+                             * Set it back to how it was
+                             * Ignore future movement
+                             * 
+                             * This system makes sure we still use our generalizations and
+                             * allows for neat editing tricks
+                             */
                             case ConsoleKey.UpArrow:
-                                SetDirection(Direction.North);
-                                needsMove = true;
+                                {
+                                    if(keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Shift))
+                                    {
+                                        SetDirection(Direction.North);
+                                        break;
+                                    }
+
+                                    Direction old = GetDirection();
+                                    SetDirection(Direction.North);
+                                    MoveIP();
+                                    SetDirection(old);
+                                    needsMove = false;
+                                }
                                 break;
                             case ConsoleKey.LeftArrow:
-                                SetDirection(Direction.West);
-                                needsMove = true;
+                                {
+                                    if (keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Shift))
+                                    {
+                                        SetDirection(Direction.West);
+                                        break;
+                                    }
+                                                                    
+                                    Direction old = GetDirection();
+                                    SetDirection(Direction.West);
+                                    MoveIP();
+                                    SetDirection(old);
+                                    needsMove = false;
+                                }
                                 break;
                             case ConsoleKey.DownArrow:
-                                SetDirection(Direction.South);
-                                needsMove = true;
+                                {
+                                    if (keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Shift))
+                                    {
+                                        SetDirection(Direction.South);
+                                        break;
+                                    }
+                                                                    
+                                    Direction old = GetDirection();
+                                    SetDirection(Direction.South);
+                                    MoveIP();
+                                    SetDirection(old);
+                                    needsMove = false;
+                                }
                                 break;
                             case ConsoleKey.RightArrow:
-                                SetDirection(Direction.East);
-                                needsMove = true;
+                                {
+                                    if (keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Shift))
+                                    {
+                                        SetDirection(Direction.West);
+                                        break;
+                                    }
+                                                                    
+                                    Direction old = GetDirection();
+                                    SetDirection(Direction.East);
+                                    MoveIP();
+                                    SetDirection(old);
+                                    needsMove = false;
+                                }
                                 break;
                             case ConsoleKey.Delete:
                                 {
-                                    SetDirection(Direction.East);
                                     bool success = bRef.InsertChar(IP.y, IP.x, ' ');
-                                    if (success)
-                                    {
-                                        needsMove = true;
-                                    }
                                 }
                                 break;
                             case ConsoleKey.Backspace:
                                 {
-                                    bool success = bRef.InsertChar(IP.y, IP.x-1, ' ');
-                                    if (success)
-                                    {
-                                        needsMove = true;
-                                    }
+                                    Direction old = GetDirection();
+                                    SetDirection((Direction)((int)old * -1));//Invert the direction
+                                    MoveIP();
+                                    bool success = bRef.InsertChar(IP.y, IP.x, ' ');
+                                    SetDirection(old);
+                                    needsMove = false;
                                 }
                                 break;
                             case ConsoleKey.Enter:
@@ -246,10 +313,14 @@ namespace BefungePF
                                 break;
                             case ConsoleKey.F5:
                                 Reset();
-                                bRef.CurMode = BoardMode.Run_MEDIUM;
+                                _curMode = BoardMode.Run_MEDIUM;
+                                break;
+                            case ConsoleKey.F6:
+                                Reset();
+                                _curMode = BoardMode.Run_STEP;
                                 break;
                             case ConsoleKey.F12:
-                                bRef.CurMode = BoardMode.Run_MEDIUM;
+                                _curMode = BoardMode.Run_MEDIUM;
                                 break;
                             case ConsoleKey.Escape:
                                 return type = CommandType.StopExecution;//Go back to the main menu
@@ -301,14 +372,13 @@ namespace BefungePF
             ConEx.ConEx_Draw.SetAttributes(IP.y, IP.x, BoardManager.LookupInfo(charecterUnder).color, ConsoleColor.Gray);
 
             Console.SetCursorPosition(IP.x, IP.y);
-            bRef.NeedsRedraw = true;
         }
         
         /// <summary>
         /// Gets the direction the IP is going
         /// </summary>
         /// <returns>The direction the IP is going</returns>
-        private Direction GetDirection()
+        public Direction GetDirection()
         {
             //If x is not 0 then we are going E or W
             if (direction.x != 0)
@@ -416,32 +486,32 @@ namespace BefungePF
             if (isStringMode == true && cmd != ' ' && cmd != '"')
             {
                 //Push the charecter value, move and return
-                bRef.GlobalStack.Push((int)cmd);
+                GlobalStack.Push((int)cmd);
                 MoveIP();
                 return CommandType.String;
             }
 
             //Ensure that there will always be enough in the stack
-            while (bRef.GlobalStack.Count < info.numToPop)
+            while (GlobalStack.Count < info.numToPop)
             {
-                bRef.GlobalStack.Push(0);
+                GlobalStack.Push(0);
             }
 
             switch (cmd)
             {
                 //Logic
                 case '!'://not
-                    if (bRef.GlobalStack.Pop() != 0)
+                    if (GlobalStack.Pop() != 0)
                     {
-                        bRef.GlobalStack.Push(0);
+                        GlobalStack.Push(0);
                     }
                     else
                     {
-                        bRef.GlobalStack.Push(1);
+                        GlobalStack.Push(1);
                     }
                     break;
                 case '_':
-                    if (bRef.GlobalStack.Pop() == 0)
+                    if (GlobalStack.Pop() == 0)
                     {
                         SetDirection(Direction.East);
                     }
@@ -451,7 +521,7 @@ namespace BefungePF
                     }
                     break;
                 case '|':
-                    if (bRef.GlobalStack.Pop() == 0)
+                    if (GlobalStack.Pop() == 0)
                     {
                         SetDirection(Direction.South);
                     }
@@ -462,24 +532,24 @@ namespace BefungePF
                     break;
                 case '`'://Greater than 
                     {
-                        int a = bRef.GlobalStack.Pop();
-                        int b = bRef.GlobalStack.Pop();
+                        int a = GlobalStack.Pop();
+                        int b = GlobalStack.Pop();
 
                         if (b > a)
                         {
-                            bRef.GlobalStack.Push(1);
+                            GlobalStack.Push(1);
                         }
                         else
                         {
-                            bRef.GlobalStack.Push(0);
+                            GlobalStack.Push(0);
                         }
                     }
                     break;
                 case 'w'://Funge98 compare function
                     {
                         //Pop a and b off the stack
-                        int a = bRef.GlobalStack.Pop();
-                        int b = bRef.GlobalStack.Pop();
+                        int a = GlobalStack.Pop();
+                        int b = GlobalStack.Pop();
                         
                         //Get our current direction
                         Direction currentDir = GetDirection();
@@ -626,31 +696,31 @@ namespace BefungePF
 
                 //Arithmatic
                 case '+':
-                    bRef.GlobalStack.Push(bRef.GlobalStack.Pop() + bRef.GlobalStack.Pop());
+                    GlobalStack.Push(GlobalStack.Pop() + GlobalStack.Pop());
                     break;
                 case '-'://Subtract b-a
                     {
-                        int a = bRef.GlobalStack.Pop();
-                        int b = bRef.GlobalStack.Pop();
-                        bRef.GlobalStack.Push(b - a);
+                        int a = GlobalStack.Pop();
+                        int b = GlobalStack.Pop();
+                        GlobalStack.Push(b - a);
                     }
                     break;
                 case '*':
-                    bRef.GlobalStack.Push(bRef.GlobalStack.Pop() * bRef.GlobalStack.Pop());
+                    GlobalStack.Push(GlobalStack.Pop() * GlobalStack.Pop());
                     break;
                 case '/'://Divide b/a
                     {
-                        int a = bRef.GlobalStack.Pop();
-                        int b = bRef.GlobalStack.Pop();
+                        int a = GlobalStack.Pop();
+                        int b = GlobalStack.Pop();
                         double result = b / a;
-                        bRef.GlobalStack.Push((int)Math.Round(result));
+                        GlobalStack.Push((int)Math.Round(result));
                     }
                     break;
                 case '%'://modulous b % a
                     {
-                        int a = bRef.GlobalStack.Pop();
-                        int b = bRef.GlobalStack.Pop();
-                        bRef.GlobalStack.Push(b % a);
+                        int a = GlobalStack.Pop();
+                        int b = GlobalStack.Pop();
+                        GlobalStack.Push(b % a);
                     }
                     break;              
                 //Numbers
@@ -664,7 +734,7 @@ namespace BefungePF
                 case '7':
                 case '8':
                 case '9':                    
-                    bRef.GlobalStack.Push((int)cmd-48);
+                    GlobalStack.Push((int)cmd-48);
                     break;
                 case 'a':
                 case 'b':
@@ -672,26 +742,26 @@ namespace BefungePF
                 case 'd':
                 case 'e':
                 case 'f':
-                    bRef.GlobalStack.Push((int)cmd - 87);
+                    GlobalStack.Push((int)cmd - 87);
                     break;
                 //Stack Manipulation
                 case ':'://Duplication
-                    bRef.GlobalStack.Push(bRef.GlobalStack.Peek());
+                    GlobalStack.Push(GlobalStack.Peek());
                     break;
                 case '$'://Discard Top Value
-                    bRef.GlobalStack.Pop();
+                    GlobalStack.Pop();
                     break;
                 case '\\'://Swap the top two values
                     {
-                        int a = bRef.GlobalStack.Pop();
-                        int b = bRef.GlobalStack.Pop();
+                        int a = GlobalStack.Pop();
+                        int b = GlobalStack.Pop();
 
-                        bRef.GlobalStack.Push(a);
-                        bRef.GlobalStack.Push(b);//Now b is on top
+                        GlobalStack.Push(a);
+                        GlobalStack.Push(b);//Now b is on top
                     }
                     break;
                 case 'n'://Clear stack
-                    bRef.GlobalStack.Clear();
+                    GlobalStack.Clear();
                     break;
                     //IO
                 case '&'://Read int
@@ -700,31 +770,31 @@ namespace BefungePF
                     bool succeded = int.TryParse(input,out outResult);
                     if (succeded == true)
                     {
-                        bRef.GlobalStack.Push(outResult);
+                        GlobalStack.Push(outResult);
                         bRef.BUI.AddText(input, BoardUI.Categories.IN);
                     }
                     else
                     {
-                        bRef.GlobalStack.Push(0);
+                        GlobalStack.Push(0);
                         bRef.BUI.AddText("0", BoardUI.Categories.IN);
                     }
                     break;
                 case '~'://Read char
                     //TODO - allow for mass input
                     char charInput = Console.ReadKey(true).KeyChar;
-                    bRef.GlobalStack.Push((int)charInput);
+                    GlobalStack.Push((int)charInput);
                     bRef.BUI.AddText(charInput.ToString(), BoardUI.Categories.IN);
                     break;
                 case ','://Output charecter
                     {
-                        char outChar = (char)bRef.GlobalStack.Pop();
+                        char outChar = (char)GlobalStack.Pop();
                         string outVal = outChar.ToString();
 
                         bRef.BUI.AddText(outVal,BoardUI.Categories.OUT);
                     }
                     break;
                 case '.'://Output as number
-                    bRef.BUI.AddText(bRef.GlobalStack.Pop().ToString(),BoardUI.Categories.OUT);
+                    bRef.BUI.AddText(GlobalStack.Pop().ToString(),BoardUI.Categories.OUT);
                     break;
                 //Funge 98 stack manipulation
                 case 'u':
@@ -750,17 +820,17 @@ namespace BefungePF
                 //Data Storage
                 case 'g':
                     {
-                        int y = bRef.GlobalStack.Pop();
-                        int x = bRef.GlobalStack.Pop();
+                        int y = GlobalStack.Pop();
+                        int x = GlobalStack.Pop();
                         char foundChar = bRef.GetCharecter(y,x);
-                        bRef.GlobalStack.Push((int)foundChar);
+                        GlobalStack.Push((int)foundChar);
                     }
                     break;
                 case 'p':
                     {
-                        int y = bRef.GlobalStack.Pop();
-                        int x = bRef.GlobalStack.Pop();
-                        int charToPlace = bRef.GlobalStack.Pop();
+                        int y = GlobalStack.Pop();
+                        int x = GlobalStack.Pop();
+                        int charToPlace = GlobalStack.Pop();
                         bool couldPlace = bRef.InsertChar(y,x,(char)charToPlace);
 
                         //Do this?
