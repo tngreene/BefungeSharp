@@ -256,11 +256,12 @@ namespace BefungePF
             //Generates a strings which is always five chars wide, with the number stuck to the ','
             //Like " 0,8 " , "17,5 " , "10,10", " 8,49"
             string IP_Pos = "";
-            IP_Pos += _interpRef.X.ToString().Length == 1 ? ' ' : _interpRef.X.ToString()[0];
-            IP_Pos += _interpRef.X.ToString().Length == 1 ? _interpRef.X.ToString()[0] : _interpRef.X.ToString()[1];
+            Vector2 vec_pos = _interpRef.IPs[0].Position;
+            IP_Pos += vec_pos.x.ToString().Length == 1 ? ' ' : vec_pos.x.ToString()[0];
+            IP_Pos += vec_pos.x.ToString().Length == 1 ? vec_pos.x.ToString()[0] : vec_pos.x.ToString()[1];
             IP_Pos += ',';
-            IP_Pos += _interpRef.Y.ToString().Length == 1 ? _interpRef.Y.ToString()[0] : _interpRef.Y.ToString()[0];
-            IP_Pos += _interpRef.Y.ToString().Length == 1 ? ' ' : _interpRef.Y.ToString()[1];
+            IP_Pos += vec_pos.y.ToString().Length == 1 ? vec_pos.y.ToString()[0] : vec_pos.y.ToString()[0];
+            IP_Pos += vec_pos.y.ToString().Length == 1 ? ' ' : vec_pos.y.ToString()[1];
 
             ConEx.ConEx_Draw.InsertString(IP_Pos, UI_BOTTOM, (UI_RIGHT - 1) - IP_Pos.Length, false);
 

@@ -49,8 +49,10 @@
     <Compile Include="BoardUI.cs" />
     <Compile Include="BoardInterpreter.cs" />
     <Compile Include="ExamplePrograms.cs" />
+    <Compile Include="IP.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Vector2.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

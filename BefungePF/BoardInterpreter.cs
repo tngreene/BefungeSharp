@@ -6,17 +6,6 @@ using System.Threading.Tasks;
 
 namespace BefungePF
 {
-    //2D cardinal directions,
-    //Multiply by -1 to invert the direction
-    //Numbers 1 and 2 chosen arbitraily
-    public enum Direction
-    {
-        North = -2,
-        East = -1,
-        South = 2,
-        West = 1
-    }
-
     //Types of commands that there could be
     public enum CommandType
     {
@@ -61,12 +50,6 @@ namespace BefungePF
         }
     }
 
-    struct Vector2D
-    {
-        public int x;
-        public int y;
-    }
-
     /// <summary>
     /// An enum of how the board should behave while running
     /// </summary>
@@ -103,19 +86,22 @@ namespace BefungePF
         private BoardMode _curMode;
         public BoardMode CurMode { get { return _curMode; } set { _curMode = value; } }
 
-        //Direction of the instruction pointer
-        private Vector2D direction;
-
+        
         //For if we are currently picking up chars in a string mode
         private bool isStringMode;
 
-        //Instruction Pointer X(column) and Y(row)
-        private Vector2D IP;
-        private Vector2D Last_IP;
+        private List<IP> _IPs;
 
-        public int X { get { return IP.x; } }
-        public int Y { get { return IP.y; } }
+        /// <summary>
+        /// The instruction pointer list, 
+        /// _IPs[0] is the special "Edit cursor"
+        /// _IPs[1] is essentially the IP for Unfunge through non concurrent Funge-98 and non-concurrent Tre-Funge
+        /// _IPs[2 + n] are only created when using BF98-C
+        /// </summary>
+        public List<IP> IPs { get { return _IPs; } }
 
+        private IP _Last_IP;
+        
         /// <summary>
         /// Controls the intepretation and execution of commands
         /// </summary>
@@ -136,26 +122,25 @@ namespace BefungePF
             }
 
             isStringMode = false;
-            SetDirection(Direction.East);
 
-            IP.x = 0;
-            IP.y = 0;
+            _IPs = new List<IP>();
+
+            //Add the EDIT IP
+            _IPs.Add(new IP());
+
+            //Add the main thread IP/standard IP
+            _IPs.Add(new IP());
         }
         
         public void Reset()
         {
             isStringMode = false;
-            SetDirection(Direction.East);
-            GlobalStack.Clear();
-            GlobalStack.Push(0);
-            IP.x = 0;
-            IP.y = 0;
         }
 
         public CommandType Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
             //Save the last position because we're about to take a step
-            Last_IP = IP;
+            _Last_IP = _IPs[0];
             CommandType type = CommandType.NotImplemented;
 
             //Based on what mode it is handle those keys
@@ -236,14 +221,14 @@ namespace BefungePF
                                 {
                                     if(keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Shift))
                                     {
-                                        SetDirection(Direction.North);
+                                        _IPs[0].Delta = Vector2.North;
                                         break;
                                     }
 
-                                    Direction old = GetDirection();
-                                    SetDirection(Direction.North);
-                                    MoveIP();
-                                    SetDirection(old);
+                                    Vector2 old = _IPs[0].Delta;
+                                    _IPs[0].Delta = Vector2.North;
+                                    _IPs[0].Move();
+                                    _IPs[0].Delta = old;
                                     needsMove = false;
                                 }
                                 break;
@@ -251,14 +236,14 @@ namespace BefungePF
                                 {
                                     if (keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Shift))
                                     {
-                                        SetDirection(Direction.West);
+                                        _IPs[0].Delta = Vector2.West;
                                         break;
                                     }
                                                                     
-                                    Direction old = GetDirection();
-                                    SetDirection(Direction.West);
-                                    MoveIP();
-                                    SetDirection(old);
+                                    Vector2 old = _IPs[0].Delta;
+                                    _IPs[0].Delta = Vector2.West;
+                                    _IPs[0].Move();
+                                    _IPs[0].Delta = old;
                                     needsMove = false;
                                 }
                                 break;
@@ -266,14 +251,14 @@ namespace BefungePF
                                 {
                                     if (keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Shift))
                                     {
-                                        SetDirection(Direction.South);
+                                        _IPs[0].Delta = Vector2.South;
                                         break;
                                     }
                                                                     
-                                    Direction old = GetDirection();
-                                    SetDirection(Direction.South);
-                                    MoveIP();
-                                    SetDirection(old);
+                                    Vector2 old = _IPs[0].Delta;
+                                    _IPs[0].Delta = Vector2.South;
+                                    _IPs[0].Move();
+                                    _IPs[0].Delta = old;
                                     needsMove = false;
                                 }
                                 break;
@@ -281,34 +266,34 @@ namespace BefungePF
                                 {
                                     if (keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Shift))
                                     {
-                                        SetDirection(Direction.West);
+                                        _IPs[0].Delta = Vector2.East;
                                         break;
                                     }
                                                                     
-                                    Direction old = GetDirection();
-                                    SetDirection(Direction.East);
-                                    MoveIP();
-                                    SetDirection(old);
+                                    Vector2 old = _IPs[0].Delta;
+                                    _IPs[0].Delta = Vector2.East;
+                                    _IPs[0].Move();
+                                    _IPs[0].Delta = old;
                                     needsMove = false;
                                 }
                                 break;
                             case ConsoleKey.Delete:
                                 {
-                                    bool success = bRef.InsertChar(IP.y, IP.x, ' ');
+                                    bool success = bRef.InsertChar(_IPs[0].Position.y, _IPs[0].Position.x, ' ');
                                 }
                                 break;
                             case ConsoleKey.Backspace:
                                 {
-                                    Direction old = GetDirection();
-                                    SetDirection((Direction)((int)old * -1));//Invert the direction
-                                    MoveIP();
-                                    bool success = bRef.InsertChar(IP.y, IP.x, ' ');
-                                    SetDirection(old);
+                                    Vector2 old = _IPs[0].Delta;
+                                    _IPs[0].Delta.Negate();
+                                    _IPs[0].Move();
+                                    bool success = bRef.InsertChar(_IPs[0].Position.y, _IPs[0].Position.x, ' ');
+                                    _IPs[0].Delta = old;
                                     needsMove = false;
                                 }
                                 break;
                             case ConsoleKey.Enter:
-                                SetDirection(Direction.East);
+                                _IPs[0].Delta = Vector2.East;
                                 needsMove = true;
                                 break;
                             case ConsoleKey.F5:
@@ -328,9 +313,10 @@ namespace BefungePF
                                 Environment.Exit(1);//End the program
                                 break;
                             default:
-                                if (keysHit[0].KeyChar >= 32 && keysHit[0].KeyChar <= 126)
+                                if (keysHit[i].KeyChar >= 32 && keysHit[i].KeyChar <= 126 
+                                    && keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Alt | ConsoleModifiers.Control) == false)
                                 {
-                                    bool success = bRef.InsertChar(IP.y, IP.x, keysHit[0].KeyChar);
+                                    bool success = bRef.InsertChar(_IPs[0].Position.y, _IPs[0].Position.x, keysHit[0].KeyChar);
                                     if (success)
                                     {
                                         needsMove = true;
@@ -341,7 +327,7 @@ namespace BefungePF
                     }
                     if (needsMove)
                     {
-                        MoveIP();//Move now that we've done some kind of moving input
+                        _IPs[0].Move();//Move now that we've done some kind of moving input
                     }
                     #endregion HandleInput-------------
                     break;
@@ -354,119 +340,62 @@ namespace BefungePF
 
         private void DrawIP()
         {
-            Direction direct = GetDirection();
+            Vector2 direct = _IPs[0].Delta;
             
             //Get the last place we were, reset it's color
             //Get our current place, set it's color
 
             char prevChar = '\0';
 
-            prevChar = bRef.GetCharecter(Last_IP.y, Last_IP.x);
+            prevChar = bRef.GetCharecter(_Last_IP.Position.y, _Last_IP.Position.x);
             if (prevChar != '\0')
             {
-                ConEx.ConEx_Draw.SetAttributes(Last_IP.y, Last_IP.x, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
+                ConEx.ConEx_Draw.SetAttributes(_Last_IP.Position.y, _Last_IP.Position.x, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
             }
             
             //Get the current ip's
-            char charecterUnder = bRef.GetCharecter(IP.y, IP.x);
-            ConEx.ConEx_Draw.SetAttributes(IP.y, IP.x, BoardManager.LookupInfo(charecterUnder).color, ConsoleColor.Gray);
+            char charecterUnder = bRef.GetCharecter(_IPs[0].Position.y, _IPs[0].Position.x);
+            ConEx.ConEx_Draw.SetAttributes(_IPs[0].Position.y, _IPs[0].Position.x, BoardManager.LookupInfo(charecterUnder).color, ConsoleColor.Gray);
 
-            Console.SetCursorPosition(IP.x, IP.y);
-        }
-        
-        /// <summary>
-        /// Gets the direction the IP is going
-        /// </summary>
-        /// <returns>The direction the IP is going</returns>
-        public Direction GetDirection()
-        {
-            //If x is not 0 then we are going E or W
-            if (direction.x != 0)
-            {
-                if (direction.x == -1)
-                {
-                    return Direction.West;
-                }
-                else
-                {
-                    return Direction.East;
-                }
-            }
-            else//else we are going N or S
-            {
-                if (direction.y == -1)
-                {
-                    return Direction.North;
-                }
-                else
-                {
-                    return Direction.South;
-                }
-            }
+            //Although we are switched to the ConEx drawing library this is still important
+            Console.SetCursorPosition(_IPs[0].Position.x, _IPs[0].Position.y);
         }
 
-        /// <summary>
-        /// Changes the IP's direction where you want it to go
-        /// </summary>
-        /// <param name="intendedDirection">The direction you'd like to set the IP to</param>
-        private void SetDirection(Direction intendedDirection)
+        public static Vector2 Wrap(Vector2 _position)
         {
-            switch (intendedDirection)
-            {
-                case Direction.North:
-                    direction.x = 0;
-                    direction.y = NORTH;
-                    break;
-                case Direction.East:
-                    direction.x = EAST;
-                    direction.y = 0;
-                    break;
-                case Direction.South:
-                    direction.x = 0;
-                    direction.y = SOUTH;
-                    break;
-                case Direction.West:
-                    direction.x = WEST;
-                    direction.y = 0;
-                    break;
-            }
-        }
+            Vector2 newVector = _position;
 
-        private void MoveIP(int extraAmount = 0)
-        {
-            //Based on the direction move or wrap the pointer around
-            Direction dir = GetDirection();
-            switch (dir)
+            //int[] bounds = GetWorldBounds() bounds of world
+
+            //Bounds of Befunge93
+            //TODO - if(language == "93")
+            //Bounds are Left, Top, Right, Bottom, in their size (not real co-ordinants)
+            int[] bounds = { 0, 0, 80, 25 };
+
+            int xAmount = newVector.x % bounds[2];
+            int yAmount = newVector.y % bounds[3];
+            //Going in the negative x direction
+            if (newVector.x < bounds[0])
             {
-                case Direction.North:
-                    IP.y -= 1 + extraAmount;
-                    if (IP.y < 0)
-                    {
-                        IP.y = 24 + IP.y + 1;
-                    }
-                    break;
-                case Direction.East:
-                    IP.x += 1 + extraAmount;
-                    if (IP.x > 79)
-                    {
-                        IP.x = IP.x - 79 - 1;
-                    }
-                    break;
-                case Direction.South:
-                    IP.y += 1 + extraAmount;
-                    if (IP.y > 24)
-                    {
-                        IP.y = IP.y - 24 - 1;
-                    }
-                    break;
-                case Direction.West:
-                    IP.x -= 1 + extraAmount;
-                    if (IP.x < 0)
-                    {
-                        IP.x = 79 + IP.x + 1;
-                    }
-                    break;
+                newVector.x = bounds[2] + xAmount;// newVector.x;
             }
+            else if (newVector.x > bounds[2])//X is positive
+            {
+                newVector.x = xAmount - bounds[0];//newVector.x - bounds[0];
+            }
+
+            //Going in the negative y direction
+            if (newVector.y < bounds[1])
+            {
+                newVector.y = bounds[3] + yAmount;// newVector.y;
+            }
+            else if (newVector.y > bounds[3])//X is positive
+            {
+                newVector.y = yAmount - bounds[1];// newVector.y - bounds[1];
+            }
+
+            Console.WriteLine("X: " + newVector.x + ", Y:" + newVector.y);
+            return newVector;
         }
 
         private CommandType TakeStep()
@@ -477,7 +406,7 @@ namespace BefungePF
              * 4.) Execute Command
              * 5.) Move along delta
              */
-            char cmd = bRef.GetCharecter(IP.y, IP.x);
+            char cmd = bRef.GetCharecter(_IPs[0].Position.y, _IPs[0].Position.x);
 
             CommandInfo info = BoardManager.LookupInfo(cmd);
 
@@ -487,7 +416,7 @@ namespace BefungePF
             {
                 //Push the charecter value, move and return
                 GlobalStack.Push((int)cmd);
-                MoveIP();
+                _IPs[0].Move();
                 return CommandType.String;
             }
 
@@ -513,21 +442,21 @@ namespace BefungePF
                 case '_':
                     if (GlobalStack.Pop() == 0)
                     {
-                        SetDirection(Direction.East);
+                        _IPs[0].Delta = Vector2.East;
                     }
                     else
                     {
-                        SetDirection(Direction.West);
+                        _IPs[0].Delta = Vector2.West;
                     }
                     break;
                 case '|':
                     if (GlobalStack.Pop() == 0)
                     {
-                        SetDirection(Direction.South);
+                        _IPs[0].Delta = Vector2.South;
                     }
                     else
                     {
-                        SetDirection(Direction.North);
+                        _IPs[0].Delta = Vector2.North;
                     }
                     break;
                 case '`'://Greater than 
@@ -552,146 +481,80 @@ namespace BefungePF
                         int b = GlobalStack.Pop();
                         
                         //Get our current direction
-                        Direction currentDir = GetDirection();
+                        Vector2 currentDir = _IPs[0].Delta;
                         
                         if (b < a)//If b is less than turn left
                         {
-                            switch (currentDir)
-                            {
-                                case Direction.North:
-                                    SetDirection(Direction.West);
-                                    break;
-                                case Direction.East:
-                                    SetDirection(Direction.North);
-                                    break;
-                                case Direction.South:
-                                    SetDirection(Direction.East);
-                                    break;
-                                case Direction.West:
-                                    SetDirection(Direction.South);
-                                    break;
-                            }
+                            _IPs[0].Delta = new Vector2(_IPs[0].Delta.y * -1, _IPs[0].Delta.x);
                         }
                         else if (b > a)//if b is more turn right
                         {
-                            switch (currentDir)
-                            {
-                                case Direction.North:
-                                    SetDirection(Direction.East);
-                                    break;
-                                case Direction.East:
-                                    SetDirection(Direction.South);
-                                    break;
-                                case Direction.South:
-                                    SetDirection(Direction.West);
-                                    break;
-                                case Direction.West:
-                                    SetDirection(Direction.North);
-                                    break;
-                            }
-                        }
-                        else //if b = a do nothing
-                        {
-                            if (b != a)
-                            {
-                                int we_have_a_problem = 0;
-                                throw new Exception("WTF?!");
-                            }
+                            _IPs[0].Delta = new Vector2(_IPs[0].Delta.y, _IPs[0].Delta.x * -1);
                         }
                     }
                     break;
 
                 //Flow control
                 case '^':
-                    SetDirection(Direction.North);
+                    _IPs[0].Delta = Vector2.North;
                     break;
                 case '>':
-                    SetDirection(Direction.East);
+                    _IPs[0].Delta = Vector2.East;
                     break;
                 case '<':
-                    SetDirection(Direction.West);
+                    _IPs[0].Delta = Vector2.West;
                     break;
                 case 'v':
-                    SetDirection(Direction.South);
+                    _IPs[0].Delta = Vector2.South;
                     break;
                 case '?':
                     Random rnd = new Random();
-                    SetDirection((Direction)rnd.Next(0, 4));
+                    _IPs[0].Delta = Vector2.CardinalDirections[rnd.Next(0, 4)];
                     break;
                 case '#':
-                    MoveIP();//Skip one space
+                    _IPs[0].Move();//Skip one space
                     break;
                 //Funge-98 flow control
                 case '['://Rotate 90 degrees counter clockwise
                     {
-                        Direction currentDir = GetDirection();
-                        switch (currentDir)
-                        {
-                            case Direction.North:
-                                SetDirection(Direction.West);
-                                break;
-                            case Direction.East:
-                                SetDirection(Direction.North);
-                                break;
-                            case Direction.South:
-                                SetDirection(Direction.East);
-                                break;
-                            case Direction.West:
-                                SetDirection(Direction.South);
-                                break;
-                        }
+                        _IPs[0].Delta = new Vector2(_IPs[0].Delta.y * -1, _IPs[0].Delta.x);
                     }
                     break;
                 case ']'://Rotate 90's clockwise
                     {
-                        Direction currentDir = GetDirection();
-                        switch (currentDir)
-                        {
-                            case Direction.North:
-                                SetDirection(Direction.East);
-                                break;
-                            case Direction.East:
-                                SetDirection(Direction.South);
-                                break;
-                            case Direction.South:
-                                SetDirection(Direction.West);
-                                break;
-                            case Direction.West:
-                                SetDirection(Direction.North);
-                                break;
-                        }
+                        _IPs[0].Delta = new Vector2(_IPs[0].Delta.y, _IPs[0].Delta.x * -1);
                     }
                     break;
                 //--Not implemented instructions that will act like r
                 //---------------------------------------------------
                 case 'r':
                     {
-                        Direction currentDir = GetDirection();
-                        switch (currentDir)
-                        {
-                            case Direction.North:
-                                SetDirection(Direction.South);
-                                break;
-                            case Direction.East:
-                                SetDirection(Direction.West);
-                                break;
-                            case Direction.South:
-                                SetDirection(Direction.North);
-                                break;
-                            case Direction.West:
-                                SetDirection(Direction.East);
-                                break;
-                        }
+                        _IPs[0].Delta.Negate();
                     }
                     break;
                 case ';':
-                case 'x'://Absolute delta                 
+                case 'x':
+                    {
+                        Vector2 nDelta = new Vector2();
+                        nDelta.x = _IPs[0].Stack.Pop();
+                        nDelta.y = _IPs[0].Stack.Pop();
+
+                        _IPs[0].Delta = nDelta;
+                    }
+                    break;
                 case 'j':
+                    //.Pop() - 1 to account for the fact we're moving already at the bottom
+                    for (int i = 0; i < _globalStack.Pop() - 1 ; i++)
+			        {
+                        _IPs[0].Move();
+			        }
+                    break;
                 case 'k':
                     break;
                 case '@':
                     
                 case 'q'://Not fully implimented
+                    _curMode = BoardMode.Edit;//TODO - Change behavior in f98CNote will change when
                     return CommandType.StopExecution;
 
                 //Arithmatic
@@ -902,7 +765,7 @@ namespace BefungePF
                     break;
             }
 
-            MoveIP();
+            _IPs[0].Move();
             return info.type;
         }
     }

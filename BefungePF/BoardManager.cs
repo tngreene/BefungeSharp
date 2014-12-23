@@ -192,7 +192,7 @@ namespace BefungePF
 
                     _bSideBar.ClearArea(_bInterp.CurMode);
                     _bSideBar.Draw(_bInterp.CurMode);
-
+                        
                     ConEx.ConEx_Draw.DrawScreen();
                 }
                 //Based on the mode sleep the program so it does not scream by
@@ -399,26 +399,28 @@ namespace BefungePF
 
             //Read filename from user
             string input = "";
-            bool goodInput = false;
+            bool badInput = false;//Assume innocent until proven guilty
             do
             {
                 input = Console.ReadLine();
 
-                if (input == "" || input == "\n" || input == "\r\n")
+                foreach (char c in System.IO.Path.GetInvalidFileNameChars())
                 {
-                    //TODO checking if the file name is dumb if(!input.Contains((string)System.IO.Path.GetInvalidFileNameChars()[0]))
-
-                    Console.WriteLine("Please put in a valid name");
+                    badInput |= input.Contains(c); //A good input will never return true
                 }
-                else
+                
+                if (badInput == true || input.Count() == 0)
                 {
-                    goodInput = true;
+                    Console.WriteLine(input + "is not a valid name, please try again");
+                    badInput = true;
                 }
             }
-            while(goodInput == false);
+            while(badInput == true);
 
             //Test the ending
             string extention = System.IO.Path.GetExtension(input);
+
+            //TODO - use extension based off the current mode
             switch (extention)
             {
                 //If they have included either a .txt or .bf then its okay
@@ -426,8 +428,7 @@ namespace BefungePF
                 case ".bf":
                     break;
                 default:
-                    //Otherwise use the default extension
-                    input += ".txt";//OptionsManager.OptionsDictionary["Default extension"]
+                    input += ".bf";//OptionsManager.OptionsDictionary["Default extension"]
                     break;
             }
             List<string> outStrings = new List<string>();
@@ -441,13 +442,12 @@ namespace BefungePF
                 }
                 outStrings.Add(currentLine);
             }
-            
+
+            Console.WriteLine("Writing file to " + System.IO.Directory.GetCurrentDirectory() + "\\" + input);
+            Console.ReadKey(true);
             BefungePF.Program.WriteFile(System.IO.Directory.GetCurrentDirectory() + "\\" + input, outStrings);
-
+            
             Console.Clear();
-
-            _bUI.ClearArea(_bInterp.CurMode);
-            _bUI.Draw(_bInterp.CurMode);
         }
     }//class BoardManager
 }//Namespace BefungePF
