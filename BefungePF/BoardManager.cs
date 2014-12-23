@@ -172,8 +172,11 @@ namespace BefungePF
                                 case ConsoleKey.Escape:
                                     ConEx.ConEx_Draw.FillScreen(' ');
                                     return;//Go back to the main menu
-                                case ConsoleKey.End:
-                                    Environment.Exit(1);//End the program
+                                case ConsoleKey.F4:
+                                    if(keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Alt))
+                                    {
+                                        Environment.Exit(1);//End the program
+                                    }
                                     break;
                                 default:
                                     break;

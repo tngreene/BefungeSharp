@@ -100,7 +100,7 @@ namespace BefungePF
                 case BoardMode.Run_STEP:
 #region TOSS
                     _TOSSstackRep = "TS:";
-                    List<int> rStack = _interpRef.GlobalStack.ToList();
+                    List<int> rStack = _interpRef.IPs[0].Stack.ToList();
                     rStack.Reverse();
 
                     for (int i = 0; i < rStack.Count; i++)
