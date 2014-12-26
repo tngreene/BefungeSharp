@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BefungePF
+namespace BefungeSharp
 {
     /* A simply 2D Vector struct which allows you to add, subtract, and negate with ease
      * */

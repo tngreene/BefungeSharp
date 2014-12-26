@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Express 2012 for Windows Desktop
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BefungePF", "BefungePF.csproj", "{85FC9B5C-ECA0-4D4D-B070-1EC53434161C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BefungeSharp", "BefungeSharp.csproj", "{85FC9B5C-ECA0-4D4D-B070-1EC53434161C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

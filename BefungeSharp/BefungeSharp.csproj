@@ -7,8 +7,8 @@
     <ProjectGuid>{85FC9B5C-ECA0-4D4D-B070-1EC53434161C}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BefungePF</RootNamespace>
-    <AssemblyName>BefungePF</AssemblyName>
+    <RootNamespace>BefungeSharp</RootNamespace>
+    <AssemblyName>BefungeSharp</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>

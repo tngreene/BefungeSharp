@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 
-namespace BefungePF
+namespace BefungeSharp
 {
     enum ProgramMode
     {
@@ -46,7 +46,7 @@ namespace BefungePF
                 Console.ForegroundColor = (ConsoleColor)rnd.Next(7,16);
                 
                 //Ask what they would like to do
-                Console.WriteLine("Welcome to BefungePF! Please select an option:\n");
+                Console.WriteLine("Welcome to BefungeSharp! Please select an option:\n");
                 Console.WriteLine("1.) New File");
                 Console.WriteLine("2.) Open File");
                 Console.WriteLine("3.) Options");
@@ -269,4 +269,4 @@ namespace BefungePF
             return outputLines;
         }
     }//class Program
-}//Namespace BefungePF
+}//Namespace BefungeSharp

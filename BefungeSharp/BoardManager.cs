@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BefungePF
+namespace BefungeSharp
 {
     public class BoardManager
     {
@@ -481,9 +481,9 @@ namespace BefungePF
 
             Console.WriteLine("Writing file to " + System.IO.Directory.GetCurrentDirectory() + "\\" + input);
             Console.ReadKey(true);
-            BefungePF.Program.WriteFile(System.IO.Directory.GetCurrentDirectory() + "\\" + input, outStrings);
+            BefungeSharp.Program.WriteFile(System.IO.Directory.GetCurrentDirectory() + "\\" + input, outStrings);
             
             Console.Clear();
         }
     }//class BoardManager
-}//Namespace BefungePF
+}//Namespace BefungeSharp
