@@ -47,6 +47,7 @@ namespace BefungePF
         private int _inputRow;
 
         private ConEx.ConEx_Draw.SmallRect selection;
+        private bool _selecting = false;
 
         public BoardUI(BoardManager mgr, BoardInterpreter interp)
         {
@@ -310,7 +311,7 @@ namespace BefungePF
         private void DrawSelection(BoardMode mode)
         {
             //Fix the perminate 1 cell in [0,0] bug
-            if ((selection.Bottom + selection.Left + selection.Right + selection.Top) == 0)
+            if (_selecting == false)
             {
                 return;
             }
@@ -330,7 +331,8 @@ namespace BefungePF
                 }
             }
         }
-
+        
+        
         public void Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
             bool shift = ConEx.ConEx_Input.ShiftDown;
@@ -353,12 +355,7 @@ namespace BefungePF
                         System.ConsoleKey k = keysHit[i].Key;
                         var m = keysHit[i].Modifiers;
                         //------------------------
-
-                        bool editSelection = false;
-                        if (shift)
-                        {
-                            editSelection = true;
-                        }
+                       
                         switch (keysHit[i].Key)
                         {
                             case ConsoleKey.UpArrow:
@@ -366,45 +363,75 @@ namespace BefungePF
                             case ConsoleKey.DownArrow:
                             case ConsoleKey.RightArrow:
                                 //If we are editing the selection
-                                if (editSelection == true)
+                                if (shift == true)
                                 {
-                                    bool firstRun = false;
-                                    //If the selection does not exist yet (everything has been set to 0)
-                                    if ((selection.Bottom + selection.Left + selection.Top + selection.Right) == 0)
+                                    bool error_creating_selection = false;
+
+                                    //Reasons for an error
+                                    //Trying to start selecting with the up or left key
+                                    if (selection.Top == -1 && (k == ConsoleKey.LeftArrow || k == ConsoleKey.UpArrow))
                                     {
+                                        error_creating_selection = true;
+                                    }
+
+                                    //The IP is out of bounds
+                                    int x = _interpRef.EditIP.Position.x;
+                                    int y = _interpRef.EditIP.Position.y;
+
+                                    if (x < selection.Left)
+                                    {
+                                        error_creating_selection = true;
+                                    }
+
+                                    if (y < selection.Top)
+                                    {
+                                        error_creating_selection = true;
+                                    }
+
+                                    if (error_creating_selection == true)
+                                    {
+                                        ClearSelection();
+                                        break;
+                                    }
+                                    else if (_selecting == false)
+                                    {
+                                        //If the selection doesn't exist then we'll start by making a new one
+
+                                        //The selection origin is set to the IP's X and Y
                                         selection.Left = (short)_interpRef.EditIP.Position.x;
                                         selection.Top = (short)_interpRef.EditIP.Position.y;
-
+                                       
+                                        //The bottom is also set to the Y position
                                         selection.Bottom = (short)_interpRef.EditIP.Position.y;
+                                        
+                                        //To counter act if we are starting off moving down
+                                        //we must account for the y position to be lower than normal
+                                        //and that we are imediantly incrementing the bottom side
                                         if (k == ConsoleKey.DownArrow)
                                         {
                                             selection.Bottom -= 1;
+                                            selection.Top -= 1;
                                         }
 
                                         selection.Right = (short)_interpRef.EditIP.Position.x;
                                         if (k == ConsoleKey.RightArrow)
                                         {
                                             selection.Right -= 1;
+                                            selection.Left -= 1;
                                         }
+                                        _selecting = true;
                                     }
-
-                                    int x = _interpRef.EditIP.Position.x;
-                                    int y = _interpRef.EditIP.Position.y;
-
-                                   // if (x <= selection.Right)
-                                    {
-                                       // if (y >= selection.Bottom)
-                                        {
-                                            if(k == ConsoleKey.UpArrow)
-                                                selection.Bottom--;
-                                            if(k == ConsoleKey.LeftArrow)// && y == selection.Right)
-                                                selection.Right--;
-                                            if(k == ConsoleKey.DownArrow && selection.Bottom < 25)// && y >= selection.Bottom)
-                                                selection.Bottom++;
-                                            if (k == ConsoleKey.RightArrow && selection.Right < 80)// && y <= selection.Right)
-                                                selection.Right++;
-                                        }
-                                    }
+                                    
+                                    //Finally get to the changing of the directions!
+                                    if(k == ConsoleKey.UpArrow)
+                                        selection.Bottom--;
+                                    if(k == ConsoleKey.LeftArrow)// && y == selection.Right)
+                                        selection.Right--;
+                                    if(k == ConsoleKey.DownArrow && selection.Bottom < 25)// && y >= selection.Bottom)
+                                        selection.Bottom++;
+                                    if (k == ConsoleKey.RightArrow && selection.Right < 80)// && y <= selection.Right)
+                                        selection.Right++;
+                                       
                                 }
                                 else
                                 {
@@ -423,10 +450,11 @@ namespace BefungePF
         private void ClearSelection()
         {
             selection = new ConEx.ConEx_Draw.SmallRect();
-            selection.Bottom = 0;
-            selection.Left = 0;
-            selection.Right = 0;
-            selection.Top = 0;
+            selection.Bottom = -1;
+            selection.Left = -1;
+            selection.Right = -1;
+            selection.Top = -1;
+            _selecting = false;
         }
     }
 }
