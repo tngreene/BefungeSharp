@@ -32,7 +32,7 @@ namespace BefungePF
             int width_of_sidebar = 36;//Seems right?
             ConEx.ConEx_Draw.Init(80 + 1 + width_of_sidebar, 32);
             //Console.OutputEncoding = Encoding.GetEncoding(437);
-            ConEx.ConEx_Input.Init();
+            ConEx.ConEx_Input.Init(1000);
             ConEx.ConEx_Input.TreatControlCAsInput = true;
 
             bool runProgram = true;

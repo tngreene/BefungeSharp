@@ -230,6 +230,8 @@ namespace BefungePF
         public void DrawInfo(BoardMode mode)
         {
             string modeStr = "Mode: ";
+            char deltaRep = ' ';
+
             switch (mode)
             {
                 //All strings padded so their right side is all uniform
@@ -250,9 +252,31 @@ namespace BefungePF
                     break;
                 case BoardMode.Edit:
                     modeStr += "Edit";
+                    
+                    //Based on the direction of the IP set the delta rep to it
+                    //This was the delta representative is only availble in Edit or edit like modes
+                    if (_interpRef.EditIP.Delta == Vector2.North)
+                    {
+                        deltaRep = (char)9516;
+                    }
+                    else if (_interpRef.EditIP.Delta == Vector2.East)
+                    {
+                        deltaRep = (char)9508;
+                    }
+                    else if (_interpRef.EditIP.Delta == Vector2.South)
+                    {
+                        deltaRep = (char)9524;
+                    }
+                    else if (_interpRef.EditIP.Delta == Vector2.West)
+                    {
+                        deltaRep = (char)9500;
+                    }
                     break;
             }
 
+            
+            
+             
             //Generates a strings which is always five chars wide, with the number stuck to the ','
             //Like " 0,8 " , "17,5 " , "10,10", " 8,49"
             string IP_Pos = "";
@@ -263,14 +287,30 @@ namespace BefungePF
             IP_Pos += vec_pos.y.ToString().Length == 1 ? vec_pos.y.ToString()[0] : vec_pos.y.ToString()[0];
             IP_Pos += vec_pos.y.ToString().Length == 1 ? ' ' : vec_pos.y.ToString()[1];
 
+            
+            ConEx.ConEx_Draw.InsertCharacter(deltaRep, UI_BOTTOM, (UI_RIGHT - 1) - IP_Pos.Length - 1, ConsoleColor.Cyan);
             ConEx.ConEx_Draw.InsertString(IP_Pos, UI_BOTTOM, (UI_RIGHT - 1) - IP_Pos.Length, false);
-
             ConEx.ConEx_Draw.InsertString(modeStr, UI_BOTTOM, (UI_RIGHT - 1) - (IP_Pos.Length) - (1) - (12/*Maximum Possible Length for modeStr*/), false);
+            
 
             for (int i = 0; i < IP_Pos.Length; i++)
             {
                 int col = (UI_RIGHT - 1) - (IP_Pos.Length + i);
                 ConEx.ConEx_Draw.SetAttributes(UI_BOTTOM, (UI_RIGHT - 1) - (IP_Pos.Length - i), ConsoleColor.Cyan, ConsoleColor.Black);//Color should be the same as movement color    
+            }
+
+            for (int c = selection.Left; c < selection.Right; c++)
+            {
+                for (int r = selection.Top; r < selection.Bottom; r++)
+                {
+                    char prevChar = '\0';
+                    prevChar = _boardRef.GetCharecter(_interpRef.EditIP.Position.y, _interpRef.EditIP.Position.x);
+            
+                    if (prevChar != '\0')
+                    {
+                        ConEx.ConEx_Draw.SetAttributes(r,c, BoardManager.LookupInfo(prevChar).color, ConsoleColor.DarkGreen);
+                    }
+                }
             }
         }
         
@@ -278,7 +318,96 @@ namespace BefungePF
 
         public void Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
-            throw new NotImplementedException();
+            //Based on what mode it is handle those keys
+            switch (mode)
+            {
+                case BoardMode.Run_MAX:
+                case BoardMode.Run_FAST:
+                case BoardMode.Run_MEDIUM:
+                case BoardMode.Run_SLOW:
+                case BoardMode.Run_STEP:
+                    break;
+                case BoardMode.Edit:
+                    for (int i = 0; i < keysHit.Length; i++)
+                    {
+                        //--Debugging key presses
+                        System.ConsoleKey k = keysHit[i].Key;
+                        var m = keysHit[i].Modifiers;
+                        //------------------------
+
+                        bool editSelection = false;
+                        if (ConEx.ConEx_Input.ShiftDown)
+                        {
+                            editSelection = true;
+                        }
+                        switch (keysHit[i].Key)
+                        {
+                            case ConsoleKey.UpArrow:
+                            case ConsoleKey.LeftArrow:
+                            case ConsoleKey.DownArrow:
+                            case ConsoleKey.RightArrow:
+                                //If we are editing the selection
+                                if (editSelection == true)
+                                {
+                                    //If the selection does not exist yet (everything has been set to 0)
+                                    if ((selection.Bottom + selection.Left + selection.Top + selection.Right) == 0)
+                                    {
+                                        selection.Bottom = (short)_interpRef.EditIP.Position.y;
+                                        selection.Left = (short)_interpRef.EditIP.Position.x;
+                                        selection.Top = (short)_interpRef.EditIP.Position.y;
+                                        selection.Right = (short)_interpRef.EditIP.Position.x;
+                                    }
+                                    switch (keysHit[i].Key)
+                                    {
+                                        case ConsoleKey.UpArrow:
+                                            selection.Bottom--;
+                                            break;
+                                        case ConsoleKey.LeftArrow:
+                                            selection.Right--;
+                                            break;
+                                        case ConsoleKey.DownArrow:
+                                            selection.Bottom++;
+                                            break;
+                                        case ConsoleKey.RightArrow:
+                                            selection.Right++;
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    ClearSelection();
+                                }
+                                break;
+                            default:
+                                ClearSelection();
+                                break;
+                        }
+                    }
+                    break;
+            }
+        }
+        
+        private void ClearSelection()
+        {
+            for (int c = selection.Left; c <= selection.Right; c++)
+            {
+                for (int r = selection.Top; r <= selection.Bottom; r++)
+                {
+                    char prevChar = '\0';
+                    prevChar = _boardRef.GetCharecter(_interpRef.EditIP.Position.y, _interpRef.EditIP.Position.x);
+
+                    if (prevChar != '\0')
+                    {
+                        ConEx.ConEx_Draw.SetAttributes(r, c, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
+                    }
+                }
+            }
+
+            selection = new ConEx.ConEx_Draw.SmallRect();
+            selection.Bottom = 0;
+            selection.Left = 0;
+            selection.Right = 0;
+            selection.Top = 0;
         }
     }
 }

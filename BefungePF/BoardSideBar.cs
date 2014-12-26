@@ -23,6 +23,9 @@ namespace BefungePF
         private const int BAR_LEFT = 82;
         private int BAR_RIGHT;
         private int BAR_BOTTOM = 0;
+
+        private bool _barShowing;
+
         private List<string> _content;
         
         public BoardSideBar(BoardManager mgr, BoardInterpreter interp)
@@ -32,6 +35,9 @@ namespace BefungePF
             BAR_RIGHT = ConEx.ConEx_Draw.Dimensions.width - 1;
             BAR_BOTTOM = ConEx.ConEx_Draw.Dimensions.height - 1;
             _content = new List<string>();
+            
+            //TODO - _barShowing = OptionsMenu.GetOption("Show help bar at start")
+            _barShowing = true;
         }
 
         /// <summary>
@@ -40,6 +46,10 @@ namespace BefungePF
         /// <param name="mode">The mode of the board</param>
         public void Draw(BoardMode mode)
         {
+            if(_barShowing == false)
+            {
+                return;
+            }
             /*Template
              * Commands
              * --------
@@ -55,18 +65,32 @@ namespace BefungePF
                 case BoardMode.Run_MEDIUM:
                 case BoardMode.Run_SLOW:
                 case BoardMode.Run_STEP:
+                    {
+                        string stepInstructions = mode == BoardMode.Run_STEP ? "Next Tick - Right arrow" : "";
+                        string[] contentArr = {
+                                              "Select Speed - 1 - 5",
+                                              "Back to Edit Mode - F12",
+                                              stepInstructions
+                                              };
+                        _content.AddRange(contentArr);
+                    }
                     break;
                 case BoardMode.Edit:
                     {
                         string[] contentArr =   {
+                                                    //X indicates the feature has not been implemented
                                                 "New File - Ctrl+N",
-                                                "Save - Alt+S",
+                                                "Save - Ctrl+S",
                                                 //"Run " + GetDefaultSpeed() + " - F5");
                                                 "Run (Default Speed) - F5",
                                                 "Run (Step) - F6",
                                                 "XReload source - Home",
                                                 "Main Menu - Esc",
-                                                "Set IP Delta - Shift + Arrow Key"
+                                                "Show/Hide Sidebar - F1",
+                                                "Set IP Delta - Shift + Arrow Key",
+                                                "XInsert Snippet - Insert",
+                                                "Start Selection Mode - Shift (hold)",
+
                                                 };
                         _content.AddRange(contentArr);
                     }
@@ -90,7 +114,42 @@ namespace BefungePF
 
         public void Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
-            throw new NotImplementedException();
+            switch(mode)
+            {
+                default:
+                #region --HandleInput-------------
+                for (int i = 0; i < keysHit.Length; i++)
+                {
+                    //--Debugging key presses
+                    System.ConsoleKey k = keysHit[i].Key;
+                    var m = keysHit[i].Modifiers;
+                    //------------------------
+
+                    switch (keysHit[i].Key)
+                    {
+                        //F1 Shows/Hides the sidebar
+                        case ConsoleKey.F1:
+                        {
+                            _barShowing = !_barShowing;
+                            ClearArea(mode);
+                            
+                            //By adjusting the WindowWidth we save from messing with the buffer
+                            //And if someone wants to they can still scroll over.
+                            if (_barShowing != true)
+                            {
+                                Console.WindowWidth -= BAR_RIGHT - BAR_LEFT + 2;
+                            }
+                            else
+                            {
+                                Console.WindowWidth += BAR_RIGHT - BAR_LEFT + 2;
+                            }
+                        }
+                        break;
+                    }
+                }
+                break;
+            }
+            #endregion
         }
     }
 }

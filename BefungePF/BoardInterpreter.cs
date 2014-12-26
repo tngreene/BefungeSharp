@@ -30,7 +30,7 @@ namespace BefungePF
         public char name;//What is the name of it, such as < or | or 4
         public CommandType type;//What type the command is
         public ConsoleColor color;//What color to display it as
-        public int numToPop;//Could be 0 (for things like direction),
+        public int requiredCells;//Could be 0 (for things like direction),
         //1 for things like _ or |, 2 for most things, or 3 for the rare g and p
         //-1 signifies we are pushing
         
@@ -46,7 +46,7 @@ namespace BefungePF
             name = inName;
             type = inType;
             color = inColor;
-            this.numToPop = numToPop;
+            this.requiredCells = numToPop;
         }
     }
 
@@ -65,11 +65,9 @@ namespace BefungePF
 
     public class BoardInterpreter
     {
-        private BoardManager bRef;
+        private BoardManager _boardRef;
 
         private bool _debugMode;
-
-        
 
         //The current mode of the board
         private BoardMode _curMode;
@@ -89,6 +87,11 @@ namespace BefungePF
         /// </summary>
         public List<IP> IPs { get { return _IPs; } }
 
+        /// <summary>
+        /// The Instruction Pointer representing the editor cursor
+        /// </summary>
+        public IP EditIP { get { return _IPs[0]; } }
+
         private IP _Last_IP;
         
         /// <summary>
@@ -97,7 +100,7 @@ namespace BefungePF
         /// <param name="mgr">A reference to the manager</param>
         public BoardInterpreter(BoardManager mgr, Stack<int> stack = null, BoardMode mode = BoardMode.Edit)
         {
-            bRef = mgr;
+            _boardRef = mgr;
 
             _IPs = new List<IP>();
 
@@ -119,11 +122,13 @@ namespace BefungePF
             }
 
             isStringMode = false;
+            _curMode = mode;
         }
         
         public void Reset()
         {
             isStringMode = false;
+            _IPs[0].Reset();
         }
 
         public CommandType Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
@@ -131,6 +136,10 @@ namespace BefungePF
             //Save the last position because we're about to take a step
             _Last_IP = new IP(_IPs[0]);
             CommandType type = CommandType.NotImplemented;
+
+            bool shift = ConEx.ConEx_Input.ShiftDown;
+            bool alt = ConEx.ConEx_Input.AltDown;
+            bool control = ConEx.ConEx_Input.CtrlDown;
 
             //Based on what mode it is handle those keys
             switch (mode)
@@ -140,6 +149,7 @@ namespace BefungePF
                 case BoardMode.Run_MEDIUM:
                 case BoardMode.Run_SLOW:
                 case BoardMode.Run_STEP:
+
                     //If we're not in stepping mode take a step
                     if (_curMode != BoardMode.Run_STEP)
                     {
@@ -149,6 +159,7 @@ namespace BefungePF
                     #region --HandleInput-------------
                     for (int i = 0; i < keysHit.Length; i++)
                     {
+                        
                         switch (keysHit[i].Key)
                         {
                             //1-5 adjusts execution speed
@@ -184,6 +195,7 @@ namespace BefungePF
                     #endregion
                 case BoardMode.Edit:
                     bool needsMove = false;
+                                        
                     #region --HandleInput-------------
                     for (int i = 0; i < keysHit.Length; i++)
                     {
@@ -230,7 +242,7 @@ namespace BefungePF
                                             break;
                                     }
 
-                                    if(keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Shift))
+                                    if(ConEx.ConEx_Input.ShiftDown)
                                     {
                                         _IPs[0].Delta = direction;
                                         break;
@@ -245,7 +257,7 @@ namespace BefungePF
                                 break;
                             case ConsoleKey.Delete:
                                 {
-                                    bool success = bRef.InsertChar(_IPs[0].Position.y, _IPs[0].Position.x, ' ');
+                                    bool success = _boardRef.InsertChar(_IPs[0].Position.y, _IPs[0].Position.x, ' ');
                                 }
                                 break;
                             case ConsoleKey.Backspace:
@@ -253,14 +265,17 @@ namespace BefungePF
                                     Vector2 old = _IPs[0].Delta;
                                     _IPs[0].Delta.Negate();
                                     _IPs[0].Move();
-                                    bool success = bRef.InsertChar(_IPs[0].Position.y, _IPs[0].Position.x, ' ');
+                                    bool success = _boardRef.InsertChar(_IPs[0].Position.y, _IPs[0].Position.x, ' ');
                                     _IPs[0].Delta = old;
                                     needsMove = false;
                                 }
                                 break;
                             case ConsoleKey.Enter:
-                                _IPs[0].Delta = Vector2.East;
-                                needsMove = true;
+                                {
+                                    //Move down a line                                    
+                                    _IPs[0].Position = new Vector2(0, _IPs[0].Position.y + 1);
+                                    _IPs[0].Delta = Vector2.East;
+                                }
                                 break;
                             case ConsoleKey.F5:
                                 Reset();
@@ -271,18 +286,15 @@ namespace BefungePF
                                 _curMode = BoardMode.Run_STEP;
                                 break;
                             case ConsoleKey.F12:
-                                _curMode = BoardMode.Run_MEDIUM;
+                                _curMode = BoardMode.Edit;
                                 break;
                             case ConsoleKey.Escape:
                                 return type = CommandType.StopExecution;//Go back to the main menu
-                            case ConsoleKey.End:
-                                Environment.Exit(1);//End the program
-                                break;
                             default:
                                 if (keysHit[i].KeyChar >= 32 && keysHit[i].KeyChar <= 126 
-                                    && keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Alt | ConsoleModifiers.Control) == false)
+                                    && (ConEx.ConEx_Input.AltDown || ConEx.ConEx_Input.CtrlDown) == false)
                                 {
-                                    bool success = bRef.InsertChar(_IPs[0].Position.y, _IPs[0].Position.x, keysHit[0].KeyChar);
+                                    bool success = _boardRef.InsertChar(_IPs[0].Position.y, _IPs[0].Position.x, keysHit[0].KeyChar);
                                     if (success)
                                     {
                                         needsMove = true;
@@ -294,11 +306,12 @@ namespace BefungePF
                     if (needsMove)
                     {
                         _IPs[0].Move();//Move now that we've done some kind of moving input
+                        
                     }
                     #endregion HandleInput-------------
                     break;
             }//switch(currentMode)
-
+            _IPs[0].Position = Wrap(_IPs[0].Position);
             
             DrawIP();
             return type;
@@ -313,7 +326,7 @@ namespace BefungePF
 
             char prevChar = '\0';
 
-            prevChar = bRef.GetCharecter(_Last_IP.Position.y, _Last_IP.Position.x);
+            prevChar = _boardRef.GetCharecter(_Last_IP.Position.y, _Last_IP.Position.x);
             
             if (prevChar != '\0')
             {
@@ -321,7 +334,7 @@ namespace BefungePF
             }
             
             //Get the current ip's
-            char charecterUnder = bRef.GetCharecter(_IPs[0].Position.y, _IPs[0].Position.x);
+            char charecterUnder = _boardRef.GetCharecter(_IPs[0].Position.y, _IPs[0].Position.x);
             ConEx.ConEx_Draw.SetAttributes(_IPs[0].Position.y, _IPs[0].Position.x, BoardManager.LookupInfo(charecterUnder).color, ConsoleColor.Gray);
 
             //Although we are switched to the ConEx drawing library this is still important
@@ -337,31 +350,28 @@ namespace BefungePF
             //Bounds of Befunge93
             //TODO - if(language == "93")
             //Bounds are Left, Top, Right, Bottom, in their size (not real co-ordinants)
-            int[] bounds = { 0, 0, 80, 25 };
-
-            int xAmount = newVector.x % bounds[2];
-            int yAmount = newVector.y % bounds[3];
+            int[] bounds = { 0, 0, 80, 25};
+            
             //Going in the negative x direction
             if (newVector.x < bounds[0])
             {
-                newVector.x = bounds[2] + xAmount;// newVector.x;
+                newVector.x = bounds[2] + newVector.x;
             }
-            else if (newVector.x > bounds[2])//X is positive
+            else if (newVector.x >= bounds[2])//X is positive
             {
-                newVector.x = xAmount - bounds[0];//newVector.x - bounds[0];
+                newVector.x = newVector.x - bounds[2];
             }
 
             //Going in the negative y direction
             if (newVector.y < bounds[1])
             {
-                newVector.y = bounds[3] + yAmount;// newVector.y;
+                newVector.y = bounds[3] + newVector.y;
             }
-            else if (newVector.y > bounds[3])//X is positive
+            else if (newVector.y >= bounds[3])//Y is positive
             {
-                newVector.y = yAmount - bounds[1];// newVector.y - bounds[1];
+                newVector.y = newVector.y - bounds[3];
             }
 
-            Console.WriteLine("X: " + newVector.x + ", Y:" + newVector.y);
             return newVector;
         }
 
@@ -373,13 +383,13 @@ namespace BefungePF
              * 4.) Execute Command
              * 5.) Move along delta
              */
-            char cmd = bRef.GetCharecter(_IPs[0].Position.y, _IPs[0].Position.x);
+            char cmd = _boardRef.GetCharecter(_IPs[0].Position.y, _IPs[0].Position.x);
 
             CommandInfo info = BoardManager.LookupInfo(cmd);
 
             //If we are currently in string mode
             //And its not a space and not a " (so we can leave string mode)
-            if (isStringMode == true && cmd != ' ' && cmd != '"')
+            if (isStringMode == true && cmd != '"')
             {
                 //Push the charecter value, move and return
                 _IPs[0].Stack.Push((int)cmd);
@@ -388,7 +398,7 @@ namespace BefungePF
             }
 
             //Ensure that there will always be enough in the stack
-            while (_IPs[0].Stack.Count < info.numToPop)
+            while (_IPs[0].Stack.Count < info.requiredCells)
             {
                 _IPs[0].Stack.Push(0);
             }
@@ -601,32 +611,33 @@ namespace BefungePF
                     if (succeded == true)
                     {
                         _IPs[0].Stack.Push(outResult);
-                        bRef.BUI.AddText(input, BoardUI.Categories.IN);
+                        _boardRef.BUI.AddText(input, BoardUI.Categories.IN);
                     }
                     else
                     {
                         _IPs[0].Stack.Push(0);
-                        bRef.BUI.AddText("0", BoardUI.Categories.IN);
+                        _boardRef.BUI.AddText("0", BoardUI.Categories.IN);
                     }
                     break;
                 case '~'://Read char
                     //TODO - allow for mass input
                     char charInput = Console.ReadKey(true).KeyChar;
                     _IPs[0].Stack.Push((int)charInput);
-                    bRef.BUI.AddText(charInput.ToString(), BoardUI.Categories.IN);
+                    _boardRef.BUI.AddText(charInput.ToString(), BoardUI.Categories.IN);
                     break;
                 case ','://Output charecter
                     {
                         char outChar = (char)_IPs[0].Stack.Pop();
                         string outVal = outChar.ToString();
 
-                        bRef.BUI.AddText(outVal,BoardUI.Categories.OUT);
+                        _boardRef.BUI.AddText(outVal,BoardUI.Categories.OUT);
                     }
                     break;
                 case '.'://Output as number
-                    bRef.BUI.AddText(_IPs[0].Stack.Pop().ToString(),BoardUI.Categories.OUT);
+                    _boardRef.BUI.AddText(_IPs[0].Stack.Pop().ToString(),BoardUI.Categories.OUT);
                     break;
                 //Funge 98 stack manipulation
+                //TODO - implement
                 case 'u':
                 case '{':
                 case '}':
@@ -652,7 +663,7 @@ namespace BefungePF
                     {
                         int y = _IPs[0].Stack.Pop();
                         int x = _IPs[0].Stack.Pop();
-                        char foundChar = bRef.GetCharecter(y,x);
+                        char foundChar = _boardRef.GetCharecter(y,x);
                         _IPs[0].Stack.Push((int)foundChar);
                     }
                     break;
@@ -661,7 +672,7 @@ namespace BefungePF
                         int y = _IPs[0].Stack.Pop();
                         int x = _IPs[0].Stack.Pop();
                         int charToPlace = _IPs[0].Stack.Pop();
-                        bool couldPlace = bRef.InsertChar(y,x,(char)charToPlace);
+                        bool couldPlace = _boardRef.InsertChar(y,x,(char)charToPlace);
 
                         //Do this?
                         //if (couldPlace == false)
@@ -733,6 +744,7 @@ namespace BefungePF
             }
 
             _IPs[0].Move();
+            _IPs[0].Position = Wrap(_IPs[0].Position);
             return info.type;
         }
     }

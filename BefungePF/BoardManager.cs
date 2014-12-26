@@ -21,7 +21,7 @@ namespace BefungePF
         private BoardSideBar _bSideBar;
         private BoardInterpreter _bInterp;
 
-       
+        
 
         /// <summary>
         /// Creates a new BoardManager with the options to set up its entire intial state and run type
@@ -72,8 +72,6 @@ namespace BefungePF
             
             _bInterp = new BoardInterpreter(this,initGlobalStack,mode);
 
-           
-
             _bUI = new BoardUI(this, _bInterp);
             _bSideBar = new BoardSideBar(this, _bInterp);
 
@@ -83,6 +81,7 @@ namespace BefungePF
             _bUI.ClearArea(_bInterp.CurMode);
             _bUI.Draw(_bInterp.CurMode);
 
+            _bSideBar.Draw(_bInterp.CurMode);
             _bSideBar.Draw(_bInterp.CurMode);
             ConEx.ConEx_Draw.DrawScreen();
         }
@@ -120,10 +119,16 @@ namespace BefungePF
             //Keep going until we return something
             while (true)
             {
+                //Find out what modifier keys are being held down
+                bool shift = ConEx.ConEx_Input.ShiftDown;
+                bool alt = ConEx.ConEx_Input.AltDown;
+                bool control = ConEx.ConEx_Input.CtrlDown;
+
                 //Get the current keys
                 ConsoleKeyInfo[] keysHit = ConEx.ConEx_Input.GetInput();
-                CommandType type;
-                type = _bInterp.Update(_bInterp.CurMode, keysHit);
+                CommandType type = _bInterp.Update(_bInterp.CurMode, keysHit);
+                                   _bUI.Update(_bInterp.CurMode, keysHit);
+                                   _bSideBar.Update(_bInterp.CurMode, keysHit);
 
                 //Based on what mode it is handle those keys
                 switch (_bInterp.CurMode)
@@ -152,7 +157,7 @@ namespace BefungePF
                                 case ConsoleKey.Enter:
                                     break;
                                 case ConsoleKey.N:
-                                    if (keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Control))
+                                    if (ConEx.ConEx_Input.CtrlDown)
                                     {
                                         for (int y = 0; y < _boardArray.Count; y++)
                                         {
@@ -164,7 +169,7 @@ namespace BefungePF
                                     }
                                     break;
                                 case ConsoleKey.S:
-                                    if (keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Alt))
+                                    if (ConEx.ConEx_Input.CtrlDown)
                                     {
                                         SaveBoard();
                                     }
@@ -173,7 +178,7 @@ namespace BefungePF
                                     ConEx.ConEx_Draw.FillScreen(' ');
                                     return;//Go back to the main menu
                                 case ConsoleKey.F4:
-                                    if(keysHit[i].Modifiers.HasFlag(ConsoleModifiers.Alt))
+                                    if(ConEx.ConEx_Input.AltDown)
                                     {
                                         Environment.Exit(1);//End the program
                                     }
