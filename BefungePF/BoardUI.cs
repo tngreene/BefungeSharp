@@ -69,7 +69,8 @@ namespace BefungePF
 
             UI_BOTTOM = ConEx.ConEx_Draw.Dimensions.height - 1;
 
-            selection.Top = selection.Right = selection.Bottom = selection.Left = 0;
+            selection.Top = selection.Right = selection.Bottom = selection.Left = -1;
+            _selecting = false;
         }
 
         /// <summary>
@@ -349,6 +350,11 @@ namespace BefungePF
                 case BoardMode.Run_STEP:
                     break;
                 case BoardMode.Edit:
+                    bool c = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_C);
+                    if (c && control)
+                    {
+                        List<string> contents = GetSelectionContents();
+                    }
                     for (int i = 0; i < keysHit.Length; i++)
                     {
                         //--Debugging key presses
@@ -365,77 +371,18 @@ namespace BefungePF
                                 //If we are editing the selection
                                 if (shift == true)
                                 {
-                                    
-
-                                    //If the selection doesn't exist then we'll start by making a new one
-                                    //Ensure that the selection is unintialized (Top is always > 0),
-                                    //We aren't using the left or up arrow
-                                    //and we are not currently in the middle of a selection
-                                    if (selection.Top == -1 && 
-                                        (k != ConsoleKey.LeftArrow || k != ConsoleKey.UpArrow) &&
-                                        _selecting == false)
-                                    {
-                                        
-                                        //The selection origin is set to the IP's X and Y
-                                        selection.Left = (short)_interpRef.EditIP.Position.x;
-                                        selection.Top = (short)_interpRef.EditIP.Position.y;
-                                       
-                                        //The bottom is also set to the Y position
-                                        selection.Bottom = (short)_interpRef.EditIP.Position.y;
-                                        
-                                        //To counter act if we are starting off moving down
-                                        //we must account for the y position to be lower than normal
-                                        //and that we are imediantly incrementing the bottom side
-                                        if (k == ConsoleKey.DownArrow)
-                                        {
-                                            selection.Bottom -= 1;
-                                            selection.Top -= 1;
-                                        }
-
-                                        selection.Right = (short)_interpRef.EditIP.Position.x;
-                                        if (k == ConsoleKey.RightArrow)
-                                        {
-                                            selection.Right -= 1;
-                                            selection.Left -= 1;
-                                        }
-                                        _selecting = true;
-                                    }
-                                    
-                                    //Finally get to the changing of the directions!
-                                    if(k == ConsoleKey.UpArrow)
-                                        selection.Bottom--;
-                                    if(k == ConsoleKey.LeftArrow)
-                                        selection.Right--;
-                                    if(k == ConsoleKey.DownArrow)
-                                        selection.Bottom++;
-                                    if (k == ConsoleKey.RightArrow)
-                                        selection.Right++;
-
-                                    //Now we do a post check to see if we made a bad selection
-                                    bool error_creating_selection = false;
-
-                                    
-                                    int x = _interpRef.EditIP.Position.x;
-                                    int y = _interpRef.EditIP.Position.y;
-
-                                    //Test if the IP has wrapped around behind itself or
-                                    //Has walked behind itself
-                                    error_creating_selection |= x < selection.Left;
-                                    error_creating_selection |= selection.Right > 79;
-                                    error_creating_selection |= y < selection.Top;
-                                    error_creating_selection |= selection.Bottom > 24;
-
-                                    if (error_creating_selection == true)
-                                    {
-                                        ClearSelection();
-                                        break;
-                                    }
-                                       
+                                    UpdateSelection(k);
                                 }
                                 else
                                 {
                                     //Clear if we used an arrow key without shift
                                     ClearSelection();
+                                }
+                                break;
+                            case ConsoleKey.C:
+                                if (control == true)
+                                {
+                                    List<string> contents = GetSelectionContents();
                                 }
                                 break;
                             default:
@@ -445,6 +392,97 @@ namespace BefungePF
                         }
                     }
                     break;
+            }
+        }
+
+        /// <summary>
+        /// Gets the contents of the selection box
+        /// </summary>
+        /// <returns>A list of strings, one for each row of the selection</returns>
+        public List<string> GetSelectionContents()
+        {
+            List<string> outlines = new List<string>();
+
+            for (int row = selection.Top; row <= selection.Bottom; row++)
+            {
+                string line = "";
+                for (int column = 0; column <= selection.Right; column++)
+                {
+                    line += _boardRef.GetCharacter(row, column);
+                }
+                outlines.Add(line);
+            }
+            return outlines;
+        }
+
+        private void SetSetelectionContents()
+        {
+
+        }
+        
+        private void UpdateSelection(ConsoleKey k)
+        {
+            //If the selection doesn't exist then we'll start by making a new one
+            //Ensure that the selection is unintialized (Top is always > 0),
+            //We aren't using the left or up arrow
+            //and we are not currently in the middle of a selection
+            if (selection.Top == -1 &&
+                (k != ConsoleKey.LeftArrow || k != ConsoleKey.UpArrow) &&
+                _selecting == false)
+            {
+
+                //The selection origin is set to the IP's X and Y
+                selection.Left = (short)_interpRef.EditIP.Position.x;
+                selection.Top = (short)_interpRef.EditIP.Position.y;
+
+                //The bottom is also set to the Y position
+                selection.Bottom = (short)_interpRef.EditIP.Position.y;
+
+                //To counter act if we are starting off moving down
+                //we must account for the y position to be lower than normal
+                //and that we are imediantly incrementing the bottom side
+                if (k == ConsoleKey.DownArrow)
+                {
+                    selection.Bottom -= 1;
+                    selection.Top -= 1;
+                }
+
+                selection.Right = (short)_interpRef.EditIP.Position.x;
+                if (k == ConsoleKey.RightArrow)
+                {
+                    selection.Right -= 1;
+                    selection.Left -= 1;
+                }
+                _selecting = true;
+            }
+
+            //Finally get to the changing of the directions!
+            if (k == ConsoleKey.UpArrow)
+                selection.Bottom--;
+            if (k == ConsoleKey.LeftArrow)
+                selection.Right--;
+            if (k == ConsoleKey.DownArrow)
+                selection.Bottom++;
+            if (k == ConsoleKey.RightArrow)
+                selection.Right++;
+
+            //Now we do a post check to see if we made a bad selection
+            bool error_creating_selection = false;
+
+
+            int x = _interpRef.EditIP.Position.x;
+            int y = _interpRef.EditIP.Position.y;
+
+            //Test if the IP has wrapped around behind itself or
+            //Has walked behind itself
+            error_creating_selection |= x < selection.Left;
+            error_creating_selection |= selection.Right > 79;
+            error_creating_selection |= y < selection.Top;
+            error_creating_selection |= selection.Bottom > 24;
+
+            if (error_creating_selection == true)
+            {
+                ClearSelection();
             }
         }
         

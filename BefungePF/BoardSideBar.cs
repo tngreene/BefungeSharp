@@ -78,6 +78,7 @@ namespace BefungePF
                 case BoardMode.Edit:
                     {
                         string[] contentArr =   {
+                                                    //TODO Organize these
                                                     //X indicates the feature has not been implemented
                                                 "New File - Ctrl+N",
                                                 "Save - Ctrl+S",
@@ -90,9 +91,16 @@ namespace BefungePF
                                                 "Set IP Delta - Control + Arrow Key",
                                                 "XInsert Snippet - Insert",
                                                 "Start Selection Mode - Shift (hold)",
-
                                                 };
                         _content.AddRange(contentArr);
+
+                        //if(_bUI.IsSelecting)
+                        //"Adjust Selection Box - Arrow Keys",
+                        //"Copy Section - Ctrl + C",
+                        //"Cut Section - Ctrl + X",
+                        //"Paste Section - Ctrl + V",
+                        //"Clear area - Delete",
+                        //"Reverse line - Alt + F4"
                     }
                     break;
                 default:
