@@ -9,7 +9,7 @@ namespace BefungePF
     public class BoardManager
     {
         /// <summary>
-        /// Represents a 2 dimensional space of charecters, non jagged
+        /// Represents a 2 dimensional space of characters, non jagged
         /// Accessed with boardArray[row+i][column+j]
         /// </summary>
         private List<List<char>> _boardArray;
@@ -60,11 +60,11 @@ namespace BefungePF
                     //Get the current line
                     string currentLine = initChars[y];
 
-                    //For all the charecters in the line
+                    //For all the characters in the line
                     for (int x = 0; x < currentLine.Length; x++)
                     {
                         //Insert them into the array
-                        InsertChar(y, x, currentLine[x]);
+                        PutCharacter(y, x, currentLine[x]);
                     }
                 }
             }
@@ -87,13 +87,35 @@ namespace BefungePF
         }
 
         /// <summary>
-        /// Inserts a charecter into the board, 
+        /// Gets a character at a certain row and column
+        /// </summary>
+        /// <param name="row">What row to look in</param>
+        /// <param name="column">What column to look in</param>
+        /// <returns>The given character, or '\0' if it is out of bounds or had an error</returns>
+        public char GetCharacter(int row, int column)
+        {
+            //Make sure the row and column are in range
+            if (row > _boardArray.Count - 1 || row < 0)
+            {
+                return '\0';
+            }
+            if (column > _boardArray[row].Count - 1 || column < 0)
+            {
+                return '\0';
+            }
+
+            //If it is, return the character
+            return _boardArray[row][column];
+        }
+
+        /// <summary>
+        /// Inserts a character into the board, 
         /// </summary>
         /// <param name="row">row to insert at</param>
         /// <param name="column">column to insert at</param>
-        /// <param name="charecter">charecter to put in</param>
-        /// <return>If it was able to insert the charecter</return>
-        public bool InsertChar(int row, int column, char charecter)
+        /// <param name="character">character to put in</param>
+        /// <return>If it was able to insert the character</return>
+        public bool PutCharacter(int row, int column, char character)
         {
             if (row > _boardArray.Count-1 || row < 0)
             {
@@ -105,10 +127,14 @@ namespace BefungePF
             }
             else
             {
-                _boardArray[row][column] = charecter;
-                ConEx.ConEx_Draw.InsertCharacter(charecter, row, column, LookupInfo(charecter).color, ConsoleColor.Black);
+                _boardArray[row][column] = character;
                 return true;
             }
+        }
+
+        public void ClearArea(BoardMode mode)
+        {
+
         }
 
         /// <summary>
@@ -163,7 +189,7 @@ namespace BefungePF
                                         {
                                             for (int x = 0; x < _boardArray[0].Count; x++)
                                             {
-                                                InsertChar(y,x,' ');
+                                                PutCharacter(y,x,' ');
                                             }
                                         }
                                     }
@@ -193,14 +219,24 @@ namespace BefungePF
                         break;
                 }//switch(currentMode)
                 
+                //Draw all components of the board
+                //First clear it's area, then draw it
                 if (true)
                 {
+                    //Draw the innocent sidebar
+                    _bSideBar.ClearArea(_bInterp.CurMode);
+                    _bSideBar.Draw(_bInterp.CurMode);
+
+                    //Draw the board
+                    this.ClearArea(_bInterp.CurMode);
+                    this.Draw(_bInterp.CurMode);
+
+                    //Draw the UI and selection to override the black
                     _bUI.ClearArea(_bInterp.CurMode);
                     _bUI.Draw(_bInterp.CurMode);
 
-                    _bSideBar.ClearArea(_bInterp.CurMode);
-                    _bSideBar.Draw(_bInterp.CurMode);
-                        
+                    //Draw the IP ontop of the board
+                    _bInterp.DrawIP();
                     ConEx.ConEx_Draw.DrawScreen();
                 }
                 //Based on the mode sleep the program so it does not scream by
@@ -208,32 +244,24 @@ namespace BefungePF
             }//while(true)
         }//Update()
 
-        /// <summary>
-        /// Gets a charecter at a certain row and column
-        /// </summary>
-        /// <param name="row">What row to look in</param>
-        /// <param name="column">What column to look in</param>
-        /// <returns>The given charecter, or '\0' if it is out of bounds or had an error</returns>
-        public char GetCharecter(int row, int column)
+        public void Draw(BoardMode mode)
         {
-            //Make sure the row and column are in range
-            if (row > _boardArray.Count-1 || row < 0)
+            for (int row = 0; row < _boardArray.Count; row++)
             {
-                return '\0';
+                for (int column = 0; column < _boardArray[0].Count; column++)
+                {
+                    char character = GetCharacter(row,column);
+                    ConEx.ConEx_Draw.InsertCharacter(character, row, column, LookupInfo(character).color, ConsoleColor.Black);
+                }
             }
-            if (column > _boardArray[row].Count - 1 || column < 0)
-            {
-                return '\0';
-            }
-
-            //If it is, return the charecter
-            return _boardArray[row][column];
+            
         }
+        
 
         /// <summary>
-        /// Based on the charecter return the CommandInfo associated with it
+        /// Based on the character return the CommandInfo associated with it
         /// </summary>
-        /// <param name="inChar">The charecter to reference</param>
+        /// <param name="inChar">The character to reference</param>
         /// <returns>The corisponding CommandInfo</returns>
         public static CommandInfo LookupInfo(char inChar)
         {

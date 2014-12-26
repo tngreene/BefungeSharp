@@ -242,7 +242,7 @@ namespace BefungePF
                                             break;
                                     }
 
-                                    if(ConEx.ConEx_Input.ShiftDown)
+                                    if(control == true)
                                     {
                                         _IPs[0].Delta = direction;
                                         break;
@@ -257,7 +257,7 @@ namespace BefungePF
                                 break;
                             case ConsoleKey.Delete:
                                 {
-                                    bool success = _boardRef.InsertChar(_IPs[0].Position.y, _IPs[0].Position.x, ' ');
+                                    bool success = _boardRef.PutCharacter(_IPs[0].Position.y, _IPs[0].Position.x, ' ');
                                 }
                                 break;
                             case ConsoleKey.Backspace:
@@ -265,7 +265,7 @@ namespace BefungePF
                                     Vector2 old = _IPs[0].Delta;
                                     _IPs[0].Delta.Negate();
                                     _IPs[0].Move();
-                                    bool success = _boardRef.InsertChar(_IPs[0].Position.y, _IPs[0].Position.x, ' ');
+                                    bool success = _boardRef.PutCharacter(_IPs[0].Position.y, _IPs[0].Position.x, ' ');
                                     _IPs[0].Delta = old;
                                     needsMove = false;
                                 }
@@ -294,7 +294,7 @@ namespace BefungePF
                                 if (keysHit[i].KeyChar >= 32 && keysHit[i].KeyChar <= 126 
                                     && (ConEx.ConEx_Input.AltDown || ConEx.ConEx_Input.CtrlDown) == false)
                                 {
-                                    bool success = _boardRef.InsertChar(_IPs[0].Position.y, _IPs[0].Position.x, keysHit[0].KeyChar);
+                                    bool success = _boardRef.PutCharacter(_IPs[0].Position.y, _IPs[0].Position.x, keysHit[0].KeyChar);
                                     if (success)
                                     {
                                         needsMove = true;
@@ -313,11 +313,11 @@ namespace BefungePF
             }//switch(currentMode)
             _IPs[0].Position = Wrap(_IPs[0].Position);
             
-            DrawIP();
+            
             return type;
         }
 
-        private void DrawIP()
+        public void DrawIP()
         {
             Vector2 direct = _IPs[0].Delta;
             
@@ -326,7 +326,7 @@ namespace BefungePF
 
             char prevChar = '\0';
 
-            prevChar = _boardRef.GetCharecter(_Last_IP.Position.y, _Last_IP.Position.x);
+            prevChar = _boardRef.GetCharacter(_Last_IP.Position.y, _Last_IP.Position.x);
             
             if (prevChar != '\0')
             {
@@ -334,8 +334,8 @@ namespace BefungePF
             }
             
             //Get the current ip's
-            char charecterUnder = _boardRef.GetCharecter(_IPs[0].Position.y, _IPs[0].Position.x);
-            ConEx.ConEx_Draw.SetAttributes(_IPs[0].Position.y, _IPs[0].Position.x, BoardManager.LookupInfo(charecterUnder).color, ConsoleColor.Gray);
+            char characterUnder = _boardRef.GetCharacter(_IPs[0].Position.y, _IPs[0].Position.x);
+            ConEx.ConEx_Draw.SetAttributes(_IPs[0].Position.y, _IPs[0].Position.x, BoardManager.LookupInfo(characterUnder).color, ConsoleColor.Gray);
 
             //Although we are switched to the ConEx drawing library this is still important
             Console.SetCursorPosition(_IPs[0].Position.x, _IPs[0].Position.y);
@@ -383,7 +383,7 @@ namespace BefungePF
              * 4.) Execute Command
              * 5.) Move along delta
              */
-            char cmd = _boardRef.GetCharecter(_IPs[0].Position.y, _IPs[0].Position.x);
+            char cmd = _boardRef.GetCharacter(_IPs[0].Position.y, _IPs[0].Position.x);
 
             CommandInfo info = BoardManager.LookupInfo(cmd);
 
@@ -391,7 +391,7 @@ namespace BefungePF
             //And its not a space and not a " (so we can leave string mode)
             if (isStringMode == true && cmd != '"')
             {
-                //Push the charecter value, move and return
+                //Push the character value, move and return
                 _IPs[0].Stack.Push((int)cmd);
                 _IPs[0].Move();
                 return CommandType.String;
@@ -625,7 +625,7 @@ namespace BefungePF
                     _IPs[0].Stack.Push((int)charInput);
                     _boardRef.BUI.AddText(charInput.ToString(), BoardUI.Categories.IN);
                     break;
-                case ','://Output charecter
+                case ','://Output character
                     {
                         char outChar = (char)_IPs[0].Stack.Pop();
                         string outVal = outChar.ToString();
@@ -663,7 +663,7 @@ namespace BefungePF
                     {
                         int y = _IPs[0].Stack.Pop();
                         int x = _IPs[0].Stack.Pop();
-                        char foundChar = _boardRef.GetCharecter(y,x);
+                        char foundChar = _boardRef.GetCharacter(y,x);
                         _IPs[0].Stack.Push((int)foundChar);
                     }
                     break;
@@ -672,7 +672,7 @@ namespace BefungePF
                         int y = _IPs[0].Stack.Pop();
                         int x = _IPs[0].Stack.Pop();
                         int charToPlace = _IPs[0].Stack.Pop();
-                        bool couldPlace = _boardRef.InsertChar(y,x,(char)charToPlace);
+                        bool couldPlace = _boardRef.PutCharacter(y,x,(char)charToPlace);
 
                         //Do this?
                         //if (couldPlace == false)
@@ -689,8 +689,8 @@ namespace BefungePF
                     //Negates and assaigns, a fancy toggle
                     isStringMode = !isStringMode;
                     break;
-                case '\''://' "Fetch Charecter", 
-                //pushes the next charecter at (pos + delta)'s char value
+                case '\''://' "Fetch Character", 
+                //pushes the next character at (pos + delta)'s char value
                 //and skips over it, like a # command
 
                 case 't'://Split IP Concurrent

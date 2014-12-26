@@ -77,17 +77,8 @@ namespace BefungePF
         /// <param name="mode">The mode of the board</param>
         public void Draw(BoardMode mode)
         {
-            #region Draw Field
-            //Create the boarder of the playing field
-            for (int row = 0; row <= UI_BOTTOM; row++)
-            {
-                ConEx.ConEx_Draw.InsertCharacter('|', row, UI_RIGHT);
-            }
 
-            string bottom = new string('_', UI_RIGHT);
-            ConEx.ConEx_Draw.InsertString(bottom, UI_TOP-1, 0, false);
-            #endregion
-
+            DrawField(mode);
             DrawInfo(mode);
             
 
@@ -183,7 +174,7 @@ namespace BefungePF
                     }
                     break;
                 case BoardMode.Edit:
-                    
+                    DrawSelection(mode);
                     break;
                 default:
                     break;
@@ -224,10 +215,26 @@ namespace BefungePF
         }
 
         /// <summary>
+        /// Draws the border of the field which seperates the UI and the field
+        /// </summary>
+        /// <param name="mode"></param>
+        private void DrawField(BoardMode mode)
+        {
+            //Create the boarder of the playing field
+            for (int row = 0; row <= UI_BOTTOM; row++)
+            {
+                ConEx.ConEx_Draw.InsertCharacter('|', row, UI_RIGHT);
+            }
+
+            string bottom = new string('_', UI_RIGHT);
+            ConEx.ConEx_Draw.InsertString(bottom, UI_TOP - 1, 0, false);
+        }
+        
+        /// <summary>
         /// Draws the information about the current mode and IP_Position
         /// </summary>
         /// <param name="mode">Mode of the program</param>
-        public void DrawInfo(BoardMode mode)
+        private void DrawInfo(BoardMode mode)
         {
             string modeStr = "Mode: ";
             char deltaRep = ' ';
@@ -298,26 +305,32 @@ namespace BefungePF
                 int col = (UI_RIGHT - 1) - (IP_Pos.Length + i);
                 ConEx.ConEx_Draw.SetAttributes(UI_BOTTOM, (UI_RIGHT - 1) - (IP_Pos.Length - i), ConsoleColor.Cyan, ConsoleColor.Black);//Color should be the same as movement color    
             }
+        }
 
+        private void DrawSelection(BoardMode mode)
+        {
+            //Draw selection
             for (int c = selection.Left; c < selection.Right; c++)
             {
-                for (int r = selection.Top; r < selection.Bottom; r++)
+                for (int r = selection.Top; r <= selection.Bottom; r++)
                 {
                     char prevChar = '\0';
-                    prevChar = _boardRef.GetCharecter(_interpRef.EditIP.Position.y, _interpRef.EditIP.Position.x);
-            
+                    prevChar = _boardRef.GetCharacter(r,c);
+
                     if (prevChar != '\0')
                     {
-                        ConEx.ConEx_Draw.SetAttributes(r,c, BoardManager.LookupInfo(prevChar).color, ConsoleColor.DarkGreen);
+                        ConEx.ConEx_Draw.SetAttributes(r, c, BoardManager.LookupInfo(prevChar).color, ConsoleColor.DarkGreen);
                     }
                 }
             }
         }
-        
-        
 
         public void Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
+            bool shift = ConEx.ConEx_Input.ShiftDown;
+            bool alt = ConEx.ConEx_Input.AltDown;
+            bool control = ConEx.ConEx_Input.CtrlDown;
+
             //Based on what mode it is handle those keys
             switch (mode)
             {
@@ -336,7 +349,7 @@ namespace BefungePF
                         //------------------------
 
                         bool editSelection = false;
-                        if (ConEx.ConEx_Input.ShiftDown)
+                        if (shift)
                         {
                             editSelection = true;
                         }
@@ -389,20 +402,6 @@ namespace BefungePF
         
         private void ClearSelection()
         {
-            for (int c = selection.Left; c <= selection.Right; c++)
-            {
-                for (int r = selection.Top; r <= selection.Bottom; r++)
-                {
-                    char prevChar = '\0';
-                    prevChar = _boardRef.GetCharecter(_interpRef.EditIP.Position.y, _interpRef.EditIP.Position.x);
-
-                    if (prevChar != '\0')
-                    {
-                        ConEx.ConEx_Draw.SetAttributes(r, c, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
-                    }
-                }
-            }
-
             selection = new ConEx.ConEx_Draw.SmallRect();
             selection.Bottom = 0;
             selection.Left = 0;

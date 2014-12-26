@@ -171,7 +171,7 @@ namespace BefungePF
 
                 string currentLine;
 
-                //While the next charecter is not null
+                //While the next character is not null
                 while(rStream.EndOfStream == false)
                 {
                     //Read a line and add it

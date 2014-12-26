@@ -87,7 +87,7 @@ namespace BefungePF
                                                 "XReload source - Home",
                                                 "Main Menu - Esc",
                                                 "Show/Hide Sidebar - F1",
-                                                "Set IP Delta - Shift + Arrow Key",
+                                                "Set IP Delta - Control + Arrow Key",
                                                 "XInsert Snippet - Insert",
                                                 "Start Selection Mode - Shift (hold)",
 
