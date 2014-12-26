@@ -309,8 +309,14 @@ namespace BefungePF
 
         private void DrawSelection(BoardMode mode)
         {
+            //Fix the perminate 1 cell in [0,0] bug
+            if ((selection.Bottom + selection.Left + selection.Right + selection.Top) == 0)
+            {
+                return;
+            }
+
             //Draw selection
-            for (int c = selection.Left; c < selection.Right; c++)
+            for (int c = selection.Left; c <= selection.Right; c++)
             {
                 for (int r = selection.Top; r <= selection.Bottom; r++)
                 {
@@ -362,28 +368,42 @@ namespace BefungePF
                                 //If we are editing the selection
                                 if (editSelection == true)
                                 {
+                                    bool firstRun = false;
                                     //If the selection does not exist yet (everything has been set to 0)
                                     if ((selection.Bottom + selection.Left + selection.Top + selection.Right) == 0)
                                     {
-                                        selection.Bottom = (short)_interpRef.EditIP.Position.y;
                                         selection.Left = (short)_interpRef.EditIP.Position.x;
                                         selection.Top = (short)_interpRef.EditIP.Position.y;
+
+                                        selection.Bottom = (short)_interpRef.EditIP.Position.y;
+                                        if (k == ConsoleKey.DownArrow)
+                                        {
+                                            selection.Bottom -= 1;
+                                        }
+
                                         selection.Right = (short)_interpRef.EditIP.Position.x;
+                                        if (k == ConsoleKey.RightArrow)
+                                        {
+                                            selection.Right -= 1;
+                                        }
                                     }
-                                    switch (keysHit[i].Key)
+
+                                    int x = _interpRef.EditIP.Position.x;
+                                    int y = _interpRef.EditIP.Position.y;
+
+                                   // if (x <= selection.Right)
                                     {
-                                        case ConsoleKey.UpArrow:
-                                            selection.Bottom--;
-                                            break;
-                                        case ConsoleKey.LeftArrow:
-                                            selection.Right--;
-                                            break;
-                                        case ConsoleKey.DownArrow:
-                                            selection.Bottom++;
-                                            break;
-                                        case ConsoleKey.RightArrow:
-                                            selection.Right++;
-                                            break;
+                                       // if (y >= selection.Bottom)
+                                        {
+                                            if(k == ConsoleKey.UpArrow)
+                                                selection.Bottom--;
+                                            if(k == ConsoleKey.LeftArrow)// && y == selection.Right)
+                                                selection.Right--;
+                                            if(k == ConsoleKey.DownArrow && selection.Bottom < 25)// && y >= selection.Bottom)
+                                                selection.Bottom++;
+                                            if (k == ConsoleKey.RightArrow && selection.Right < 80)// && y <= selection.Right)
+                                                selection.Right++;
+                                        }
                                     }
                                 }
                                 else
