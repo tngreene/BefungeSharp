@@ -365,38 +365,17 @@ namespace BefungePF
                                 //If we are editing the selection
                                 if (shift == true)
                                 {
-                                    bool error_creating_selection = false;
+                                    
 
-                                    //Reasons for an error
-                                    //Trying to start selecting with the up or left key
-                                    if (selection.Top == -1 && (k == ConsoleKey.LeftArrow || k == ConsoleKey.UpArrow))
+                                    //If the selection doesn't exist then we'll start by making a new one
+                                    //Ensure that the selection is unintialized (Top is always > 0),
+                                    //We aren't using the left or up arrow
+                                    //and we are not currently in the middle of a selection
+                                    if (selection.Top == -1 && 
+                                        (k != ConsoleKey.LeftArrow || k != ConsoleKey.UpArrow) &&
+                                        _selecting == false)
                                     {
-                                        error_creating_selection = true;
-                                    }
-
-                                    //The IP is out of bounds
-                                    int x = _interpRef.EditIP.Position.x;
-                                    int y = _interpRef.EditIP.Position.y;
-
-                                    if (x < selection.Left)
-                                    {
-                                        error_creating_selection = true;
-                                    }
-
-                                    if (y < selection.Top)
-                                    {
-                                        error_creating_selection = true;
-                                    }
-
-                                    if (error_creating_selection == true)
-                                    {
-                                        ClearSelection();
-                                        break;
-                                    }
-                                    else if (_selecting == false)
-                                    {
-                                        //If the selection doesn't exist then we'll start by making a new one
-
+                                        
                                         //The selection origin is set to the IP's X and Y
                                         selection.Left = (short)_interpRef.EditIP.Position.x;
                                         selection.Top = (short)_interpRef.EditIP.Position.y;
@@ -425,20 +404,42 @@ namespace BefungePF
                                     //Finally get to the changing of the directions!
                                     if(k == ConsoleKey.UpArrow)
                                         selection.Bottom--;
-                                    if(k == ConsoleKey.LeftArrow)// && y == selection.Right)
+                                    if(k == ConsoleKey.LeftArrow)
                                         selection.Right--;
-                                    if(k == ConsoleKey.DownArrow && selection.Bottom < 25)// && y >= selection.Bottom)
+                                    if(k == ConsoleKey.DownArrow)
                                         selection.Bottom++;
-                                    if (k == ConsoleKey.RightArrow && selection.Right < 80)// && y <= selection.Right)
+                                    if (k == ConsoleKey.RightArrow)
                                         selection.Right++;
+
+                                    //Now we do a post check to see if we made a bad selection
+                                    bool error_creating_selection = false;
+
+                                    
+                                    int x = _interpRef.EditIP.Position.x;
+                                    int y = _interpRef.EditIP.Position.y;
+
+                                    //Test if the IP has wrapped around behind itself or
+                                    //Has walked behind itself
+                                    error_creating_selection |= x < selection.Left;
+                                    error_creating_selection |= selection.Right > 79;
+                                    error_creating_selection |= y < selection.Top;
+                                    error_creating_selection |= selection.Bottom > 24;
+
+                                    if (error_creating_selection == true)
+                                    {
+                                        ClearSelection();
+                                        break;
+                                    }
                                        
                                 }
                                 else
                                 {
+                                    //Clear if we used an arrow key without shift
                                     ClearSelection();
                                 }
                                 break;
                             default:
+                                //Clear if we pressed any other key possible
                                 ClearSelection();
                                 break;
                         }
