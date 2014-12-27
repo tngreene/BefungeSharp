@@ -446,7 +446,13 @@ namespace BefungeSharp
                     _boardRef.PutCharacter(top + s_row, left + s_column, _selection.content[s_row][s_column]);
                 }
             }
-            if(_interpRef.EditIP.Delta == Vector2.East)
+
+            
+            if (_interpRef.EditIP.Delta == Vector2.North || _interpRef.EditIP.Delta == Vector2.West)
+            {
+                _interpRef.EditIP.Move();
+            }
+            else if(_interpRef.EditIP.Delta == Vector2.East)
             {
                 _interpRef.EditIP.Move((_selection.dimensions.Right-_selection.dimensions.Left));
             }
@@ -454,6 +460,7 @@ namespace BefungeSharp
             {
                 _interpRef.EditIP.Move((_selection.dimensions.Bottom-_selection.dimensions.Top));
             }
+
         }
         
         private void UpdateSelection(ConsoleKey k)
