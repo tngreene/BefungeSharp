@@ -84,6 +84,13 @@ namespace BefungeSharp
             _position += _delta;
         }
 
+        public void Move(int repeat)
+        {
+            for (int i = 0; i <= repeat; i++)
+            {
+                Move();
+            }
+        }
         public void Reset()
         {
             _position.Clear();

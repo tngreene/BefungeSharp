@@ -363,7 +363,9 @@ namespace BefungeSharp
                     bool c = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_C);
                     if (c && control)
                     {
-                        //this._selection.content = GetSelectionContents();
+                        this._selection.content = GetSelectionContents();
+                        //Emergancy sleep so we don't get a whole bunch of operations at once
+                        System.Threading.Thread.Sleep(150);
                         ClipboardTools.ToWindowsClipboard(this._selection);
                     }
 
@@ -371,7 +373,7 @@ namespace BefungeSharp
                     if (v && control)
                     {
                         this._selection = ClipboardTools.FromWindowsClipboard(_interpRef.EditIP.Position);
-
+                        System.Threading.Thread.Sleep(150);
                         PutSelectionContents();
                     }
 
@@ -434,13 +436,23 @@ namespace BefungeSharp
             int top = _selection.dimensions.Top;
             int left = _selection.dimensions.Left;
 
-            //from the origin of the selection to the bounds of the selection (and also no bigger than the edit space)
-            for (int row = 0; row + top < top + _selection.content.Count && row < 25; row++)
+            //For the rows of the selection
+            for (int s_row = 0; s_row < _selection.content.Count; s_row++)
             {
-                for (int column = 0; column + left < left + _selection.content[row].Length && column < 80; column++)
+                //For every letter in each row
+                for (int s_column = 0; s_column < _selection.content[s_row].Length; s_column++)
                 {
-                    _boardRef.PutCharacter(row + top, column + left, _selection.content[row][column]);
+                    //Put the character in the "real" location + the selection offset
+                    _boardRef.PutCharacter(top + s_row, left + s_column, _selection.content[s_row][s_column]);
                 }
+            }
+            if(_interpRef.EditIP.Delta == Vector2.East)
+            {
+                _interpRef.EditIP.Move((_selection.dimensions.Right-_selection.dimensions.Left));
+            }
+            else if(_interpRef.EditIP.Delta == Vector2.South)
+            {
+                _interpRef.EditIP.Move((_selection.dimensions.Bottom-_selection.dimensions.Top));
             }
         }
         
