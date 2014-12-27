@@ -338,9 +338,6 @@ namespace BefungeSharp
             //Get the current ip's
             char characterUnder = _boardRef.GetCharacter(_IPs[0].Position.y, _IPs[0].Position.x);
             ConEx.ConEx_Draw.SetAttributes(_IPs[0].Position.y, _IPs[0].Position.x, BoardManager.LookupInfo(characterUnder).color, ConsoleColor.Gray);
-
-            //Although we are switched to the ConEx drawing library this is still important
-            Console.SetCursorPosition(_IPs[0].Position.x, _IPs[0].Position.y);
         }
 
         public static Vector2 Wrap(Vector2 _position)
@@ -749,6 +746,10 @@ namespace BefungeSharp
 
             _IPs[0].Move();
             _IPs[0].Position = Wrap(_IPs[0].Position);
+
+            //Although we are switched to the ConEx drawing library this is still important
+            Console.SetCursorPosition(_IPs[0].Position.x, _IPs[0].Position.y);
+
             return info.type;
         }
     }
