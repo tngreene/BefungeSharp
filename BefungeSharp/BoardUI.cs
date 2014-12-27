@@ -366,6 +366,15 @@ namespace BefungeSharp
                         //this._selection.content = GetSelectionContents();
                         ClipboardTools.ToWindowsClipboard(this._selection);
                     }
+
+                    bool v = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_V);
+                    if (v && control)
+                    {
+                        this._selection = ClipboardTools.FromWindowsClipboard(_interpRef.EditIP.Position);
+
+                        PutSelectionContents();
+                    }
+
                     for (int i = 0; i < keysHit.Length; i++)
                     {
                         //--Debugging key presses
@@ -420,9 +429,19 @@ namespace BefungeSharp
             return outlines;
         }
 
-        private void SetSetelectionContents()
+        private void PutSelectionContents()
         {
+            int top = _selection.dimensions.Top;
+            int left = _selection.dimensions.Left;
 
+            //from the origin of the selection to the bounds of the selection (and also no bigger than the edit space)
+            for (int row = 0; row + top < top + _selection.content.Count && row < 25; row++)
+            {
+                for (int column = 0; column + left < left + _selection.content[row].Length && column < 80; column++)
+                {
+                    _boardRef.PutCharacter(row + top, column + left, _selection.content[row][column]);
+                }
+            }
         }
         
         private void UpdateSelection(ConsoleKey k)
