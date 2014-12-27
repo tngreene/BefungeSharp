@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BefungeSharp.UI;
 
 namespace BefungeSharp
 {
@@ -46,9 +47,8 @@ namespace BefungeSharp
         private string _inputRep;
         private int _inputRow;
 
-        private ConEx.ConEx_Draw.SmallRect selection;
-        private bool _selecting = false;
-
+        private Selection _selection;
+        
         public BoardUI(BoardManager mgr, BoardInterpreter interp)
         {
             _boardRef = mgr;
@@ -69,8 +69,9 @@ namespace BefungeSharp
 
             UI_BOTTOM = ConEx.ConEx_Draw.Dimensions.height - 1;
 
-            selection.Top = selection.Right = selection.Bottom = selection.Left = -1;
-            _selecting = false;
+            _selection.content = new List<string>();
+            _selection.dimensions.Top = _selection.dimensions.Right = _selection.dimensions.Bottom = _selection.dimensions.Left = -1;
+            _selection.active = false;
         }
 
         /// <summary>
@@ -280,6 +281,11 @@ namespace BefungeSharp
                     {
                         deltaRep = (char)9500;
                     }
+                    else
+                    {
+                        //TODO - Choose a different symbol
+                        deltaRep = '?';
+                    }
                     break;
             }
 
@@ -312,15 +318,15 @@ namespace BefungeSharp
         private void DrawSelection(BoardMode mode)
         {
             //Fix the perminate 1 cell in [0,0] bug
-            if (_selecting == false)
+            if (_selection.active == false)
             {
                 return;
             }
 
             //Draw selection
-            for (int c = selection.Left; c <= selection.Right; c++)
+            for (int c = _selection.dimensions.Left; c <= _selection.dimensions.Right; c++)
             {
-                for (int r = selection.Top; r <= selection.Bottom; r++)
+                for (int r = _selection.dimensions.Top; r <= _selection.dimensions.Bottom; r++)
                 {
                     char prevChar = '\0';
                     prevChar = _boardRef.GetCharacter(r,c);
@@ -350,10 +356,15 @@ namespace BefungeSharp
                 case BoardMode.Run_STEP:
                     break;
                 case BoardMode.Edit:
+                    /* Ctrl + C - Copy
+                     * Ctrl + X - Cut
+                     * Ctrl + V - Paste
+                     * */
                     bool c = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_C);
                     if (c && control)
                     {
-                        List<string> contents = GetSelectionContents();
+                        //this._selection.content = GetSelectionContents();
+                        ClipboardTools.ToWindowsClipboard(this._selection);
                     }
                     for (int i = 0; i < keysHit.Length; i++)
                     {
@@ -379,12 +390,6 @@ namespace BefungeSharp
                                     ClearSelection();
                                 }
                                 break;
-                            case ConsoleKey.C:
-                                if (control == true)
-                                {
-                                    List<string> contents = GetSelectionContents();
-                                }
-                                break;
                             default:
                                 //Clear if we pressed any other key possible
                                 ClearSelection();
@@ -403,10 +408,10 @@ namespace BefungeSharp
         {
             List<string> outlines = new List<string>();
 
-            for (int row = selection.Top; row <= selection.Bottom; row++)
+            for (int row = _selection.dimensions.Top; row <= _selection.dimensions.Bottom; row++)
             {
                 string line = "";
-                for (int column = 0; column <= selection.Right; column++)
+                for (int column = _selection.dimensions.Left; column <= _selection.dimensions.Right; column++)
                 {
                     line += _boardRef.GetCharacter(row, column);
                 }
@@ -426,45 +431,45 @@ namespace BefungeSharp
             //Ensure that the selection is unintialized (Top is always > 0),
             //We aren't using the left or up arrow
             //and we are not currently in the middle of a selection
-            if (selection.Top == -1 &&
+            if (_selection.dimensions.Top == -1 &&
                 (k != ConsoleKey.LeftArrow || k != ConsoleKey.UpArrow) &&
-                _selecting == false)
+                _selection.active == false)
             {
 
                 //The selection origin is set to the IP's X and Y
-                selection.Left = (short)_interpRef.EditIP.Position.x;
-                selection.Top = (short)_interpRef.EditIP.Position.y;
+                _selection.dimensions.Left = (short)_interpRef.EditIP.Position.x;
+                _selection.dimensions.Top = (short)_interpRef.EditIP.Position.y;
 
                 //The bottom is also set to the Y position
-                selection.Bottom = (short)_interpRef.EditIP.Position.y;
+                _selection.dimensions.Bottom = (short)_interpRef.EditIP.Position.y;
 
                 //To counter act if we are starting off moving down
                 //we must account for the y position to be lower than normal
                 //and that we are imediantly incrementing the bottom side
                 if (k == ConsoleKey.DownArrow)
                 {
-                    selection.Bottom -= 1;
-                    selection.Top -= 1;
+                    _selection.dimensions.Bottom -= 1;
+                    _selection.dimensions.Top -= 1;
                 }
 
-                selection.Right = (short)_interpRef.EditIP.Position.x;
+                _selection.dimensions.Right = (short)_interpRef.EditIP.Position.x;
                 if (k == ConsoleKey.RightArrow)
                 {
-                    selection.Right -= 1;
-                    selection.Left -= 1;
+                    _selection.dimensions.Right -= 1;
+                    _selection.dimensions.Left -= 1;
                 }
-                _selecting = true;
+                _selection.active = true;
             }
 
             //Finally get to the changing of the directions!
             if (k == ConsoleKey.UpArrow)
-                selection.Bottom--;
+                _selection.dimensions.Bottom--;
             if (k == ConsoleKey.LeftArrow)
-                selection.Right--;
+                _selection.dimensions.Right--;
             if (k == ConsoleKey.DownArrow)
-                selection.Bottom++;
+                _selection.dimensions.Bottom++;
             if (k == ConsoleKey.RightArrow)
-                selection.Right++;
+                _selection.dimensions.Right++;
 
             //Now we do a post check to see if we made a bad selection
             bool error_creating_selection = false;
@@ -475,25 +480,30 @@ namespace BefungeSharp
 
             //Test if the IP has wrapped around behind itself or
             //Has walked behind itself
-            error_creating_selection |= x < selection.Left;
-            error_creating_selection |= selection.Right > 79;
-            error_creating_selection |= y < selection.Top;
-            error_creating_selection |= selection.Bottom > 24;
+            error_creating_selection |= x < _selection.dimensions.Left;
+            error_creating_selection |= _selection.dimensions.Right > 79;
+            error_creating_selection |= y < _selection.dimensions.Top;
+            error_creating_selection |= _selection.dimensions.Bottom > 24;
 
             if (error_creating_selection == true)
             {
                 ClearSelection();
             }
+            else
+            {
+                _selection.content = GetSelectionContents();
+            }
         }
         
         private void ClearSelection()
         {
-            selection = new ConEx.ConEx_Draw.SmallRect();
-            selection.Bottom = -1;
-            selection.Left = -1;
-            selection.Right = -1;
-            selection.Top = -1;
-            _selecting = false;
+            _selection.content.Clear();
+            _selection.dimensions = new ConEx.ConEx_Draw.SmallRect();
+            _selection.dimensions.Bottom = -1;
+            _selection.dimensions.Left = -1;
+            _selection.dimensions.Right = -1;
+            _selection.dimensions.Top = -1;
+            _selection.active = false;
         }
     }
 }
