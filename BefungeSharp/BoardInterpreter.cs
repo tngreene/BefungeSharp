@@ -263,7 +263,9 @@ namespace BefungeSharp
                             case ConsoleKey.Backspace:
                                 {
                                     Vector2 old = _IPs[0].Delta;
-                                    _IPs[0].Delta.Negate();
+                                    Vector2 nVec = _IPs[0].Delta;
+                                    nVec.Negate();
+                                    _IPs[0].Delta = nVec;
                                     _IPs[0].Move();
                                     bool success = _boardRef.PutCharacter(_IPs[0].Position.y, _IPs[0].Position.x, ' ');
                                     _IPs[0].Delta = old;
@@ -506,7 +508,9 @@ namespace BefungeSharp
                 //---------------------------------------------------
                 case 'r':
                     {
-                        _IPs[0].Delta.Negate();
+                        Vector2 nVec = _IPs[0].Delta;
+                        nVec.Negate();
+                        _IPs[0].Delta = nVec;
                     }
                     break;
                 case ';':
