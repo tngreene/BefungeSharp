@@ -19,7 +19,12 @@ namespace BefungeSharp.UI
         public static Selection FromWindowsClipboard(Vector2 origin)
         {
             Selection s = new Selection();
+            
             s.active = false;
+            
+            s.content = new List<string>();
+            s.content.Add("");
+            
             s.dimensions.Left = s.dimensions.Right = (short)origin.x;
             s.dimensions.Top = s.dimensions.Bottom = (short)origin.y;
             
@@ -36,8 +41,7 @@ namespace BefungeSharp.UI
                 input = input.Remove(input.Length - 1);
             }
             
-            s.content = new List<string>();
-            s.content.Add("");
+            
 
             for (int i = 0; i < input.Length; i++)
             {
