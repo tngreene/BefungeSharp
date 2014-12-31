@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
+
 
 namespace BefungeSharp.UI
 {
@@ -28,7 +28,17 @@ namespace BefungeSharp.UI
             s.dimensions.Left = s.dimensions.Right = (short)origin.x;
             s.dimensions.Top = s.dimensions.Bottom = (short)origin.y;
             
-            string input = Clipboard.GetText();
+            string input;
+
+            try
+            {
+                input = System.Windows.Clipboard.GetText();
+            }
+            catch
+            {
+                //If this fails for anyreason then leave
+                return s;
+            }
 
             if (input == "")
             {
@@ -91,7 +101,14 @@ namespace BefungeSharp.UI
                     output += selection.content[i];
                     output += "\n";
                 }
-                Clipboard.SetText(output);
+                try
+                {
+                    System.Windows.Clipboard.SetText(output);
+                }
+                catch
+                {
+                    return;
+                }
             }
         }
     }
