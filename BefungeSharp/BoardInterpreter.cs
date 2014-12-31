@@ -14,12 +14,15 @@ namespace BefungeSharp
         Movement,//>v^<?#
         Arithmatic,//Operators like +-*/
         Numbers,//0-9,a-f that will be pushed onto the stack
-        StackManipulation,//:$
+        StackManipulation,//:$u{}
         IO,//&~,.
+        FileIO,//io
         DataStorage,//gp
         StopExecution,//@
-        String,
-        NotImplemented//Many of the Funge-98 instructions
+        String,//"
+        Concurrent,//t
+        Trefunge,//hlm
+        NotImplemented//Many of the Funge-98 instructions. For now! - 12/31/2014
     }
 
     /// <summary>
@@ -251,23 +254,6 @@ namespace BefungeSharp
                                     Vector2 old = _IPs[0].Delta;
                                     _IPs[0].Delta = direction;
                                     _IPs[0].Move();
-                                    _IPs[0].Delta = old;
-                                    needsMove = false;
-                                }
-                                break;
-                            case ConsoleKey.Delete:
-                                {
-                                    bool success = _boardRef.PutCharacter(_IPs[0].Position.y, _IPs[0].Position.x, ' ');
-                                }
-                                break;
-                            case ConsoleKey.Backspace:
-                                {
-                                    Vector2 old = _IPs[0].Delta;
-                                    Vector2 nVec = _IPs[0].Delta;
-                                    nVec.Negate();
-                                    _IPs[0].Delta = nVec;
-                                    _IPs[0].Move();
-                                    bool success = _boardRef.PutCharacter(_IPs[0].Position.y, _IPs[0].Position.x, ' ');
                                     _IPs[0].Delta = old;
                                     needsMove = false;
                                 }

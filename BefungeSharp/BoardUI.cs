@@ -342,9 +342,7 @@ namespace BefungeSharp
         
         public void Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
-            bool shift = ConEx.ConEx_Input.ShiftDown;
-            bool alt = ConEx.ConEx_Input.AltDown;
-            bool control = ConEx.ConEx_Input.CtrlDown;
+            
 
             //Based on what mode it is handle those keys
             switch (mode)
@@ -356,26 +354,7 @@ namespace BefungeSharp
                 case BoardMode.Run_STEP:
                     break;
                 case BoardMode.Edit:
-                    /* Ctrl + C - Copy
-                     * Ctrl + X - Cut
-                     * Ctrl + V - Paste
-                     * */
-                    bool c = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_C);
-                    if (c && control)
-                    {
-                        this._selection.content = GetSelectionContents();
-                        //Emergancy sleep so we don't get a whole bunch of operations at once
-                        System.Threading.Thread.Sleep(150);
-                        ClipboardTools.ToWindowsClipboard(this._selection);
-                    }
-
-                    bool v = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_V);
-                    if (v && control)
-                    {
-                        this._selection = ClipboardTools.FromWindowsClipboard(_interpRef.EditIP.Position);
-                        System.Threading.Thread.Sleep(150);
-                        PutSelectionContents();
-                    }
+                    HandleModifiers(mode, keysHit);
 
                     for (int i = 0; i < keysHit.Length; i++)
                     {
@@ -391,7 +370,7 @@ namespace BefungeSharp
                             case ConsoleKey.DownArrow:
                             case ConsoleKey.RightArrow:
                                 //If we are editing the selection
-                                if (shift == true)
+                                if (ConEx.ConEx_Input.ShiftDown == true)
                                 {
                                     UpdateSelection(k);
                                 }
@@ -399,6 +378,28 @@ namespace BefungeSharp
                                 {
                                     //Clear if we used an arrow key without shift
                                     ClearSelection();
+                                }
+                                break;
+                            case ConsoleKey.Delete:
+                                if (_selection.content.Count == 0)
+                                {
+                                    bool success = _boardRef.PutCharacter(_interpRef.EditIP.Position.y, _interpRef.EditIP.Position.x, ' ');
+                                }
+                                else
+                                {
+                                    DeleteSelection();
+                                    ClearSelection();
+                                }
+                                break;
+                            case ConsoleKey.Backspace:
+                                {
+                                    Vector2 old = _interpRef.EditIP.Delta;
+                                    Vector2 nVec = _interpRef.EditIP.Delta;
+                                    nVec.Negate();
+                                    _interpRef.EditIP.Delta = nVec;
+                                    _interpRef.EditIP.Move();
+                                    bool success = _boardRef.PutCharacter(_interpRef.EditIP.Position.y, _interpRef.EditIP.Position.x, ' ');
+                                    _interpRef.EditIP.Delta = old;
                                 }
                                 break;
                             default:
@@ -411,6 +412,61 @@ namespace BefungeSharp
             }
         }
 
+        /// <summary>
+        /// Handles all keyboard input which involes Shift, Alt, or Control
+        /// </summary>
+        /// <param name="mode">The mode of the program you wish to conisder</param>
+        /// <param name="keysHit">an array of keys hit</param>
+        private void HandleModifiers(BoardMode mode, ConsoleKeyInfo[] keysHit)
+        {
+            //Ensures that the user cannot paste when they out of the window
+            if (ConEx.ConEx_Window.IsActive() == false)
+            {
+                return;
+            }
+
+            bool shift = ConEx.ConEx_Input.ShiftDown;
+            bool alt = ConEx.ConEx_Input.AltDown;
+            bool control = ConEx.ConEx_Input.CtrlDown;
+            
+            /* X indicates not fully implimented
+             * Ctrl + C - Copy
+            *  XCtrl + X - Cut 
+            *  Ctrl + V - Paste
+            *  XCtrl + A - Select the whole board?
+            *  XCtrl + Z - Undo, a planned feature
+            *  XCtrl + Y - Redo, also a planned feature
+            *  Ctrl + S - Save
+            *  
+            * */
+            bool x = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_V);
+            if (x && control)
+            {
+                this._selection.content = GetSelectionContents();
+                ClipboardTools.ToWindowsClipboard(this._selection);
+                DeleteSelection();
+            }
+            bool c = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_C);
+            if (c && control)
+            {
+                this._selection.content = GetSelectionContents();
+                ClipboardTools.ToWindowsClipboard(this._selection);
+                //Emergancy sleep so we don't get a whole bunch of operations at once
+                System.Threading.Thread.Sleep(150);
+            }
+
+            bool v = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_V);
+            if (v && control)
+            {
+                this._selection = ClipboardTools.FromWindowsClipboard(_interpRef.EditIP.Position);
+                PutSelectionContents();
+                //Emergancy sleep so we don't get a whole bunch of operations at once
+                System.Threading.Thread.Sleep(150);
+            }
+
+
+            
+        }
         /// <summary>
         /// Gets the contents of the selection box
         /// </summary>
@@ -431,6 +487,10 @@ namespace BefungeSharp
             return outlines;
         }
 
+        /*Record an insert
+        F1-F4 is changes sidebar content
+Super awesome text intro that is a befunge program
+BefungeSharp for the logo*/
         private void PutSelectionContents()
         {
             int top = _selection.dimensions.Top;
@@ -532,7 +592,23 @@ namespace BefungeSharp
                 _selection.content = GetSelectionContents();
             }
         }
-        
+
+        private void DeleteSelection()
+        {
+            int top = _selection.dimensions.Top;
+            int left = _selection.dimensions.Left;
+
+            //For the rows of the selection
+            for (int s_row = 0; s_row < _selection.content.Count; s_row++)
+            {
+                //For every letter in each row
+                for (int s_column = 0; s_column < _selection.content[s_row].Length; s_column++)
+                {
+                    //Put the character in the "real" location + the selection offset
+                    _boardRef.PutCharacter(top + s_row, left + s_column, ' ');
+                }
+            }
+        }
         private void ClearSelection()
         {
             _selection.content.Clear();
@@ -543,5 +619,7 @@ namespace BefungeSharp
             _selection.dimensions.Top = -1;
             _selection.active = false;
         }
+
+       
     }
 }
