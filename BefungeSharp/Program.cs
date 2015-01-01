@@ -66,7 +66,7 @@ namespace BefungeSharp
                     string input = "";
                     input = Console.ReadLine();
                     
-                    if (input == "")
+                    if (input == "" || input == null)
                     {
                         continue;
                     }
@@ -202,11 +202,11 @@ namespace BefungeSharp
         /// </summary>
         /// <param name="filePath">Full path to the file you want to open</param>
         /// <param name="outStrings">The list of strings you want to write out</param>
-        public static void WriteFile(string filePath, List<string> outStrings)
+        /// <returns>If the write succeedes it will return a null exception, else it will return the exception that was generated</returns>
+        public static Exception WriteFile(string filePath, List<string> outStrings)
         {
             //The stream for writing the file
             StreamWriter wStream = null;
-
             try
             {
                 //Create the stream writer from the file path
@@ -219,7 +219,7 @@ namespace BefungeSharp
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error reading: " + e.Message);
+                return e;
             }
             finally
             {
@@ -229,6 +229,7 @@ namespace BefungeSharp
                     wStream.Close();
                 }
             }
+            return null;
         }//void WriteFile
 
         static List<string> OpenSubMenu()
