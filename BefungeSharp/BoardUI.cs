@@ -431,7 +431,7 @@ namespace BefungeSharp
             
             /* X indicates not fully implimented
              * Ctrl + C - Copy
-            *  XCtrl + X - Cut 
+            *  Ctrl + X - Cut 
             *  Ctrl + V - Paste
             *  XCtrl + A - Select the whole board?
             *  XCtrl + Z - Undo, a planned feature
@@ -439,13 +439,15 @@ namespace BefungeSharp
             *  Ctrl + S - Save
             *  
             * */
-            bool x = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_V);
+            bool x = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_X);
             if (x && control)
             {
                 this._selection.content = GetSelectionContents();
                 ClipboardTools.ToWindowsClipboard(this._selection);
                 DeleteSelection();
+                System.Threading.Thread.Sleep(150);
             }
+
             bool c = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_C);
             if (c && control)
             {
