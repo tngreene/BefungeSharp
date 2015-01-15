@@ -19,8 +19,8 @@ namespace BefungeSharp
         private List<List<char>> _boardArray;
         public List<List<char>> BoardArray { get { return _boardArray; } }
 
-        private BoardUI _bUI;
-        public BoardUI BUI { get { return _bUI; } }
+        private BoardUI _UI;
+        public BoardUI UI { get { return _UI; } }
 
         private BoardSideBar _bSideBar;
         private BoardInterpreter _bInterp;
@@ -75,14 +75,14 @@ namespace BefungeSharp
             
             _bInterp = new BoardInterpreter(this,initGlobalStack,mode);
            
-            _bUI = new BoardUI(this, _bInterp);
+            _UI = new BoardUI(this, _bInterp);
             _bSideBar = new BoardSideBar(this, _bInterp);
           
             Console.CursorVisible = false;
          
             //Draw the field and ui and reset the position
-            _bUI.ClearArea(_bInterp.CurMode);
-            _bUI.Draw(_bInterp.CurMode);
+            _UI.ClearArea(_bInterp.CurMode);
+            _UI.Draw(_bInterp.CurMode);
 
             _bSideBar.ClearArea(_bInterp.CurMode);
             _bSideBar.Draw(_bInterp.CurMode);
@@ -157,7 +157,7 @@ namespace BefungeSharp
                 //Get the current keys
                 ConsoleKeyInfo[] keysHit = ConEx.ConEx_Input.GetInput();
                 CommandType type = _bInterp.Update(_bInterp.CurMode, keysHit);
-                                   _bUI.Update(_bInterp.CurMode, keysHit);
+                                   _UI.Update(_bInterp.CurMode, keysHit);
                                    _bSideBar.Update(_bInterp.CurMode, keysHit);
 
                 //Based on what mode it is handle those keys
@@ -226,8 +226,8 @@ namespace BefungeSharp
                     this.Draw(_bInterp.CurMode);
 
                     //Draw the UI and selection to override the black
-                    _bUI.ClearArea(_bInterp.CurMode);
-                    _bUI.Draw(_bInterp.CurMode);
+                    _UI.ClearArea(_bInterp.CurMode);
+                    _UI.Draw(_bInterp.CurMode);
 
                     //Draw the IP ontop of the board
                     _bInterp.DrawIP();
@@ -467,9 +467,9 @@ namespace BefungeSharp
                 case 'm'://3D if statment
                 case 'z'://Does not exist - TODO its actually nop
                 //---------------------------
-                    return new CommandInfo(inChar, CommandType.NotImplemented, ConsoleColor.DarkRed, 0);
+                    return new CommandInfo(inChar, CommandType.NotImplemented, ConsoleColor.DarkRed, 0);        
             }
-            return new CommandInfo();
+            return new CommandInfo(inChar, CommandType.NotImplemented, ConsoleColor.White, 0);//For all other non instructions
         }
 
         /// <summary>

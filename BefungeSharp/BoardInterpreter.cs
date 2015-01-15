@@ -598,30 +598,30 @@ namespace BefungeSharp
                     if (succeded == true)
                     {
                         _IPs[0].Stack.Push(outResult);
-                        _boardRef.BUI.AddText(input, BoardUI.Categories.IN);
+                        _boardRef.UI.AddText(input, BoardUI.Categories.IN);
                     }
                     else
                     {
                         _IPs[0].Stack.Push(0);
-                        _boardRef.BUI.AddText("0", BoardUI.Categories.IN);
+                        _boardRef.UI.AddText("0", BoardUI.Categories.IN);
                     }
                     break;
                 case '~'://Read char
                     //TODO - allow for mass input
                     char charInput = Console.ReadKey(true).KeyChar;
                     _IPs[0].Stack.Push((int)charInput);
-                    _boardRef.BUI.AddText(charInput.ToString(), BoardUI.Categories.IN);
+                    _boardRef.UI.AddText(charInput.ToString(), BoardUI.Categories.IN);
                     break;
                 case ','://Output character
                     {
                         char outChar = (char)_IPs[0].Stack.Pop();
                         string outVal = outChar.ToString();
 
-                        _boardRef.BUI.AddText(outVal,BoardUI.Categories.OUT);
+                        _boardRef.UI.AddText(outVal,BoardUI.Categories.OUT);
                     }
                     break;
                 case '.'://Output as number
-                    _boardRef.BUI.AddText(_IPs[0].Stack.Pop().ToString(),BoardUI.Categories.OUT);
+                    _boardRef.UI.AddText(_IPs[0].Stack.Pop().ToString(),BoardUI.Categories.OUT);
                     break;
                 //Funge 98 stack manipulation
                 //TODO - implement
