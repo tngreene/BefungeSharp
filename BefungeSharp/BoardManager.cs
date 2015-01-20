@@ -11,10 +11,6 @@ namespace BefungeSharp
         /// <summary>
         /// Represents a 2 dimensional space of characters, non jagged
         /// Accessed with boardArray[row+i][column+j]
-        /// TODO - Funge-98 spec says sizeof(T) in stack cell = sizeof(T) in Fungespace Cell
-        /// TODO - Fugnge-98 spec says you can have an addressable space of Int32.Min to Int32.Max or more,
-        /// we need a large funge space matrix and a mask of the subsection to show users
-        /// TODO - Trefunge will require a list of boardArrays
         /// </summary>
         private List<List<char>> _boardArray;
         public List<List<char>> BoardArray { get { return _boardArray; } }
@@ -559,7 +555,7 @@ namespace BefungeSharp
             Console.WriteLine("Writing file to " + System.IO.Path.GetFullPath(input));
             Console.WriteLine();
 
-            Exception e = Program.WriteFile(input, outStrings);
+            Exception e = FileUtils.WriteFile(input, outStrings);
             if (e != null)
             {
                 Console.WriteLine("Error writing file: " + e.Message);

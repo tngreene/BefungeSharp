@@ -52,6 +52,7 @@
     <Compile Include="BoardUI.cs" />
     <Compile Include="BoardInterpreter.cs" />
     <Compile Include="ClipboardTools.cs" />
+    <Compile Include="FileUtils.cs" />
     <Compile Include="IP.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

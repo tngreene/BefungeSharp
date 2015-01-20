@@ -144,7 +144,7 @@ namespace BefungeSharp
                         outOptions.Add("BREAKONZ=FALSE");
                         outOptions.Add("DEFAULTEXTENSION=.txt");
 
-                        WriteFile(Directory.GetCurrentDirectory() + "\\options.txt", outOptions);
+                        FileUtils.WriteFile(Directory.GetCurrentDirectory() + "\\options.txt", outOptions);
                         break;
                     case ProgramMode.Help:
                         //Set up the options menu
@@ -154,89 +154,11 @@ namespace BefungeSharp
             }//While(runProgram)
         }//Main(string[]args)
 
-        /// <summary>
-        /// A wrapper around StreamReader operations
-        /// </summary>
-        /// <param name="filePath">Full path to the file you want to open</param>
-        /// <returns>A list of strings containing the lines of the file</returns>
-        public static List<string> ReadFile(string filePath)
-        {
-            //The stream for reading the file
-            StreamReader rStream = null;
-
-            //The final list of strings
-            List<string> inStrings = new List<string>();
-            
-            try
-            {
-                //Create the stream reader from the file path
-                rStream = new StreamReader(filePath);
-
-                string currentLine;
-
-                //While the next character is not null
-                while(rStream.EndOfStream == false)
-                {
-                    //Read a line and add it
-                    currentLine = rStream.ReadLine();
-                    inStrings.Add(currentLine);
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error reading: " + e.Message);
-            }
-            finally
-            {
-                //Make sure we close the stream
-                if (rStream != null)
-                {
-                    rStream.Close();
-                }
-            }
-            return inStrings;
-        }
-
-        /// <summary>
-        /// A wraper around StreamWriter operations
-        /// </summary>
-        /// <param name="filePath">Full path to the file you want to open</param>
-        /// <param name="outStrings">The list of strings you want to write out</param>
-        /// <returns>If the write succeedes it will return a null exception, else it will return the exception that was generated</returns>
-        public static Exception WriteFile(string filePath, List<string> outStrings)
-        {
-            //The stream for writing the file
-            StreamWriter wStream = null;
-            try
-            {
-                //Create the stream writer from the file path
-                wStream = new StreamWriter(filePath);
-
-                for (int i = 0; i < outStrings.Count; i++)
-                {
-                    wStream.WriteLine(outStrings[i]);
-                }
-            }
-            catch (Exception e)
-            {
-                return e;
-            }
-            finally
-            {
-                //Make sure we close the stream
-                if (wStream != null)
-                {
-                    wStream.Close();
-                }
-            }
-            return null;
-        }//void WriteFile
-
         static List<string> OpenSubMenu()
         {
             Console.Write("Open a .txt or .bf, .b93, .b98, paths relative to current directory\n");
             Console.Write("For example, examples\\calculator.bf\n");
-            
+
             //Create the output list
             List<string> outputLines = new List<string>();
             int timeoutCounter = 0;
@@ -249,11 +171,11 @@ namespace BefungeSharp
 
                 //Get the string, such as examples\mything.txt
                 inString = Console.ReadLine();
-                
+
                 //Apppend C:\Users\...etc + \ + my words
                 string fileString = Directory.GetCurrentDirectory() + '\\' + inString;
-                Console.WriteLine("\n Attempting to load {0}",fileString);
-                outputLines = ReadFile(fileString);
+                Console.WriteLine("\n Attempting to load {0}", fileString);
+                outputLines = FileUtils.ReadFile(fileString);
 
                 if (outputLines.Count == 0)
                 {
@@ -271,6 +193,6 @@ namespace BefungeSharp
                 Console.WriteLine("It appears the file had no lines, starting in \"New File\" mode");
             }
             return outputLines;
-        }
+        }        
     }//class Program
 }//Namespace BefungeSharp

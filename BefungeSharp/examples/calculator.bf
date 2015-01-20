@@ -5,8 +5,8 @@ v
                 >:4-#v_       &&/v                                              
                      >:5-#v_  &&%v                                              
                                  .                                              
-^                         >:6-  #v_@                                            
-                                n<                                              
+                          >:6-  #v_@                                            
+^                               n<                                              
 ^>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>v                                              
 vExplanation: This program tests v                                              
 vall the arithmetic functions in v                                              
