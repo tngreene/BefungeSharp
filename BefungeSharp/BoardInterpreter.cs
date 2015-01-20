@@ -95,8 +95,14 @@ namespace BefungeSharp
         /// </summary>
         public IP EditIP { get { return _IPs[0]; } }
 
-        private IP _Last_IP;
+        private Vector2 _Last_IP;
+
+        private int _IPFollowID;
+        public int IPFollowID { get { return _IPFollowID; } set { _IPFollowID = value; } }
+
+
         
+
         /// <summary>
         /// Controls the intepretation and execution of commands
         /// </summary>
@@ -109,35 +115,30 @@ namespace BefungeSharp
 
             //Add the EDIT IP
             _IPs.Add(new IP());
-
-            //Add the main thread IP/standard IP
-            _IPs.Add(new IP());
-
-            //Copy all the data from the initialInput
-            if (stack != null)
-            {
-                _IPs[0].Stack = new Stack<int>(stack);
-            }
-            else
-            {
-                _IPs[0].Stack = new Stack<int>();
-                _IPs[0].Stack.Push(0);//We always have 0 on the stack
-            }
+            EditIP.Active = true;
 
             isStringMode = false;
             _curMode = mode;
+            _IPFollowID = 0;
         }
         
         public void Reset()
         {
             isStringMode = false;
-            _IPs[0].Reset();
+
+            //Start by removing every except the edit IP
+            _IPs.RemoveRange(1, _IPs.Count - 1);
+            //Add the main thread IP/standard IP
+            _IPs.Add(new IP());
+
+            _IPs[1].Reset();
+            _IPs[1].Active = true;
         }
 
         public CommandType Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
             //Save the last position because we're about to take a step
-            _Last_IP = new IP(_IPs[0]);
+            _Last_IP = _IPs[0].Position;
             CommandType type = CommandType.NotImplemented;
 
             bool shift = ConEx.ConEx_Input.ShiftDown;
@@ -277,6 +278,7 @@ namespace BefungeSharp
                                 _curMode = BoardMode.Edit;
                                 break;
                             case ConsoleKey.Escape:
+                                IP.ResetCounter();
                                 return type = CommandType.StopExecution;//Go back to the main menu
                             default:
                                 if (keysHit[i].KeyChar >= 32 && keysHit[i].KeyChar <= 126 
@@ -307,23 +309,30 @@ namespace BefungeSharp
 
         public void DrawIP()
         {
-            Vector2 direct = _IPs[0].Delta;
-            
-            //Get the last place we were, reset it's color
-            //Get our current place, set it's color
-
-            char prevChar = '\0';
-
-            prevChar = _boardRef.GetCharacter(_Last_IP.Position.y, _Last_IP.Position.x);
-            
-            if (prevChar != '\0')
+            int n = EditIP.ID;
+            //For every IP in the list
+            do
             {
-                ConEx.ConEx_Draw.SetAttributes(_Last_IP.Position.y, _Last_IP.Position.x, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
+                Vector2 direct = _IPs[n].Delta;
+
+                //Get the last place we were, reset it's color
+                //Get our current place, set it's color
+
+                char prevChar = '\0';
+
+                prevChar = _boardRef.GetCharacter(_Last_IP.y, _Last_IP.x);
+
+                if (prevChar != '\0')
+                {
+                    ConEx.ConEx_Draw.SetAttributes(_Last_IP.y, _Last_IP.x, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
+                }
+
+                //Get the current ip's
+                char characterUnder = _boardRef.GetCharacter(_IPs[n].Position.y, _IPs[n].Position.x);
+                ConEx.ConEx_Draw.SetAttributes(_IPs[n].Position.y, _IPs[n].Position.x, BoardManager.LookupInfo(characterUnder).color, ConsoleColor.Gray);
+                n++;
             }
-            
-            //Get the current ip's
-            char characterUnder = _boardRef.GetCharacter(_IPs[0].Position.y, _IPs[0].Position.x);
-            ConEx.ConEx_Draw.SetAttributes(_IPs[0].Position.y, _IPs[0].Position.x, BoardManager.LookupInfo(characterUnder).color, ConsoleColor.Gray);
+            while (n < IPs.Count && _curMode != BoardMode.Edit);
         }
 
         public static Vector2 Wrap(Vector2 _position)
@@ -362,381 +371,402 @@ namespace BefungeSharp
 
         private CommandType TakeStep()
         {
-            /* 1.) Find out what is under the IP
-             * 2.) Lookup Info about it
-             * 3.) Based on number to pop check to make sure the stack has enough to keep going
-             * 4.) Execute Command
-             * 5.) Move along delta
-             */
-            char cmd = _boardRef.GetCharacter(_IPs[0].Position.y, _IPs[0].Position.x);
+            //This way no matter how many IP's are added with t
+            //We won't be executing them
+            int initialListCount = IPs.Count;
 
-            CommandInfo info = BoardManager.LookupInfo(cmd);
-
-            //If we are currently in string mode
-            //And its not a space and not a " (so we can leave string mode)
-            if (isStringMode == true && cmd != '"')
+            //For every IP in the list (except the EditIP)
+            for (int n = EditIP.ID + 1; n < initialListCount; n++)
             {
-                //Push the character value, move and return
-                _IPs[0].Stack.Push((int)cmd);
-                _IPs[0].Move();
-                return CommandType.String;
-            }
+                /* 1.) Find out what is under the IP
+                 * 2.) Lookup Info about it
+                 * 3.) Based on number to pop check to make sure the stack has enough to keep going
+                 * 4.) Execute Command
+                 
+                 */
+                char cmd = _boardRef.GetCharacter(_IPs[n].Position.y, _IPs[n].Position.x);
 
-            //Ensure that there will always be enough in the stack
-            while (_IPs[0].Stack.Count < info.requiredCells)
-            {
-                _IPs[0].Stack.Push(0);
-            }
+                CommandInfo info = BoardManager.LookupInfo(cmd);
 
-            switch (cmd)
-            {
-                //Logic
-                case '!'://not
-                    if (_IPs[0].Stack.Pop() != 0)
-                    {
-                        _IPs[0].Stack.Push(0);
-                    }
-                    else
-                    {
-                        _IPs[0].Stack.Push(1);
-                    }
-                    break;
-                case '_':
-                    if (_IPs[0].Stack.Pop() == 0)
-                    {
-                        _IPs[0].Delta = Vector2.East;
-                    }
-                    else
-                    {
-                        _IPs[0].Delta = Vector2.West;
-                    }
-                    break;
-                case '|':
-                    if (_IPs[0].Stack.Pop() == 0)
-                    {
-                        _IPs[0].Delta = Vector2.South;
-                    }
-                    else
-                    {
-                        _IPs[0].Delta = Vector2.North;
-                    }
-                    break;
-                case '`'://Greater than 
-                    {
-                        int a = _IPs[0].Stack.Pop();
-                        int b = _IPs[0].Stack.Pop();
+                //If we are currently in string mode
+                //And its not a space and not a " (so we can leave string mode)
+                if (isStringMode == true && cmd != '"')
+                {
+                    //Push the character value, move and return
+                    _IPs[n].Stack.Push((int)cmd);
+                    _IPs[n].Move();
+                    return CommandType.String;
+                }
 
-                        if (b > a)
+                //Ensure that there will always be enough in the stack
+                while (_IPs[n].Stack.Count < info.requiredCells)
+                {
+                    _IPs[n].Stack.Push(0);
+                }
+
+                switch (cmd)
+                {
+                    //Logic
+                    case '!'://not
+                        if (_IPs[n].Stack.Pop() != 0)
                         {
-                            _IPs[0].Stack.Push(1);
+                            _IPs[n].Stack.Push(0);
                         }
                         else
                         {
-                            _IPs[0].Stack.Push(0);
+                            _IPs[n].Stack.Push(1);
                         }
-                    }
-                    break;
-                case 'w'://Funge98 compare function
-                    {
-                        //Pop a and b off the stack
-                        int a = _IPs[0].Stack.Pop();
-                        int b = _IPs[0].Stack.Pop();
-                        
-                        //Get our current direction
-                        Vector2 currentDir = _IPs[0].Delta;
-                        
-                        if (b < a)//If b is less than turn left
+                        break;
+                    case '_':
+                        if (_IPs[n].Stack.Pop() == 0)
                         {
-                            _IPs[0].Delta = new Vector2(_IPs[0].Delta.y * -1, _IPs[0].Delta.x);
+                            _IPs[n].Delta = Vector2.East;
                         }
-                        else if (b > a)//if b is more turn right
+                        else
                         {
-                            _IPs[0].Delta = new Vector2(_IPs[0].Delta.y, _IPs[0].Delta.x * -1);
+                            _IPs[n].Delta = Vector2.West;
                         }
-                    }
-                    break;
+                        break;
+                    case '|':
+                        if (_IPs[n].Stack.Pop() == 0)
+                        {
+                            _IPs[n].Delta = Vector2.South;
+                        }
+                        else
+                        {
+                            _IPs[n].Delta = Vector2.North;
+                        }
+                        break;
+                    case '`'://Greater than 
+                        {
+                            int a = _IPs[n].Stack.Pop();
+                            int b = _IPs[n].Stack.Pop();
 
-                //Flow control
-                case '^':
-                    _IPs[0].Delta = Vector2.North;
-                    break;
-                case '>':
-                    _IPs[0].Delta = Vector2.East;
-                    break;
-                case '<':
-                    _IPs[0].Delta = Vector2.West;
-                    break;
-                case 'v':
-                    _IPs[0].Delta = Vector2.South;
-                    break;
-                case '?':
-                    Random rnd = new Random();
-                    _IPs[0].Delta = Vector2.CardinalDirections[rnd.Next(0, 4)];
-                    break;
-                case '#':
-                    _IPs[0].Move();//Skip one space
-                    break;
-                //Funge-98 flow control
-                case '['://Rotate 90 degrees counter clockwise
-                    {
-                        _IPs[0].Delta = new Vector2(_IPs[0].Delta.y * -1, _IPs[0].Delta.x);
-                    }
-                    break;
-                case ']'://Rotate 90's clockwise
-                    {
-                        _IPs[0].Delta = new Vector2(_IPs[0].Delta.y, _IPs[0].Delta.x * -1);
-                    }
-                    break;
-                //--Not implemented instructions that will act like r
-                //---------------------------------------------------
-                case 'r':
-                    {
-                        Vector2 nVec = _IPs[0].Delta;
-                        nVec.Negate();
-                        _IPs[0].Delta = nVec;
-                    }
-                    break;
-                case ';':
-                case 'x':
-                    {
-                        Vector2 nDelta = new Vector2();
-                        nDelta.x = _IPs[0].Stack.Pop();
-                        nDelta.y = _IPs[0].Stack.Pop();
+                            if (b > a)
+                            {
+                                _IPs[n].Stack.Push(1);
+                            }
+                            else
+                            {
+                                _IPs[n].Stack.Push(0);
+                            }
+                        }
+                        break;
+                    case 'w'://Funge98 compare function
+                        {
+                            //Pop a and b off the stack
+                            int a = _IPs[n].Stack.Pop();
+                            int b = _IPs[n].Stack.Pop();
 
-                        _IPs[0].Delta = nDelta;
-                    }
-                    break;
-                case 'j':
-                    //.Pop() - 1 to account for the fact we're moving already at the bottom
-                    for (int i = 0; i < _IPs[0].Stack.Pop() - 1 ; i++)
-			        {
-                        _IPs[0].Move();
-			        }
-                    break;
-                case 'k':
-                    break;
-                case '@':
-                    
-                case 'q'://Not fully implimented
-                    _curMode = BoardMode.Edit;//TODO - Change behavior in f98CNote will change when
-                    return CommandType.StopExecution;
+                            //Get our current direction
+                            Vector2 currentDir = _IPs[n].Delta;
 
-                //Arithmatic
-                case '+':
-                    _IPs[0].Stack.Push(_IPs[0].Stack.Pop() + _IPs[0].Stack.Pop());
-                    break;
-                case '-'://Subtract b-a
-                    {
-                        int a = _IPs[0].Stack.Pop();
-                        int b = _IPs[0].Stack.Pop();
-                        _IPs[0].Stack.Push(b - a);
-                    }
-                    break;
-                case '*':
-                    _IPs[0].Stack.Push(_IPs[0].Stack.Pop() * _IPs[0].Stack.Pop());
-                    break;
-                case '/'://Divide b/a
-                    {
-                        int a = _IPs[0].Stack.Pop();
-                        int b = _IPs[0].Stack.Pop();
-                        double result = b / a;
-                        _IPs[0].Stack.Push((int)Math.Round(result));
-                    }
-                    break;
-                case '%'://modulous b % a
-                    {
-                        int a = _IPs[0].Stack.Pop();
-                        int b = _IPs[0].Stack.Pop();
-                        _IPs[0].Stack.Push(b % a);
-                    }
-                    break;              
-                //Numbers
-                case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':                    
-                    _IPs[0].Stack.Push((int)cmd-48);
-                    break;
-                case 'a':
-                case 'b':
-                case 'c':
-                case 'd':
-                case 'e':
-                case 'f':
-                    _IPs[0].Stack.Push((int)cmd - 87);
-                    break;
-                //Stack Manipulation
-                case ':'://Duplication
-                    _IPs[0].Stack.Push(_IPs[0].Stack.Peek());
-                    break;
-                case '$'://Discard Top Value
-                    _IPs[0].Stack.Pop();
-                    break;
-                case '\\'://Swap the top two values
-                    {
-                        int a = _IPs[0].Stack.Pop();
-                        int b = _IPs[0].Stack.Pop();
+                            if (b < a)//If b is less than turn left
+                            {
+                                _IPs[n].Delta = new Vector2(_IPs[n].Delta.y * -1, _IPs[n].Delta.x);
+                            }
+                            else if (b > a)//if b is more turn right
+                            {
+                                _IPs[n].Delta = new Vector2(_IPs[n].Delta.y, _IPs[n].Delta.x * -1);
+                            }
+                        }
+                        break;
 
-                        _IPs[0].Stack.Push(a);
-                        _IPs[0].Stack.Push(b);//Now b is on top
-                    }
-                    break;
-                case 'n'://Clear stack
-                    _IPs[0].Stack.Clear();
-                    break;
+                    //Flow control
+                    case '^':
+                        _IPs[n].Delta = Vector2.North;
+                        break;
+                    case '>':
+                        _IPs[n].Delta = Vector2.East;
+                        break;
+                    case '<':
+                        _IPs[n].Delta = Vector2.West;
+                        break;
+                    case 'v':
+                        _IPs[n].Delta = Vector2.South;
+                        break;
+                    case '?':
+                        Random rnd = new Random();
+                        _IPs[n].Delta = Vector2.CardinalDirections[rnd.Next(0, 4)];
+                        break;
+                    case '#':
+                        _IPs[n].Move();//Skip one space
+                        break;
+                    //Funge-98 flow control
+                    case '['://Rotate 90 degrees counter clockwise
+                        {
+                            _IPs[n].Delta = new Vector2(_IPs[n].Delta.y * -1, _IPs[n].Delta.x);
+                        }
+                        break;
+                    case ']'://Rotate 90's clockwise
+                        {
+                            _IPs[n].Delta = new Vector2(_IPs[n].Delta.y, _IPs[n].Delta.x * -1);
+                        }
+                        break;
+                    //--Not implemented instructions that will act like r
+                    //---------------------------------------------------
+                    case 'r':
+                        {
+                            Vector2 nVec = _IPs[n].Delta;
+                            nVec.Negate();
+                            _IPs[n].Delta = nVec;
+                        }
+                        break;
+                    case 'x':
+                        {
+                            Vector2 nDelta = new Vector2();
+                            nDelta.x = _IPs[n].Stack.Pop();
+                            nDelta.y = _IPs[n].Stack.Pop();
+
+                            _IPs[n].Delta = nDelta;
+                        }
+                        break;
+                    case 'j':
+                        //.Pop() - 1 to account for the fact we're moving already at the bottom
+                        for (int i = 0; i < _IPs[n].Stack.Pop() - 1; i++)
+                        {
+                            _IPs[n].Move();
+                        }
+                        break;
+                    case 'k':
+                        break;
+                    case '@':
+                        _IPs[n].Move();
+                        return CommandType.Concurrent;
+                    case 'q'://Not fully implimented
+                        _curMode = BoardMode.Edit;//TODO - Change behavior in f98CNote will change when
+                        return CommandType.StopExecution;
+
+                    //Arithmatic
+                    case '+':
+                        _IPs[n].Stack.Push(_IPs[n].Stack.Pop() + _IPs[n].Stack.Pop());
+                        break;
+                    case '-'://Subtract b-a
+                        {
+                            int a = _IPs[n].Stack.Pop();
+                            int b = _IPs[n].Stack.Pop();
+                            _IPs[n].Stack.Push(b - a);
+                        }
+                        break;
+                    case '*':
+                        _IPs[n].Stack.Push(_IPs[n].Stack.Pop() * _IPs[n].Stack.Pop());
+                        break;
+                    case '/'://Divide b/a
+                        {
+                            int a = _IPs[n].Stack.Pop();
+                            int b = _IPs[n].Stack.Pop();
+                            double result = b / a;
+                            _IPs[n].Stack.Push((int)Math.Round(result));
+                        }
+                        break;
+                    case '%'://modulous b % a
+                        {
+                            int a = _IPs[n].Stack.Pop();
+                            int b = _IPs[n].Stack.Pop();
+                            _IPs[n].Stack.Push(b % a);
+                        }
+                        break;
+                    //Numbers
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9':
+                        _IPs[n].Stack.Push((int)cmd - 48);
+                        break;
+                    case 'a':
+                    case 'b':
+                    case 'c':
+                    case 'd':
+                    case 'e':
+                    case 'f':
+                        _IPs[n].Stack.Push((int)cmd - 87);
+                        break;
+                    //Stack Manipulation
+                    case ':'://Duplication
+                        _IPs[n].Stack.Push(_IPs[n].Stack.Peek());
+                        break;
+                    case '$'://Discard Top Value
+                        _IPs[n].Stack.Pop();
+                        break;
+                    case '\\'://Swap the top two values
+                        {
+                            int a = _IPs[n].Stack.Pop();
+                            int b = _IPs[n].Stack.Pop();
+
+                            _IPs[n].Stack.Push(a);
+                            _IPs[n].Stack.Push(b);//Now b is on top
+                        }
+                        break;
+                    case 'n'://Clear stack
+                        _IPs[n].Stack.Clear();
+                        break;
                     //IO
-                case '&'://Read int
-                    string input = Console.ReadLine();
-                    int outResult = 0;
-                    bool succeded = int.TryParse(input,out outResult);
-                    if (succeded == true)
-                    {
-                        _IPs[0].Stack.Push(outResult);
-                        _boardRef.UI.AddText(input, BoardUI.Categories.IN);
-                    }
-                    else
-                    {
-                        _IPs[0].Stack.Push(0);
-                        _boardRef.UI.AddText("0", BoardUI.Categories.IN);
-                    }
-                    break;
-                case '~'://Read char
-                    //TODO - allow for mass input
-                    char charInput = Console.ReadKey(true).KeyChar;
-                    _IPs[0].Stack.Push((int)charInput);
-                    _boardRef.UI.AddText(charInput.ToString(), BoardUI.Categories.IN);
-                    break;
-                case ','://Output character
-                    {
-                        char outChar = (char)_IPs[0].Stack.Pop();
-                        string outVal = outChar.ToString();
+                    case '&'://Read int
+                        string input = Console.ReadLine();
+                        int outResult = 0;
+                        bool succeded = int.TryParse(input, out outResult);
+                        if (succeded == true)
+                        {
+                            _IPs[n].Stack.Push(outResult);
+                            _boardRef.UI.AddText(input, BoardUI.Categories.IN);
+                        }
+                        else
+                        {
+                            _IPs[n].Stack.Push(0);
+                            _boardRef.UI.AddText("0", BoardUI.Categories.IN);
+                        }
+                        break;
+                    case '~'://Read char
+                        //TODO - allow for mass input
+                        char charInput = Console.ReadKey(true).KeyChar;
+                        _IPs[n].Stack.Push((int)charInput);
+                        _boardRef.UI.AddText(charInput.ToString(), BoardUI.Categories.IN);
+                        break;
+                    case ','://Output character
+                        {
+                            char outChar = (char)_IPs[n].Stack.Pop();
+                            string outVal = outChar.ToString();
 
-                        _boardRef.UI.AddText(outVal,BoardUI.Categories.OUT);
-                    }
-                    break;
-                case '.'://Output as number
-                    _boardRef.UI.AddText(_IPs[0].Stack.Pop().ToString(),BoardUI.Categories.OUT);
-                    break;
-                //Funge 98 stack manipulation
-                //TODO - implement
-                case 'u':
-                case '{':
-                case '}':
-                    break;
-                //Funge-98
-                case 'i':
-                case 'o':
-                    try
-                    {
+                            _boardRef.UI.AddText(outVal, BoardUI.Categories.OUT);
+                        }
+                        break;
+                    case '.'://Output as number
+                        _boardRef.UI.AddText(_IPs[n].Stack.Pop().ToString(), BoardUI.Categories.OUT);
+                        break;
+                    //Funge 98 stack manipulation
+                    //TODO - implement
+                    case 'u':
+                    case '{':
+                    case '}':
+                        break;
+                    //Funge-98
+                    case 'i':
+                    case 'o':
+                        try
+                        {
 
-                    }
-                    catch (Exception e)
-                    {
+                        }
+                        catch (Exception e)
+                        {
 
-                    }
-                    finally
-                    {
+                        }
+                        finally
+                        {
 
-                    }
-                    break;
-                //Data Storage
-                case 'g':
-                    {
-                        int y = _IPs[0].Stack.Pop();
-                        int x = _IPs[0].Stack.Pop();
-                        char foundChar = _boardRef.GetCharacter(y,x);
-                        _IPs[0].Stack.Push((int)foundChar);
-                    }
-                    break;
-                case 'p':
-                    {
-                        int y = _IPs[0].Stack.Pop();
-                        int x = _IPs[0].Stack.Pop();
-                        int charToPlace = _IPs[0].Stack.Pop();
-                        bool couldPlace = _boardRef.PutCharacter(y,x,(char)charToPlace);
+                        }
+                        break;
+                    //Data Storage
+                    case 'g':
+                        {
+                            int y = _IPs[n].Stack.Pop();
+                            int x = _IPs[n].Stack.Pop();
+                            char foundChar = _boardRef.GetCharacter(y, x);
+                            _IPs[n].Stack.Push((int)foundChar);
+                        }
+                        break;
+                    case 'p':
+                        {
+                            int y = _IPs[n].Stack.Pop();
+                            int x = _IPs[n].Stack.Pop();
+                            int charToPlace = _IPs[n].Stack.Pop();
+                            bool couldPlace = _boardRef.PutCharacter(y, x, (char)charToPlace);
 
-                        //Do this?
-                        //if (couldPlace == false)
-                        //{
+                            //Do this?
+                            //if (couldPlace == false)
+                            //{
                             //return CommandType.StopExecution;
-                        //}
-                    }
-                    break;
-                case 's':
+                            //}
+                        }
+                        break;
+                    case 's':
 
-                    break;
-                //String Manipulation
-                case '"':
-                    //Negates and assaigns, a fancy toggle
-                    isStringMode = !isStringMode;
-                    break;
-                case '\''://' "Fetch Character", 
-                //pushes the next character at (pos + delta)'s char value
-                //and skips over it, like a # command
+                        break;
+                    //String Manipulation
+                    case '"':
+                        //Negates and assaigns, a fancy toggle
+                        isStringMode = !isStringMode;
+                        break;
+                    case '\''://' "Fetch Character", 
+                        //pushes the next character at (pos + delta)'s char value
+                        //and skips over it, like a # command
+                        break;
+                    case 't'://Split IP Concurrent
+                        _IPs.Add(new IP(_IPs[n]));
+                        _IPs[n + 1].Negate();
+                        //Starts being inactive so next it will not 
+                        _IPs[n + 1].Active = false;
+                        
+                        //Swap the two so next time the child will go first
+                        _IPs.Reverse(n, 2);
+                        break;
+                    //Funge-98 ONLY Schematics
+                    case '=':
+                    //Handprint stuff
+                    case 'y':
+                    //Footprint stuff
+                    case '(':
+                    case ')':
+                    case 'A':
+                    case 'B':
+                    case 'C':
+                    case 'D':
+                    case 'E':
+                    case 'F':
+                    case 'G':
+                    case 'H':
+                    case 'I':
+                    case 'J':
+                    case 'K':
+                    case 'L':
+                    case 'M':
+                    case 'N':
+                    case 'O':
+                    case 'P':
+                    case 'Q':
+                    case 'R':
+                    case 'S':
+                    case 'T':
+                    case 'U':
+                    case 'V':
+                    case 'W':
+                    case 'X':
+                    case 'Y':
+                    case 'Z':
+                        break;
 
-                case 't'://Split IP Concurrent
+                    //no operations
+                    case ' ':
+                        break;
+                    case ';':
+                        break;
+                    case 'z'://nop, in 98 it consumes a tick making it different than a simple space
+                        break;
+                    //Trefunge or more
+                    case 'h':
+                    case 'l':
+                    case 'm':
 
-                //Funge-98 ONLY Schematics
-                case '=':
-                //Handprint stuff
-                case 'y':
-                //Footprint stuff
-                case '(':
-                case ')':
-                case 'A':
-                case 'B':
-                case 'C':
-                case 'D':
-                case 'E':
-                case 'F':
-                case 'G':
-                case 'H':
-                case 'I':
-                case 'J':
-                case 'K':
-                case 'L':
-                case 'M':
-                case 'N':
-                case 'O':
-                case 'P':
-                case 'Q':
-                case 'R':
-                case 'S':
-                case 'T':
-                case 'U':
-                case 'V':
-                case 'W':
-                case 'X':
-                case 'Y':
-                case 'Z':
-                    break;
-                
-                //no operations
-                case ' ':
-                    break;
-                case 'z'://nop, in 98 it consumes a tick making it different than a simple space
-                    break;
-                //Trefunge or more
-                case 'h':
-                case 'l':
-                case 'm':
-                
-                    break;
+                        break;
+                }
             }
-
-            _IPs[0].Move();
-            _IPs[0].Position = Wrap(_IPs[0].Position);
-
+            
+            //Move and wrap every delta
+            for (int n = EditIP.ID + 1; n < IPs.Count; n++)
+            {
+                _IPs[n].Move();
+                _IPs[n].Position = Wrap(_IPs[n].Position);
+            }
+            
             //Although we are switched to the ConEx drawing library this is still important
-            Console.SetCursorPosition(_IPs[0].Position.x, _IPs[0].Position.y);
+            Console.SetCursorPosition(_IPs[_IPFollowID].Position.x, _IPs[_IPFollowID].Position.y);
 
-            return info.type;
+            return CommandType.NotImplemented;//TODO - Needs a better idea
         }
     }
 }

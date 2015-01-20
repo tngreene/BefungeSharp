@@ -33,10 +33,19 @@ namespace BefungeSharp
         private Stack<int> _stack;
         public Stack<int> Stack { get { return _stack; } set { _stack = value; } }
 
-        //A static counter to ensure that each added IP gets a unique ID
+        private bool _active;
+        public bool Active { get { return _active; } set { _active = value; } }
+
+        //A static counter to ensure that each added IP gets a unique ID starting with 0
         private static int ID_Counter = 0;
         
-        //An ID for debugging purposes
+        //Beware! Only to be used when ending the interpreter!
+        public static void ResetCounter() { ID_Counter = 0; }
+
+        private int _IP_ParentID;
+        public int IP_ParentID { get { return _IP_ParentID; } }
+
+        //An ID for debugging purposes/concurrency
         private int _IP_ID;
         public int ID { get { return _IP_ID; } }
 
@@ -47,12 +56,15 @@ namespace BefungeSharp
             _storageOffset = Vector2.Zero;
 
             _stack = new Stack<int>();
-            
+
+            _active = false;
+
+            _IP_ParentID = 0;
             _IP_ID = ID_Counter;
-            ID_Counter++;
+            ID_Counter++;            
         }
 
-        public IP(Vector2 position, Vector2 delta, Vector2 storageOffset, Stack<int> stack)
+        public IP(Vector2 position, Vector2 delta, Vector2 storageOffset, Stack<int> stack, int parent_id)
         {
             _position = position;
             _delta = delta;
@@ -60,8 +72,11 @@ namespace BefungeSharp
 
             _stack = stack;
             
+            _active = false;
+
+            _IP_ParentID = parent_id;
             _IP_ID = ID_Counter;
-            ID_Counter++;
+            ID_Counter++;           
         }
 
         //For use with Funge-98C
@@ -69,12 +84,15 @@ namespace BefungeSharp
         {
             this._position = parent._position;
             this._delta = parent._delta;
-            this._delta.Negate();
             this._storageOffset = parent._storageOffset;
+            
             this._stack = parent._stack;
 
+            _active = false;
+
+            this._IP_ParentID = parent._IP_ParentID;
             this._IP_ID = ID_Counter;
-            ID_Counter++;
+            ID_Counter++;           
         }
 
         public void Move()
@@ -91,6 +109,13 @@ namespace BefungeSharp
                 Move();
             }
         }
+
+        //TODO - fix pass by value/reference problem
+        public void Negate()
+        {
+            this._delta.Negate();
+        }
+
         public void Reset()
         {
             _position.Clear();
