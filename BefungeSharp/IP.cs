@@ -33,6 +33,10 @@ namespace BefungeSharp
         private Stack<int> _stack;
         public Stack<int> Stack { get { return _stack; } set { _stack = value; } }
 
+        /// <summary>
+        /// Active is whether the IP should be drawn/updated/moved/anything. It is not the same a stopped IP
+        /// All IPs start out inactive and are only activated when ready
+        /// </summary>
         private bool _active;
         public bool Active { get { return _active; } set { _active = value; } }
 
@@ -61,7 +65,6 @@ namespace BefungeSharp
             _storageOffset = Vector2.Zero;
 
             _stack = new Stack<int>();
-
             _active = false;
 
             _IP_ParentID = 0;
@@ -77,7 +80,6 @@ namespace BefungeSharp
             _storageOffset = storageOffset;
 
             _stack = stack;
-            
             _active = false;
 
             _IP_ParentID = parent_id;
@@ -101,6 +103,7 @@ namespace BefungeSharp
             this._IP_ParentID = parent._IP_ParentID;
             this._IP_ID = ID_Counter;
             ID_Counter++;
+
             StringMode = false;
         }
 

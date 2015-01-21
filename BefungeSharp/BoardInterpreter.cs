@@ -76,24 +76,20 @@ namespace BefungeSharp
         private BoardMode _curMode;
         public BoardMode CurMode { get { return _curMode; } set { _curMode = value; } }
 
-        
-        
-        
-
         private List<IP> _IPs;
 
         /// <summary>
         /// The instruction pointer list, 
-        /// _IPs[0] is the special "Edit cursor"
-        /// _IPs[1] is essentially the IP for Unfunge through non concurrent Funge-98 and non-concurrent Tre-Funge
-        /// _IPs[2 + n] are only created when using BF98-C
+        /// _IPs[0] is essentially the IP for Unfunge through non concurrent Funge-98 and non-concurrent Tre-Funge
+        /// _IPs[1 + n != _IPs.Last()] are only created when using BF98-C
+        /// _IPs.Last() is the special "Edit cursor"
         /// </summary>
         public List<IP> IPs { get { return _IPs; } }
 
         /// <summary>
         /// The Instruction Pointer representing the editor cursor
         /// </summary>
-        public IP EditIP { get { return _IPs[0]; } }
+        public IP EditIP { get { return _IPs.Last(); } }
 
         private Vector2 _Last_IP;
 
@@ -124,12 +120,16 @@ namespace BefungeSharp
         public void Reset()
         {
             //Start by removing every except the edit IP
-            _IPs.RemoveRange(1, _IPs.Count - 1);
+            _IPs.Clear();
+            IP.ResetCounter();
+
             //Add the main thread IP/standard IP
             _IPs.Add(new IP());
 
-            _IPs[1].Reset();
-            _IPs[1].Active = true;
+            _IPs[0].Reset();
+            _IPs[0].Active = true;
+
+            
         }
 
         public CommandType Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
@@ -306,9 +306,9 @@ namespace BefungeSharp
 
         public void DrawIP()
         {
-            int n = EditIP.ID;
+            int n = 0;
             //For every IP in the list
-            do
+            while(n < _IPs.Count() && _IPs[n].Active == true)
             {
                 Vector2 direct = _IPs[n].Delta;
 
@@ -321,7 +321,7 @@ namespace BefungeSharp
 
                 if (prevChar != '\0')
                 {
-                    ConEx.ConEx_Draw.SetAttributes(_Last_IP.y, _Last_IP.x, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
+                   // ConEx.ConEx_Draw.SetAttributes(_Last_IP.y, _Last_IP.x, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
                 }
 
                 //Get the current ip's
@@ -329,7 +329,6 @@ namespace BefungeSharp
                 ConEx.ConEx_Draw.SetAttributes(_IPs[n].Position.y, _IPs[n].Position.x, BoardManager.LookupInfo(characterUnder).color, ConsoleColor.Gray);
                 n++;
             }
-            while (n < IPs.Count && _curMode != BoardMode.Edit);
         }
 
         public static Vector2 Wrap(Vector2 _position)
@@ -368,12 +367,11 @@ namespace BefungeSharp
 
         private CommandType TakeStep()
         {
-            //This way no matter how many IP's are added with t
-            //We won't be executing them
-            int initialListCount = IPs.Count;
+            //Start at the end of the list
+            int n = IPs.Count - 1;
 
-            //For every IP in the list (except the EditIP)
-            for (int n = EditIP.ID + 1; n < initialListCount; n++)
+            //For every active IP in the list (except the EditIP)
+            while (n >= 0 && _IPs[n].Active)
             {
                 /* 1.) Find out what is under the IP
                  * 2.) Lookup Info about it
@@ -391,7 +389,8 @@ namespace BefungeSharp
                 {
                     //Push the character value, move and return
                     _IPs[n].Stack.Push((int)cmd);
-                    
+
+                    n--;
                     //Move onto the next thread
                     continue;
                 }
@@ -529,8 +528,18 @@ namespace BefungeSharp
                     case 'k':
                         break;
                     case '@':
-                        _IPs[n].Move();
-                        return CommandType.Concurrent;
+                        _IPs[n].Active = false;
+                        _IPs[n].Stop();
+                        if (_IPs.Exists(item => item.Active == true && item.ID != 0))
+                        {
+                            n--;
+                            continue;
+                        }
+                        else
+                        {
+                            _curMode = BoardMode.Edit;
+                        }
+                        break;
                     case 'q'://Not fully implimented
                         _curMode = BoardMode.Edit;//TODO - Change behavior in f98CNote will change when
                         return CommandType.StopExecution;
@@ -700,19 +709,9 @@ namespace BefungeSharp
                             IP childIP = new IP(_IPs[n]);
 
                             //Insert before this one
-                            _IPs.Insert(n, childIP);
-
-                            //TODO - This is a bad solution
-                            //Since we are increasing the number behind us we need to increase n
-                            n++;
-
+                            _IPs.Insert(n + 1, childIP);
+                            
                             childIP.Negate();
-
-                            //Starts being inactive so next it will not 
-                            childIP.Active = false;
-
-                            //Swap the two so next time the child will go first
-                            //_IPs.Reverse(n, 2);
                         }
                         break;
                     //Funge-98 ONLY Schematics
@@ -764,16 +763,22 @@ namespace BefungeSharp
 
                         break;
                 }
+
+                //Increment n
+                n--;
             }
             
             //Move and wrap every delta
-            for (int n = EditIP.ID + 1; n < IPs.Count; n++)
+            for (int i = 0; i < IPs.Count; i++)
             {
-                _IPs[n].Move();
-                _IPs[n].Position = Wrap(_IPs[n].Position);
+                //Activate all the newly born IPs
+                _IPs[i].Active = true;
+                _IPs[i].Move();
+                _IPs[i].Position = Wrap(_IPs[i].Position);
             }
             
             //Although we are switched to the ConEx drawing library this is still important
+            //TODO - for what though
             Console.SetCursorPosition(_IPs[_IPFollowID].Position.x, _IPs[_IPFollowID].Position.y);
 
             return CommandType.NotImplemented;//TODO - Needs a better idea
