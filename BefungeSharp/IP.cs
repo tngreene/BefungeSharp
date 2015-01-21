@@ -49,6 +49,11 @@ namespace BefungeSharp
         private int _IP_ID;
         public int ID { get { return _IP_ID; } }
 
+        /// <summary>
+        /// For if we are currently picking up chars in a string mode 
+        /// </summary>
+        public bool StringMode { get; set; }
+
         public IP()
         {
             _position = Vector2.Zero;
@@ -61,7 +66,8 @@ namespace BefungeSharp
 
             _IP_ParentID = 0;
             _IP_ID = ID_Counter;
-            ID_Counter++;            
+            ID_Counter++;
+            StringMode = false;
         }
 
         public IP(Vector2 position, Vector2 delta, Vector2 storageOffset, Stack<int> stack, int parent_id)
@@ -76,7 +82,8 @@ namespace BefungeSharp
 
             _IP_ParentID = parent_id;
             _IP_ID = ID_Counter;
-            ID_Counter++;           
+            ID_Counter++;
+            StringMode = false;
         }
 
         //For use with Funge-98C
@@ -93,7 +100,8 @@ namespace BefungeSharp
 
             this._IP_ParentID = parent._IP_ParentID;
             this._IP_ID = ID_Counter;
-            ID_Counter++;           
+            ID_Counter++;
+            StringMode = false;
         }
 
         public void Move()

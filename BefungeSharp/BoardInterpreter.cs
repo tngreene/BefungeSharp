@@ -77,8 +77,8 @@ namespace BefungeSharp
         public BoardMode CurMode { get { return _curMode; } set { _curMode = value; } }
 
         
-        //For if we are currently picking up chars in a string mode
-        private bool isStringMode;
+        
+        
 
         private List<IP> _IPs;
 
@@ -117,15 +117,12 @@ namespace BefungeSharp
             _IPs.Add(new IP());
             EditIP.Active = true;
 
-            isStringMode = false;
             _curMode = mode;
             _IPFollowID = 0;
         }
         
         public void Reset()
         {
-            isStringMode = false;
-
             //Start by removing every except the edit IP
             _IPs.RemoveRange(1, _IPs.Count - 1);
             //Add the main thread IP/standard IP
@@ -390,12 +387,13 @@ namespace BefungeSharp
 
                 //If we are currently in string mode
                 //And its not a space and not a " (so we can leave string mode)
-                if (isStringMode == true && cmd != '"')
+                if (_IPs[n].StringMode == true && cmd != '"')
                 {
                     //Push the character value, move and return
                     _IPs[n].Stack.Push((int)cmd);
-                    _IPs[n].Move();
-                    return CommandType.String;
+                    
+                    //Move onto the next thread
+                    continue;
                 }
 
                 //Ensure that there will always be enough in the stack
@@ -690,7 +688,7 @@ namespace BefungeSharp
                     //String Manipulation
                     case '"':
                         //Negates and assaigns, a fancy toggle
-                        isStringMode = !isStringMode;
+                        _IPs[n].StringMode = !_IPs[n].StringMode;
                         break;
                     case '\''://' "Fetch Character", 
                         //pushes the next character at (pos + delta)'s char value
@@ -701,7 +699,6 @@ namespace BefungeSharp
                             //A temporary reference to the new IP
                             IP childIP = new IP(_IPs[n]);
 
-                            
                             //Insert before this one
                             _IPs.Insert(n, childIP);
 
