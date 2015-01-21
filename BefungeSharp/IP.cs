@@ -86,7 +86,8 @@ namespace BefungeSharp
             this._delta = parent._delta;
             this._storageOffset = parent._storageOffset;
             
-            this._stack = parent._stack;
+            //Copies the array instead of assaigning the reference!
+            this._stack = new Stack<int>(parent._stack);
 
             _active = false;
 

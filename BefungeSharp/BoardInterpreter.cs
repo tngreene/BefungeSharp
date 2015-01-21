@@ -697,13 +697,26 @@ namespace BefungeSharp
                         //and skips over it, like a # command
                         break;
                     case 't'://Split IP Concurrent
-                        _IPs.Add(new IP(_IPs[n]));
-                        _IPs[n + 1].Negate();
-                        //Starts being inactive so next it will not 
-                        _IPs[n + 1].Active = false;
-                        
-                        //Swap the two so next time the child will go first
-                        _IPs.Reverse(n, 2);
+                        {
+                            //A temporary reference to the new IP
+                            IP childIP = new IP(_IPs[n]);
+
+                            
+                            //Insert before this one
+                            _IPs.Insert(n, childIP);
+
+                            //TODO - This is a bad solution
+                            //Since we are increasing the number behind us we need to increase n
+                            n++;
+
+                            childIP.Negate();
+
+                            //Starts being inactive so next it will not 
+                            childIP.Active = false;
+
+                            //Swap the two so next time the child will go first
+                            //_IPs.Reverse(n, 2);
+                        }
                         break;
                     //Funge-98 ONLY Schematics
                     case '=':
