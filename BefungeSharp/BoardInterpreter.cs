@@ -420,23 +420,6 @@ namespace BefungeSharp
                 if (success == false)
                 switch (cmd)
                 {
-                    //Flow control
-                    case '^':
-                        _IPs[n].Delta = Vector2.North;
-                        break;
-                    case '>':
-                        _IPs[n].Delta = Vector2.East;
-                        break;
-                    case '<':
-                        _IPs[n].Delta = Vector2.West;
-                        break;
-                    case 'v':
-                        _IPs[n].Delta = Vector2.South;
-                        break;
-                    case '?':
-                        Random rnd = new Random();
-                        _IPs[n].Delta = Vector2.CardinalDirections[rnd.Next(0, 4)];
-                        break;
                     case '#':
                         _IPs[n].Move();//Skip one space
                         break;
@@ -458,15 +441,6 @@ namespace BefungeSharp
                             Vector2 nVec = _IPs[n].Delta;
                             nVec.Negate();
                             _IPs[n].Delta = nVec;
-                        }
-                        break;
-                    case 'x':
-                        {
-                            Vector2 nDelta = new Vector2();
-                            nDelta.x = _IPs[n].Stack.Pop();
-                            nDelta.y = _IPs[n].Stack.Pop();
-
-                            _IPs[n].Delta = nDelta;
                         }
                         break;
                     case 'j':

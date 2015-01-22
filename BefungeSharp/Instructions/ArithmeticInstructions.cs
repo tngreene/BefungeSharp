@@ -13,16 +13,15 @@ namespace BefungeSharp.Instructions.Arithmetic
         case '/'://Divide b/a                        
         case '%'://modulous b % a
     */
-    public abstract class ArithmeticInstructions : Instruction
+    public abstract class ArithmeticInstruction : Instruction
     {
-        public ArithmeticInstructions(char inName, UInt32 minimum_flags) : base(inName, CommandType.Arithmetic, ConsoleColor.Green, minimum_flags) { }
-
+        public ArithmeticInstruction(char inName, UInt32 minimum_flags) : base(inName, CommandType.Arithmetic, ConsoleColor.Green, minimum_flags) { }
     }
 
     /// <summary>
     /// The add instruction, pops a and b then puts a + b onto the stack
     /// </summary>
-    public class AddInstruction : ArithmeticInstructions
+    public class AddInstruction : ArithmeticInstruction
     {
         public AddInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
 
@@ -37,7 +36,7 @@ namespace BefungeSharp.Instructions.Arithmetic
     /// <summary>
     /// The subtract instruction, pops a and b then puts b - a onto the stack
     /// </summary>
-    public class SubtractInstruction : ArithmeticInstructions
+    public class SubtractInstruction : ArithmeticInstruction
     {
         public SubtractInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
 
@@ -54,7 +53,7 @@ namespace BefungeSharp.Instructions.Arithmetic
     /// <summary>
     /// The Multiplyinstruction, pops a and b then puts a * b onto the stack
     /// </summary>
-    public class MultiplyInstruction : ArithmeticInstructions
+    public class MultiplyInstruction : ArithmeticInstruction
     {
         public MultiplyInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
 
@@ -69,7 +68,7 @@ namespace BefungeSharp.Instructions.Arithmetic
     /// <summary>
     /// The divide instruction, pops a and b then puts b/a, integer division only, onto the stack
     /// </summary>
-    public class DivideInstruction : ArithmeticInstructions
+    public class DivideInstruction : ArithmeticInstruction
     {
         public DivideInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
 
@@ -95,7 +94,7 @@ namespace BefungeSharp.Instructions.Arithmetic
     /// <summary>
     /// The modulo instruction, pops a and b then puts b % a onto the stack
     /// </summary>
-    public class ModuloInstruction : ArithmeticInstructions
+    public class ModuloInstruction : ArithmeticInstruction
     {
         public ModuloInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
 

@@ -55,20 +55,30 @@ namespace BefungeSharp.Instructions
                         instruction_set.Add(c, new Logic.HorizontalIfInstruction(c, 0));
                         break;
                     case '|':
-                        instruction_set.Add(c, new Logic.VerticalIfInstruction(c,  0));
+                        instruction_set.Add(c, new Logic.VerticalIfInstruction(c, 0));
                         break;
                     case '`':
-                        instruction_set.Add(c, new Logic.GreaterThanInstruction(c,  0));
+                        instruction_set.Add(c, new Logic.GreaterThanInstruction(c, 0));
                         break;
                     case 'w':
-                        instruction_set.Add(c, new Logic.CompareInstruction(c,  0));
+                        instruction_set.Add(c, new Logic.CompareInstruction(c, 0));
                         break;
                     //Flow control
                     case '^':
+                        instruction_set.Add(c, new Delta.CardinalInstruction(c, 0, Vector2.North));
+                        break;
                     case '>':
-                    case '<':
+                        instruction_set.Add(c, new Delta.CardinalInstruction(c, 0, Vector2.East));
+                        break;
                     case 'v':
+                        instruction_set.Add(c, new Delta.CardinalInstruction(c, 0, Vector2.South));
+                        break;
+                    case '<':
+                        instruction_set.Add(c, new Delta.CardinalInstruction(c, 0, Vector2.West));
+                        break;
                     case '?':
+                        instruction_set.Add(c, new Delta.RandomDeltaInstruction(c, 0, Vector2.Zero));
+                        break;
                     case '#':
                     //Funge-98 flow control
                     case '[':
@@ -82,6 +92,8 @@ namespace BefungeSharp.Instructions
                         //CommandInfo flowCommand98 = new CommandInfo(c, CommandType.Movement, ConsoleColor.Cyan, 1);
                         //return flowCommand98;
                     case 'x':
+                        instruction_set.Add(c, new Delta.SetDeltaInstruction(c, 0, Vector2.Zero));
+                        break;
                         //return new CommandInfo(c, CommandType.Movement, ConsoleColor.Cyan, 2);
                     case '@':
                     case 'q':
