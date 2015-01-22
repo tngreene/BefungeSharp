@@ -80,10 +80,17 @@ namespace BefungeSharp.Instructions
                         instruction_set.Add(c, new Delta.RandomDeltaInstruction(c, 0, Vector2.Zero));
                         break;
                     case '#':
+                        break;
                     //Funge-98 flow control
                     case '[':
-                    case ']':
+                        instruction_set.Add(c, new Delta.RotateDeltaInstruction(c, 0, Vector2.Zero, false));
+                        break;
+                    case ']': 
+                        instruction_set.Add(c, new Delta.RotateDeltaInstruction(c, 0, Vector2.Zero, true));
+                        break;
                     case 'r':
+                        instruction_set.Add(c, new Delta.ReverseDeltaInstruction(c, 0, Vector2.Zero));
+                        break;
                     case ';':
                         //CommandInfo flowCommand = new CommandInfo(c, CommandType.Movement, ConsoleColor.Cyan, 0);
                         //return flowCommand;
@@ -91,17 +98,18 @@ namespace BefungeSharp.Instructions
                     case 'k':
                         //CommandInfo flowCommand98 = new CommandInfo(c, CommandType.Movement, ConsoleColor.Cyan, 1);
                         //return flowCommand98;
+                        break;
                     case 'x':
                         instruction_set.Add(c, new Delta.SetDeltaInstruction(c, 0, Vector2.Zero));
                         break;
-                        //return new CommandInfo(c, CommandType.Movement, ConsoleColor.Cyan, 2);
                     case '@':
                     case 'q':
                        // CommandInfo stopCommand = new CommandInfo(c, CommandType.StopExecution, ConsoleColor.Red, 0);
                         //return stopCommand;
 
-            
-                    //Arithmatic
+                        break;
+
+                    //Arithmatic-------
                     case '+':
                         instruction_set.Add(c, new Arithmetic.AddInstruction(c, 0));
                         break;
@@ -117,7 +125,9 @@ namespace BefungeSharp.Instructions
                     case '%':
                         instruction_set.Add(c, new Arithmetic.ModuloInstruction(c, 0));
                         break;
-                    //Numbers
+                    //-----------------
+
+                    //--Simple Numbers-
                     case '0':
                     case '1':
                     case '2':
@@ -136,25 +146,24 @@ namespace BefungeSharp.Instructions
                     case 'd':
                     case 'e':
                     case 'f':
-                        instruction_set.Add(c, new Number.NumberInstruction(c,0,(int)c-('a'-10)));
+                        instruction_set.Add(c, new Number.NumberInstruction(c, 0,(int)c-('a'-10)));
                         break;
+                    //-----------------
 
-                        //Stack Manipulation
-                        //CommandInfo stackManipCommand;
+                    //Stack Manipulation
                     case ':':
-                       // stackManipCommand = new CommandInfo(c,
-                                                         //   CommandType.StackManipulation,
-                                                       //     ConsoleColor.DarkYellow, 1);//Technically we're not poping
-                        //But it does require something on the stack
-                        //return stackManipCommand;
+                        instruction_set.Add(c, new Stack.DuplicateInstruction(c, 0));
+                        break;
                     case '$':
-                       // stackManipCommand = new CommandInfo(c, CommandType.StackManipulation, ConsoleColor.DarkYellow, 1);
-                        //return stackManipCommand;
+                        instruction_set.Add(c, new Stack.PopInstruction(c, 0));
+                        break;
                     case '\\':
-                      //  stackManipCommand = new CommandInfo(c, CommandType.StackManipulation, ConsoleColor.DarkYellow, 2);
-                        //return stackManipCommand;
+                        instruction_set.Add(c, new Stack.SwapInstruction(c, 0));
+                        break;
                     case 'n':
-                       // return new CommandInfo(c, CommandType.StackManipulation, ConsoleColor.DarkYellow, 1);//Op must be >=1 on stack
+                        instruction_set.Add(c, new Stack.ClearStackInstruction(c, 0));
+                        break;
+                    //-----------------
 
                     //IO
                     case '&':
@@ -169,12 +178,18 @@ namespace BefungeSharp.Instructions
                     case 'o':
                         //return new CommandInfo(c,
                                             //   CommandType.FileIO,
-                                             //  ConsoleColor.Gray, -Int32.MaxValue);//Beware, must be a try catch operation!
-                    //Data Storage
+
+                        break;
+
+                    //--Data Storage-------
                     case 'g':
-                        //return new CommandInfo(c, CommandType.DataStorage, ConsoleColor.Green, 2);
+                        instruction_set.Add(c, new Storage.GetInstruction(c, 0));
+                        break;
                     case 'p':
-                       // return new CommandInfo(c, CommandType.DataStorage, ConsoleColor.Green, 3);
+                        instruction_set.Add(c, new Storage.PutInstruction(c, 0));
+                        break;
+                    //---------------------
+
                     //String Manipulation
                     case '"':
                         //return new CommandInfo(c, CommandType.String, ConsoleColor.Green, 0);
@@ -240,9 +255,20 @@ namespace BefungeSharp.Instructions
             
         }
     }
-    
 
-    interface IStackAltering
+    interface IPartnerSwappable
+    {
+        /// <summary>
+        /// Makes the instruction swap its meaning with its pair, 
+        /// such as with [ turning into ] after exucuting S
+        /// </summary>
+        void SwapMeaningWithPair();
+    }
+
+    /// <summary>
+    /// Declares an instruction may require a stack pop to work
+    /// </summary>
+    public interface IRequiresPop
     {
         /// <summary>
         /// How many cells must be on the stack for it to work
@@ -250,8 +276,23 @@ namespace BefungeSharp.Instructions
         int RequiredCells();
     }
 
-    interface IFungeSpaceAltering
+    /// <summary>
+    /// Declares an instruction may require a stack push to work
+    /// </summary>
+    public interface IRequiresPush
     {
-        //If the space
+        /// <summary>
+        /// How much space (in cells) must be avaible for the operation to work
+        /// </summary>
+        /// <returns>If there is enough space on the stack to push the specified number of cells</returns>
+        bool CanPushCells();
+    }
+
+    /// <summary>
+    /// Declares an instruction will be altering the contents or size of funge space
+    /// </summary>
+    public interface IFungeSpaceAltering
+    {
+        List<List<char>> GetFungeSpace();
     }
 }

@@ -74,13 +74,13 @@ namespace BefungeSharp.Instructions.Delta
     /// <summary>
     /// The Set Delta (absolute delta) instruction, sets the IP's delta exactly to the specified delta
     /// </summary>
-    public class SetDeltaInstruction : DeltaInstruction
+    public class SetDeltaInstruction : DeltaInstruction, IRequiresPop
     {
         public SetDeltaInstruction(char inName, UInt32 minimum_flags, Vector2 delta) : base(inName, minimum_flags, delta) { }
 
         public override bool Preform(IP ip, BoardManager mgr = null)
         {
-            base.EnsureStackSafety(ip.Stack, 2);
+            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
 
             //Set the new delta to the a vector popped off the stack
             newDelta.x = ip.Stack.Pop();
@@ -93,6 +93,60 @@ namespace BefungeSharp.Instructions.Delta
             newDelta = Vector2.Zero;
             return true;
         }
+
+        public int RequiredCells()
+        {
+            return 2;
+        }
+    }
+
+    /// <summary>
+    /// The reverse delta instruction, sets the IP's delta to the oposite of what it is
+    /// </summary>
+    public class ReverseDeltaInstruction : DeltaInstruction
+    {
+        public ReverseDeltaInstruction(char inName, UInt32 minimum_flags, Vector2 delta) : base(inName, minimum_flags, delta) { }
+
+        public override bool Preform(IP ip, BoardManager mgr = null)
+        {
+            newDelta = ip.Delta;
+            newDelta.Negate();
+            ip.Delta = newDelta;
+
+            newDelta = Vector2.Zero;
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// The rotate instruction, sets the IP's delta to be either 90 degrees clockwise or counter clockwise, [,]
+    /// </summary>
+    public class RotateDeltaInstruction : DeltaInstruction, IPartnerSwappable
+    {
+        protected bool rotate_clockwise;
+
+        public RotateDeltaInstruction(char inName, UInt32 minimum_flags, Vector2 delta, bool clockwise) : base(inName, minimum_flags, delta) 
+        {
+            rotate_clockwise = clockwise;
+        }
+        void IPartnerSwappable.SwapMeaningWithPair()
+        {
+            rotate_clockwise = !rotate_clockwise;
+        }
+        public override bool Preform(IP ip, BoardManager mgr = null)
+        {
+            if(rotate_clockwise == true)//Rotate 90 degrees counter clockwise
+            {
+                ip.Delta = new Vector2(ip.Delta.y * -1, ip.Delta.x);
+            }
+            else if(rotate_clockwise == false)//Rotate 90's clockwise
+            {
+                ip.Delta = new Vector2(ip.Delta.y, ip.Delta.x * -1);
+            }
+            return true;
+        }
+        
+        
     }
 
     /// <summary>

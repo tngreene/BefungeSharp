@@ -15,18 +15,24 @@ namespace BefungeSharp.Instructions.Logic
         case 'w'://Funge98 compare function
             break;
     */
-    public abstract class LogicInstruction : Instruction
+    public abstract class LogicInstruction : Instruction, IRequiresPop
     {
+        protected int requiredCells;
         public LogicInstruction(char inName, UInt32 minimum_flags) : base(inName, CommandType.Logic, ConsoleColor.DarkGreen, minimum_flags) { }
+
+        public int RequiredCells()
+        {
+            return requiredCells;
+        }
     }
 
     public class NotInstruction : LogicInstruction
     {
-        public NotInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public NotInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { this.requiredCells = 1; }
 
         public override bool Preform(IP ip, BoardManager mgr = null)
         {
-            base.EnsureStackSafety(ip.Stack, 1);
+            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
             if (ip.Stack.Pop() != 0)
             {
                 ip.Stack.Push(0);
@@ -41,11 +47,11 @@ namespace BefungeSharp.Instructions.Logic
 
     public class HorizontalIfInstruction : LogicInstruction
     {
-        public HorizontalIfInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public HorizontalIfInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { this.requiredCells = 1; }
 
         public override bool Preform(IP ip, BoardManager mgr = null)
         {
-            base.EnsureStackSafety(ip.Stack, 1);
+            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
             if (ip.Stack.Pop() == 0)
             {
                 ip.Delta = Vector2.East;
@@ -60,11 +66,11 @@ namespace BefungeSharp.Instructions.Logic
 
     public class VerticalIfInstruction : LogicInstruction
     {
-        public VerticalIfInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public VerticalIfInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { this.requiredCells = 1; }
 
         public override bool Preform(IP ip, BoardManager mgr = null)
         {
-            base.EnsureStackSafety(ip.Stack, 1);
+            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
             if (ip.Stack.Pop() == 0)
             {
                 ip.Delta = Vector2.South;
@@ -79,11 +85,11 @@ namespace BefungeSharp.Instructions.Logic
 
     public class GreaterThanInstruction : LogicInstruction
     {
-        public GreaterThanInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public GreaterThanInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { this.requiredCells = 1; }
 
         public override bool Preform(IP ip, BoardManager mgr = null)
         {
-            base.EnsureStackSafety(ip.Stack, 1);
+            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
             
             int a = ip.Stack.Pop();
             int b = ip.Stack.Pop();
@@ -103,11 +109,11 @@ namespace BefungeSharp.Instructions.Logic
 
     public class CompareInstruction : LogicInstruction
     {
-        public CompareInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public CompareInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { this.requiredCells = 1; }
 
         public override bool Preform(IP ip, BoardManager mgr = null)
         {
-            base.EnsureStackSafety(ip.Stack, 1);
+            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
             //Pop a and b off the stack
             int a = ip.Stack.Pop();
             int b = ip.Stack.Pop();

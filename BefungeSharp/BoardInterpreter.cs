@@ -10,8 +10,10 @@ namespace BefungeSharp
     public enum CommandType
     {
         //These are not necissarily complete lists
+        Movement,//>v^<?
+        FlowControl,//#@;jqk
         Logic,//!_|`
-        Movement,//>v^<?#
+        
         Arithmetic,//Operators like +-*/
         Numbers,//0-9,a-f that will be pushed onto the stack
         StackManipulation,//:$u{}
@@ -407,41 +409,12 @@ namespace BefungeSharp
                     
                     
                 }
-                
-                
-                
-                //Ensure that there will always be enough in the stack
-                //while (_IPs[n].Stack.Count < info.requiredCells)
-                {
-                   // _IPs[n].Stack.Push(0);
-                }
-
-                
+               
                 if (success == false)
                 switch (cmd)
                 {
                     case '#':
                         _IPs[n].Move();//Skip one space
-                        break;
-                    //Funge-98 flow control
-                    case '['://Rotate 90 degrees counter clockwise
-                        {
-                            _IPs[n].Delta = new Vector2(_IPs[n].Delta.y * -1, _IPs[n].Delta.x);
-                        }
-                        break;
-                    case ']'://Rotate 90's clockwise
-                        {
-                            _IPs[n].Delta = new Vector2(_IPs[n].Delta.y, _IPs[n].Delta.x * -1);
-                        }
-                        break;
-                    //--Not implemented instructions that will act like r
-                    //---------------------------------------------------
-                    case 'r':
-                        {
-                            Vector2 nVec = _IPs[n].Delta;
-                            nVec.Negate();
-                            _IPs[n].Delta = nVec;
-                        }
                         break;
                     case 'j':
                         //.Pop() - 1 to account for the fact we're moving already at the bottom
@@ -468,25 +441,6 @@ namespace BefungeSharp
                     case 'q'://Not fully implimented
                         _curMode = BoardMode.Edit;//TODO - Change behavior in f98CNote will change when
                         return CommandType.StopExecution;
-                    //Stack Manipulation
-                    case ':'://Duplication
-                        _IPs[n].Stack.Push(_IPs[n].Stack.Peek());
-                        break;
-                    case '$'://Discard Top Value
-                        _IPs[n].Stack.Pop();
-                        break;
-                    case '\\'://Swap the top two values
-                        {
-                            int a = _IPs[n].Stack.Pop();
-                            int b = _IPs[n].Stack.Pop();
-
-                            _IPs[n].Stack.Push(a);
-                            _IPs[n].Stack.Push(b);//Now b is on top
-                        }
-                        break;
-                    case 'n'://Clear stack
-                        _IPs[n].Stack.Clear();
-                        break;
                     //IO
                     case '&'://Read int
                         string input = Console.ReadLine();
@@ -540,29 +494,6 @@ namespace BefungeSharp
                         finally
                         {
 
-                        }
-                        break;
-                    //Data Storage
-                    case 'g':
-                        {
-                            int y = _IPs[n].Stack.Pop();
-                            int x = _IPs[n].Stack.Pop();
-                            char foundChar = _boardRef.GetCharacter(y, x);
-                            _IPs[n].Stack.Push((int)foundChar);
-                        }
-                        break;
-                    case 'p':
-                        {
-                            int y = _IPs[n].Stack.Pop();
-                            int x = _IPs[n].Stack.Pop();
-                            int charToPlace = _IPs[n].Stack.Pop();
-                            bool couldPlace = _boardRef.PutCharacter(y, x, (char)charToPlace);
-
-                            //Do this?
-                            //if (couldPlace == false)
-                            //{
-                            //return CommandType.StopExecution;
-                            //}
                         }
                         break;
                     case 's':

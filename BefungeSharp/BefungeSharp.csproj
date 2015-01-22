@@ -58,6 +58,8 @@
     <Compile Include="Instructions\Instructions.cs" />
     <Compile Include="Instructions\LogicInstructions.cs" />
     <Compile Include="Instructions\NumberInstructions.cs" />
+    <Compile Include="Instructions\StackInstructions.cs" />
+    <Compile Include="Instructions\StorageInstructions.cs" />
     <Compile Include="IP.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

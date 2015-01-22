@@ -13,9 +13,18 @@ namespace BefungeSharp.Instructions.Arithmetic
         case '/'://Divide b/a                        
         case '%'://modulous b % a
     */
-    public abstract class ArithmeticInstruction : Instruction
+    public abstract class ArithmeticInstruction : Instruction, IRequiresPop
     {
         public ArithmeticInstruction(char inName, UInt32 minimum_flags) : base(inName, CommandType.Arithmetic, ConsoleColor.Green, minimum_flags) { }
+
+        /// <summary>
+        /// Implements IStackAltering
+        /// </summary>
+        /// <returns>The number of required cells for the operation to work</returns>
+        public int RequiredCells()
+        {
+            return 2;
+        }
     }
 
     /// <summary>
@@ -27,7 +36,7 @@ namespace BefungeSharp.Instructions.Arithmetic
 
         public override bool Preform(IP ip, BoardManager mgr = null)
         {
-            base.EnsureStackSafety(ip.Stack, 2);
+            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
             ip.Stack.Push(ip.Stack.Pop() + ip.Stack.Pop());
             return true;
         }
@@ -42,7 +51,7 @@ namespace BefungeSharp.Instructions.Arithmetic
 
         public override bool Preform(IP ip, BoardManager mgr = null)
         {
-            base.EnsureStackSafety(ip.Stack, 1);
+            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
             int a = ip.Stack.Pop();
             int b = ip.Stack.Pop();
             ip.Stack.Push(b - a);
@@ -59,7 +68,7 @@ namespace BefungeSharp.Instructions.Arithmetic
 
         public override bool Preform(IP ip, BoardManager mgr = null)
         {
-            base.EnsureStackSafety(ip.Stack, 2);
+            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
             ip.Stack.Push(ip.Stack.Pop() * ip.Stack.Pop());
             return true;
         }
@@ -74,7 +83,7 @@ namespace BefungeSharp.Instructions.Arithmetic
 
         public override bool Preform(IP ip, BoardManager mgr = null)
         {
-            base.EnsureStackSafety(ip.Stack, 2);
+            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
             int a = ip.Stack.Pop();
             int b = ip.Stack.Pop();
             //TODO - does this follow this "the / "Divide" instruction, which pops two values, divides the second by the first using integer division, and pushes the result (note that division by zero produces a result of zero in Funge-98, but Befunge-93 instead is supposed to ask the user what they want the result of the division to be); and"
@@ -100,7 +109,7 @@ namespace BefungeSharp.Instructions.Arithmetic
 
         public override bool Preform(IP ip, BoardManager mgr = null)
         {
-            base.EnsureStackSafety(ip.Stack, 2);
+            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
 
             int a = ip.Stack.Pop();
             int b = ip.Stack.Pop();
@@ -118,6 +127,4 @@ namespace BefungeSharp.Instructions.Arithmetic
             return true;
         }
     }
-                   
-    
 }
