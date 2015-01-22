@@ -344,14 +344,14 @@ namespace BefungeSharp
                     return stopCommand;
                     
                 
-                //Arithmatic
+                //Arithmetic
                 case '*':
                 case '+':
                 case '-':
                 case '/':
                 case '%':
-                    CommandInfo arithmaticCommand = new CommandInfo(inChar, CommandType.Arithmatic, ConsoleColor.Green, 2);
-                    return arithmaticCommand;
+                    CommandInfo ArithmeticCommand = new CommandInfo(inChar, CommandType.Arithmetic, ConsoleColor.Green, 2);
+                    return ArithmeticCommand;
                 //Numbers
                 case '0':
                 case '1':

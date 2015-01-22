@@ -9,10 +9,10 @@ namespace BefungeSharp
     //Types of commands that there could be
     public enum CommandType
     {
-              //These are not necissarily complete lists
+        //These are not necissarily complete lists
         Logic,//!_|`
         Movement,//>v^<?#
-        Arithmatic,//Operators like +-*/
+        Arithmetic,//Operators like +-*/
         Numbers,//0-9,a-f that will be pushed onto the stack
         StackManipulation,//:$u{}
         IO,//&~,.
@@ -115,6 +115,8 @@ namespace BefungeSharp
 
             _curMode = mode;
             _IPFollowID = 0;
+
+            Instructions.InstructionManager.BuildInstructionSet();
         }
         
         public void Reset()
@@ -395,80 +397,29 @@ namespace BefungeSharp
                     continue;
                 }
 
-                //Ensure that there will always be enough in the stack
-                while (_IPs[n].Stack.Count < info.requiredCells)
+                bool success = false;
+                try
                 {
-                    _IPs[n].Stack.Push(0);
+                    success = Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
+                }
+                catch (Exception)
+                {
+                    
+                    
+                }
+                
+                
+                
+                //Ensure that there will always be enough in the stack
+                //while (_IPs[n].Stack.Count < info.requiredCells)
+                {
+                   // _IPs[n].Stack.Push(0);
                 }
 
+                
+                if (success == false)
                 switch (cmd)
                 {
-                    //Logic
-                    case '!'://not
-                        if (_IPs[n].Stack.Pop() != 0)
-                        {
-                            _IPs[n].Stack.Push(0);
-                        }
-                        else
-                        {
-                            _IPs[n].Stack.Push(1);
-                        }
-                        break;
-                    case '_':
-                        if (_IPs[n].Stack.Pop() == 0)
-                        {
-                            _IPs[n].Delta = Vector2.East;
-                        }
-                        else
-                        {
-                            _IPs[n].Delta = Vector2.West;
-                        }
-                        break;
-                    case '|':
-                        if (_IPs[n].Stack.Pop() == 0)
-                        {
-                            _IPs[n].Delta = Vector2.South;
-                        }
-                        else
-                        {
-                            _IPs[n].Delta = Vector2.North;
-                        }
-                        break;
-                    case '`'://Greater than 
-                        {
-                            int a = _IPs[n].Stack.Pop();
-                            int b = _IPs[n].Stack.Pop();
-
-                            if (b > a)
-                            {
-                                _IPs[n].Stack.Push(1);
-                            }
-                            else
-                            {
-                                _IPs[n].Stack.Push(0);
-                            }
-                        }
-                        break;
-                    case 'w'://Funge98 compare function
-                        {
-                            //Pop a and b off the stack
-                            int a = _IPs[n].Stack.Pop();
-                            int b = _IPs[n].Stack.Pop();
-
-                            //Get our current direction
-                            Vector2 currentDir = _IPs[n].Delta;
-
-                            if (b < a)//If b is less than turn left
-                            {
-                                _IPs[n].Delta = new Vector2(_IPs[n].Delta.y * -1, _IPs[n].Delta.x);
-                            }
-                            else if (b > a)//if b is more turn right
-                            {
-                                _IPs[n].Delta = new Vector2(_IPs[n].Delta.y, _IPs[n].Delta.x * -1);
-                            }
-                        }
-                        break;
-
                     //Flow control
                     case '^':
                         _IPs[n].Delta = Vector2.North;
@@ -543,57 +494,6 @@ namespace BefungeSharp
                     case 'q'://Not fully implimented
                         _curMode = BoardMode.Edit;//TODO - Change behavior in f98CNote will change when
                         return CommandType.StopExecution;
-
-                    //Arithmatic
-                    case '+':
-                        _IPs[n].Stack.Push(_IPs[n].Stack.Pop() + _IPs[n].Stack.Pop());
-                        break;
-                    case '-'://Subtract b-a
-                        {
-                            int a = _IPs[n].Stack.Pop();
-                            int b = _IPs[n].Stack.Pop();
-                            _IPs[n].Stack.Push(b - a);
-                        }
-                        break;
-                    case '*':
-                        _IPs[n].Stack.Push(_IPs[n].Stack.Pop() * _IPs[n].Stack.Pop());
-                        break;
-                    case '/'://Divide b/a
-                        {
-                            int a = _IPs[n].Stack.Pop();
-                            int b = _IPs[n].Stack.Pop();
-                            double result = b / a;
-                            _IPs[n].Stack.Push((int)Math.Round(result));
-                        }
-                        break;
-                    case '%'://modulous b % a
-                        {
-                            int a = _IPs[n].Stack.Pop();
-                            int b = _IPs[n].Stack.Pop();
-                            _IPs[n].Stack.Push(b % a);
-                        }
-                        break;
-                    //Numbers
-                    case '0':
-                    case '1':
-                    case '2':
-                    case '3':
-                    case '4':
-                    case '5':
-                    case '6':
-                    case '7':
-                    case '8':
-                    case '9':
-                        _IPs[n].Stack.Push((int)cmd - 48);
-                        break;
-                    case 'a':
-                    case 'b':
-                    case 'c':
-                    case 'd':
-                    case 'e':
-                    case 'f':
-                        _IPs[n].Stack.Push((int)cmd - 87);
-                        break;
                     //Stack Manipulation
                     case ':'://Duplication
                         _IPs[n].Stack.Push(_IPs[n].Stack.Peek());
