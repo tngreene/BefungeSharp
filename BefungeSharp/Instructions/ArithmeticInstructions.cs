@@ -7,11 +7,12 @@ using System.Threading.Tasks;
 namespace BefungeSharp.Instructions.Arithmetic
 {
     /*Arithmetic
+     *  pop b, pop a, a OP b 
         case '+':
-        case '-'://Subtract b-a       
+        case '-'://Subtract a-b       
         case '*':
-        case '/'://Divide b/a                        
-        case '%'://modulous b % a
+        case '/'://Divide a/b                        
+        case '%'://modulous a % b
     */
     public abstract class ArithmeticInstruction : Instruction, IRequiresPop
     {
@@ -34,7 +35,7 @@ namespace BefungeSharp.Instructions.Arithmetic
     {
         public AddInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, this.RequiredCells());
             ip.Stack.Push(ip.Stack.Pop() + ip.Stack.Pop());
@@ -49,12 +50,12 @@ namespace BefungeSharp.Instructions.Arithmetic
     {
         public SubtractInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, this.RequiredCells());
-            int a = ip.Stack.Pop();
             int b = ip.Stack.Pop();
-            ip.Stack.Push(b - a);
+            int a = ip.Stack.Pop();
+            ip.Stack.Push(a - b);
             return true;
         }
     }
@@ -66,7 +67,7 @@ namespace BefungeSharp.Instructions.Arithmetic
     {
         public MultiplyInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, this.RequiredCells());
             ip.Stack.Push(ip.Stack.Pop() * ip.Stack.Pop());
@@ -81,15 +82,15 @@ namespace BefungeSharp.Instructions.Arithmetic
     {
         public DivideInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, this.RequiredCells());
-            int a = ip.Stack.Pop();
             int b = ip.Stack.Pop();
+            int a = ip.Stack.Pop();
             //TODO - does this follow this "the / "Divide" instruction, which pops two values, divides the second by the first using integer division, and pushes the result (note that division by zero produces a result of zero in Funge-98, but Befunge-93 instead is supposed to ask the user what they want the result of the division to be); and"
-            if (a != 0)
+            if (b != 0)
             {
-                int result = b / a;
+                int result = a / b;
                 ip.Stack.Push(result);
             }
             else
@@ -107,17 +108,17 @@ namespace BefungeSharp.Instructions.Arithmetic
     {
         public ModuloInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, this.RequiredCells());
 
-            int a = ip.Stack.Pop();
             int b = ip.Stack.Pop();
+            int a = ip.Stack.Pop();
 
             //TODO does this follow the spec?the % "Remainder" instruction, which pops two values, divides the second by the first using integer division, and pushes the remainder, of those. Remainder by zero is subject to the same rules as division by zero, but if either argument is negative, the result is implementation-defined.
-            if (a != 0)
+            if (b != 0)
             {
-                int result = b % a;
+                int result = a % b;
                 ip.Stack.Push(result);
             }
             else

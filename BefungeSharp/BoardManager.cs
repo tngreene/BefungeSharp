@@ -8,6 +8,7 @@ namespace BefungeSharp
 {
     public class BoardManager
     {
+       
         /// <summary>
         /// Represents a 2 dimensional space of characters, non jagged
         /// Accessed with boardArray[row+i][column+j]
@@ -67,9 +68,8 @@ namespace BefungeSharp
                     }
                 }
             }
-            
-            
-            _bInterp = new BoardInterpreter(this,initGlobalStack,mode);
+                        
+            _bInterp = new BoardInterpreter(this, initGlobalStack,mode);
            
             _UI = new BoardUI(this, _bInterp);
             _bSideBar = new BoardSideBar(this, _bInterp);

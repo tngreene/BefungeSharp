@@ -24,15 +24,33 @@ namespace BefungeSharp.Instructions
 
         protected void EnsureStackSafety(Stack<int> stack, int required)
         {
-            //Ensure that there will always be enough in the stack
-            while (stack.Count < required)
+            if (required > stack.Count)
             {
-                //TODO - find out if we are at max stack capacity
-                stack.Push(0);
+                int toAdd = required - stack.Count;
+                int toStore = stack.Count;
+
+                Stack<int> holder = new Stack<int>();
+                for (int i = 0; i < toStore; i++)
+                {
+                    holder.Push(stack.Pop());
+                }
+
+                //Ensure that there will always be enough in the stack
+                while (stack.Count < toAdd)
+                {
+                    //TODO - find out if we are at max stack capacity
+                    //Insert behind the top of the stack
+                    stack.Push(0);
+                }
+
+                for (int i = holder.Count; i > 0; i--)
+                {
+                    stack.Push(holder.Pop());
+                }
             }
         }
 
-        public abstract bool Preform(IP ip, BoardManager mgr = null);
+        public abstract bool Preform(IP ip);
     }
 
     public static class InstructionManager
@@ -63,7 +81,7 @@ namespace BefungeSharp.Instructions
                     case 'w':
                         instruction_set.Add(c, new Logic.CompareInstruction(c, 0));
                         break;
-                    //Flow control
+                    //--Flow control---
                     case '^':
                         instruction_set.Add(c, new Delta.CardinalInstruction(c, 0, Vector2.North));
                         break;
@@ -79,9 +97,7 @@ namespace BefungeSharp.Instructions
                     case '?':
                         instruction_set.Add(c, new Delta.RandomDeltaInstruction(c, 0, Vector2.Zero));
                         break;
-                    case '#':
-                        break;
-                    //Funge-98 flow control
+                    
                     case '[':
                         instruction_set.Add(c, new Delta.RotateDeltaInstruction(c, 0, Vector2.Zero, false));
                         break;
@@ -91,23 +107,30 @@ namespace BefungeSharp.Instructions
                     case 'r':
                         instruction_set.Add(c, new Delta.ReverseDeltaInstruction(c, 0, Vector2.Zero));
                         break;
+                    //--Flow control---
+                    case '#':
+                        instruction_set.Add(c, new FlowControl.TrampolineInstruction(c, 0));
+                        break;
                     case ';':
                         //CommandInfo flowCommand = new CommandInfo(c, CommandType.Movement, ConsoleColor.Cyan, 0);
                         //return flowCommand;
+                        break;
                     case 'j':
-                    case 'k':
-                        //CommandInfo flowCommand98 = new CommandInfo(c, CommandType.Movement, ConsoleColor.Cyan, 1);
-                        //return flowCommand98;
+                        instruction_set.Add(c, new FlowControl.JumpInstruction(c, 0));
                         break;
                     case 'x':
                         instruction_set.Add(c, new Delta.SetDeltaInstruction(c, 0, Vector2.Zero));
                         break;
                     case '@':
-                    case 'q':
-                       // CommandInfo stopCommand = new CommandInfo(c, CommandType.StopExecution, ConsoleColor.Red, 0);
-                        //return stopCommand;
-
+                        instruction_set.Add(c, new FlowControl.StopInstruction(c, 0));
                         break;
+                    case 'q':
+                        instruction_set.Add(c, new FlowControl.QuitInstruction(c, 0));
+                        break;
+                    case 'k':
+                        instruction_set.Add(c, new FlowControl.IterateInstruction(c, 0));
+                        break;
+                    //-----------------
 
                     //Arithmatic-------
                     case '+':
@@ -286,6 +309,15 @@ namespace BefungeSharp.Instructions
         /// </summary>
         /// <returns>If there is enough space on the stack to push the specified number of cells</returns>
         bool CanPushCells();
+    }
+
+    public interface IAffectsRunningMode
+    {
+        /// <summary>
+        /// Set the interpreter's current mode to something else
+        /// </summary>
+        /// <param name="mode">The new mode</param>
+        void SetNewMode(BoardMode mode);
     }
 
     /// <summary>

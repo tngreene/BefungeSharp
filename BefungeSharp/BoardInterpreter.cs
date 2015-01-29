@@ -71,9 +71,7 @@ namespace BefungeSharp
     public class BoardInterpreter
     {
         private BoardManager _boardRef;
-
-        private bool _debugMode;
-
+        
         //The current mode of the board
         private BoardMode _curMode;
         public BoardMode CurMode { get { return _curMode; } set { _curMode = value; } }
@@ -310,10 +308,13 @@ namespace BefungeSharp
 
         public void DrawIP()
         {
-            int n = 0;
             //For every IP in the list
-            while(n < _IPs.Count() && _IPs[n].Active == true)
-            {
+            for (int n = 0; n < _IPs.Count(); n++)
+			{
+                if (_IPs[n].Active == false)
+                {
+                    continue;
+                }
                 Vector2 direct = _IPs[n].Delta;
 
                 //Get the last place we were, reset it's color
@@ -330,8 +331,7 @@ namespace BefungeSharp
 
                 //Get the current ip's
                 char characterUnder = _boardRef.GetCharacter(_IPs[n].Position.y, _IPs[n].Position.x);
-                ConEx.ConEx_Draw.SetAttributes(_IPs[n].Position.y, _IPs[n].Position.x, BoardManager.LookupInfo(characterUnder).color, ConsoleColor.Gray);
-                n++;
+                ConEx.ConEx_Draw.SetAttributes(_IPs[n].Position.y, _IPs[n].Position.x, BoardManager.LookupInfo(characterUnder).color, (ConsoleColor)ConsoleColor.Gray + (n % 3) );
             }
         }
 
@@ -374,9 +374,15 @@ namespace BefungeSharp
             //Start at the end of the list
             int n = IPs.Count - 1;
 
-            //For every active IP in the list (except the EditIP)
-            while (n >= 0 && _IPs[n].Active)
+            //For every active IP in the list
+            do
             {
+                //If the IP is active skip over handling it
+                if (_IPs[n].Active == false)
+                {
+                    n--;
+                    continue;
+                }
                 /* 1.) Find out what is under the IP
                  * 2.) Lookup Info about it
                  * 3.) Based on number to pop check to make sure the stack has enough to keep going
@@ -406,178 +412,161 @@ namespace BefungeSharp
                 }
                 catch (Exception)
                 {
-                    
-                    
+
+
                 }
-               
+                
                 if (success == false)
-                switch (cmd)
-                {
-                    case '#':
-                        _IPs[n].Move();//Skip one space
-                        break;
-                    case 'j':
-                        //.Pop() - 1 to account for the fact we're moving already at the bottom
-                        for (int i = 0; i < _IPs[n].Stack.Pop() - 1; i++)
-                        {
-                            _IPs[n].Move();
-                        }
-                        break;
-                    case 'k':
-                        break;
-                    case '@':
-                        _IPs[n].Active = false;
-                        _IPs[n].Stop();
-                        if (_IPs.Exists(item => item.Active == true && item.ID != 0))
-                        {
-                            n--;
-                            continue;
-                        }
-                        else
-                        {
-                            _curMode = BoardMode.Edit;
-                        }
-                        break;
-                    case 'q'://Not fully implimented
-                        _curMode = BoardMode.Edit;//TODO - Change behavior in f98CNote will change when
-                        return CommandType.StopExecution;
-                    //IO
-                    case '&'://Read int
-                        string input = Console.ReadLine();
-                        int outResult = 0;
-                        bool succeded = int.TryParse(input, out outResult);
-                        if (succeded == true)
-                        {
-                            _IPs[n].Stack.Push(outResult);
-                            _boardRef.UI.AddText(input, BoardUI.Categories.IN);
-                        }
-                        else
-                        {
-                            _IPs[n].Stack.Push(0);
-                            _boardRef.UI.AddText("0", BoardUI.Categories.IN);
-                        }
-                        break;
-                    case '~'://Read char
-                        //TODO - allow for mass input
-                        char charInput = Console.ReadKey(true).KeyChar;
-                        _IPs[n].Stack.Push((int)charInput);
-                        _boardRef.UI.AddText(charInput.ToString(), BoardUI.Categories.IN);
-                        break;
-                    case ','://Output character
-                        {
-                            char outChar = (char)_IPs[n].Stack.Pop();
-                            string outVal = outChar.ToString();
+                    switch (cmd)
+                    {
+                        case 'k':
+                            break;
 
-                            _boardRef.UI.AddText(outVal, BoardUI.Categories.OUT);
-                        }
-                        break;
-                    case '.'://Output as number
-                        _boardRef.UI.AddText(_IPs[n].Stack.Pop().ToString(), BoardUI.Categories.OUT);
-                        break;
-                    //Funge 98 stack manipulation
-                    //TODO - implement
-                    case 'u':
-                    case '{':
-                    case '}':
-                        break;
-                    //Funge-98
-                    case 'i':
-                    case 'o':
-                        try
-                        {
+                        case 'q'://Not fully implimented
+                            _curMode = BoardMode.Edit;//TODO - Change behavior in f98CNote will change when
+                            return CommandType.StopExecution;
+                        //IO
+                        case '&'://Read int
+                            string input = Console.ReadLine();
+                            int outResult = 0;
+                            bool succeded = int.TryParse(input, out outResult);
+                            if (succeded == true)
+                            {
+                                _IPs[n].Stack.Push(outResult);
+                                _boardRef.UI.AddText(input, BoardUI.Categories.IN);
+                            }
+                            else
+                            {
+                                _IPs[n].Stack.Push(0);
+                                _boardRef.UI.AddText("0", BoardUI.Categories.IN);
+                            }
+                            break;
+                        case '~'://Read char
+                            //TODO - allow for mass input
+                            char charInput = Console.ReadKey(true).KeyChar;
+                            _IPs[n].Stack.Push((int)charInput);
+                            _boardRef.UI.AddText(charInput.ToString(), BoardUI.Categories.IN);
+                            break;
+                        case ','://Output character
+                            {
+                                char outChar = (char)_IPs[n].Stack.Pop();
+                                string outVal = outChar.ToString();
 
-                        }
-                        catch (Exception e)
-                        {
+                                _boardRef.UI.AddText(outVal, BoardUI.Categories.OUT);
+                            }
+                            break;
+                        case '.'://Output as number
+                            _boardRef.UI.AddText(_IPs[n].Stack.Pop().ToString(), BoardUI.Categories.OUT);
+                            break;
+                        //Funge 98 stack manipulation
+                        //TODO - implement
+                        case 'u':
+                        case '{':
+                        case '}':
+                            break;
+                        //Funge-98
+                        case 'i':
+                        case 'o':
+                            try
+                            {
 
-                        }
-                        finally
-                        {
+                            }
+                            catch (Exception e)
+                            {
 
-                        }
-                        break;
-                    case 's':
+                            }
+                            finally
+                            {
 
-                        break;
-                    //String Manipulation
-                    case '"':
-                        //Negates and assaigns, a fancy toggle
-                        _IPs[n].StringMode = !_IPs[n].StringMode;
-                        break;
-                    case '\''://' "Fetch Character", 
-                        //pushes the next character at (pos + delta)'s char value
-                        //and skips over it, like a # command
-                        break;
-                    case 't'://Split IP Concurrent
-                        {
-                            //A temporary reference to the new IP
-                            IP childIP = new IP(_IPs[n]);
+                            }
+                            break;
+                        case 's':
 
-                            //Insert before this one
-                            _IPs.Insert(n + 1, childIP);
-                            
-                            childIP.Negate();
-                        }
-                        break;
-                    //Funge-98 ONLY Schematics
-                    case '=':
-                    //Handprint stuff
-                    case 'y':
-                    //Footprint stuff
-                    case '(':
-                    case ')':
-                    case 'A':
-                    case 'B':
-                    case 'C':
-                    case 'D':
-                    case 'E':
-                    case 'F':
-                    case 'G':
-                    case 'H':
-                    case 'I':
-                    case 'J':
-                    case 'K':
-                    case 'L':
-                    case 'M':
-                    case 'N':
-                    case 'O':
-                    case 'P':
-                    case 'Q':
-                    case 'R':
-                    case 'S':
-                    case 'T':
-                    case 'U':
-                    case 'V':
-                    case 'W':
-                    case 'X':
-                    case 'Y':
-                    case 'Z':
-                        break;
+                            break;
+                        //String Manipulation
+                        case '"':
+                            //Negates and assaigns, a fancy toggle
+                            _IPs[n].StringMode = !_IPs[n].StringMode;
+                            break;
+                        case '\''://' "Fetch Character", 
+                            //pushes the next character at (pos + delta)'s char value
+                            //and skips over it, like a # command
+                            break;
+                        case 't'://Split IP Concurrent
+                            {
+                                //A temporary reference to the new IP
+                                IP childIP = new IP(_IPs[n]);
 
-                    //no operations
-                    case ' ':
-                        break;
-                    case ';':
-                        break;
-                    case 'z'://nop, in 98 it consumes a tick making it different than a simple space
-                        break;
-                    //Trefunge or more
-                    case 'h':
-                    case 'l':
-                    case 'm':
+                                //Insert after this one
+                                _IPs.Insert(n + 1, childIP);
+                                
+                                childIP.Active = true;
+                                childIP.Negate();
+                            }
+                            break;
+                        //Funge-98 ONLY Schematics
+                        case '=':
+                        //Handprint stuff
+                        case 'y':
+                        //Footprint stuff
+                        case '(':
+                        case ')':
+                        case 'A':
+                        case 'B':
+                        case 'C':
+                        case 'D':
+                        case 'E':
+                        case 'F':
+                        case 'G':
+                        case 'H':
+                        case 'I':
+                        case 'J':
+                        case 'K':
+                        case 'L':
+                        case 'M':
+                        case 'N':
+                        case 'O':
+                        case 'P':
+                        case 'Q':
+                        case 'R':
+                        case 'S':
+                        case 'T':
+                        case 'U':
+                        case 'V':
+                        case 'W':
+                        case 'X':
+                        case 'Y':
+                        case 'Z':
+                            break;
 
-                        break;
-                }
+                        //no operations
+                        case ' ':
+                            break;
+                        case ';':
+                            break;
+                        case 'z'://nop, in 98 it consumes a tick making it different than a simple space
+                            break;
+                        //Trefunge or more
+                        case 'h':
+                        case 'l':
+                        case 'm':
+
+                            break;
+                    }
 
                 //Increment n
                 n--;
+            } while (n >= 0);
+
+            //If ther are no more active IP's left then set us back to edit mode
+            if (IPs.Exists(item => item.Active == true) == false)
+            {
+                CurMode = BoardMode.Edit;
             }
-            
+
             //Move and wrap every delta
             for (int i = 0; i < IPs.Count; i++)
             {
-                //Activate all the newly born IPs
-                _IPs[i].Active = true;
                 _IPs[i].Move();
                 _IPs[i].Position = Wrap(_IPs[i].Position);
             }
@@ -586,6 +575,7 @@ namespace BefungeSharp
             //TODO - for what though
             Console.SetCursorPosition(_IPs[_IPFollowID].Position.x, _IPs[_IPFollowID].Position.y);
 
+            
             return CommandType.NotImplemented;//TODO - Needs a better idea
         }
     }

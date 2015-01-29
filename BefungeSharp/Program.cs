@@ -18,8 +18,11 @@ namespace BefungeSharp
         Exit
     };
 
-    class Program
+    public class Program
     {
+        private static BoardManager s_board_manager;// = new BoardManager(0, 0);
+        //public BoardManager BoardManager { get { return s_board_manager; } }
+
         [STAThread]
         static void Main(string[] args)
         {
@@ -123,15 +126,15 @@ namespace BefungeSharp
                     case ProgramMode.NewFile:
                         List<string> s = new List<string>();
                         //s.Add("\"dlroW olleH\">:#,_@");
-                        board = new BoardManager(25,80,s);
-                        board.UpdateBoard();
+                        s_board_manager = new BoardManager(25, 80, s);
+                        s_board_manager.UpdateBoard();
                         break;
                     case ProgramMode.OpenFile:
                         //Clear the previous window
                         Console.Clear();
 
-                        board = new BoardManager(25, 80, OpenSubMenu());
-                        board.UpdateBoard();
+                        s_board_manager = new BoardManager(25, 80, OpenSubMenu());
+                        s_board_manager.UpdateBoard();
                         break;
                     case ProgramMode.Options:
                         //Set up the options menu
@@ -153,6 +156,11 @@ namespace BefungeSharp
                 }//Program mode initalization and running
             }//While(runProgram)
         }//Main(string[]args)
+
+        public static BoardManager GetBoardManager()
+        {
+            return s_board_manager;
+        }
 
         static List<string> OpenSubMenu()
         {

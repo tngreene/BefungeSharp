@@ -8,6 +8,7 @@ namespace BefungeSharp.Instructions.Storage
 {
     public abstract class StorageInstruction : Instruction
     {
+        protected BoardManager manager;
         /// <summary>
         /// An instruction which access and changes the storage space of funge space
         /// </summary>
@@ -20,12 +21,12 @@ namespace BefungeSharp.Instructions.Storage
     {
         public GetInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
         
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, RequiredCells());
             int y = ip.Stack.Pop();
             int x = ip.Stack.Pop();
-            char foundChar = mgr.GetCharacter(y, x);
+            char foundChar = Program.GetBoardManager().GetCharacter(y, x);
 
             if (CanPushCells() == true)
             {
@@ -53,7 +54,7 @@ namespace BefungeSharp.Instructions.Storage
     {
         public PutInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
         
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, RequiredCells());
             
@@ -61,7 +62,7 @@ namespace BefungeSharp.Instructions.Storage
             int x = ip.Stack.Pop();
             
             int charToPlace = ip.Stack.Pop();
-            bool couldPlace = mgr.PutCharacter(y, x, (char)charToPlace);
+            bool couldPlace = Program.GetBoardManager().PutCharacter(y, x, (char)charToPlace);
             
             return couldPlace;
         }

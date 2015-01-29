@@ -30,7 +30,7 @@ namespace BefungeSharp.Instructions.Logic
     {
         public NotInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { this.requiredCells = 1; }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, this.RequiredCells());
             if (ip.Stack.Pop() != 0)
@@ -49,7 +49,7 @@ namespace BefungeSharp.Instructions.Logic
     {
         public HorizontalIfInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { this.requiredCells = 1; }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, this.RequiredCells());
             if (ip.Stack.Pop() == 0)
@@ -68,7 +68,7 @@ namespace BefungeSharp.Instructions.Logic
     {
         public VerticalIfInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { this.requiredCells = 1; }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, this.RequiredCells());
             if (ip.Stack.Pop() == 0)
@@ -87,7 +87,7 @@ namespace BefungeSharp.Instructions.Logic
     {
         public GreaterThanInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { this.requiredCells = 1; }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, this.RequiredCells());
             
@@ -111,7 +111,7 @@ namespace BefungeSharp.Instructions.Logic
     {
         public CompareInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { this.requiredCells = 1; }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, this.RequiredCells());
             //Pop a and b off the stack

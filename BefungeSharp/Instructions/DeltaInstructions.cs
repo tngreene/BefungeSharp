@@ -49,7 +49,7 @@ namespace BefungeSharp.Instructions.Delta
             }
         }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             ip.Delta = newDelta;
             return true;
@@ -63,7 +63,7 @@ namespace BefungeSharp.Instructions.Delta
     {
         public RandomDeltaInstruction(char inName, UInt32 minimum_flags, Vector2 delta) : base(inName, minimum_flags, delta) { }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             Random rnd = new Random();
             ip.Delta = Vector2.CardinalDirections[rnd.Next(0, 4)];
@@ -78,7 +78,7 @@ namespace BefungeSharp.Instructions.Delta
     {
         public SetDeltaInstruction(char inName, UInt32 minimum_flags, Vector2 delta) : base(inName, minimum_flags, delta) { }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, this.RequiredCells());
 
@@ -107,7 +107,7 @@ namespace BefungeSharp.Instructions.Delta
     {
         public ReverseDeltaInstruction(char inName, UInt32 minimum_flags, Vector2 delta) : base(inName, minimum_flags, delta) { }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             newDelta = ip.Delta;
             newDelta.Negate();
@@ -133,7 +133,7 @@ namespace BefungeSharp.Instructions.Delta
         {
             rotate_clockwise = !rotate_clockwise;
         }
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             if(rotate_clockwise == true)//Rotate 90 degrees counter clockwise
             {
@@ -156,7 +156,7 @@ namespace BefungeSharp.Instructions.Delta
     {
         public Instruction(char inName, UInt32 minimum_flags, Vector2 delta) : base(inName, minimum_flags, delta) { }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             
             return true;

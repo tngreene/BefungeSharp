@@ -33,7 +33,7 @@ namespace BefungeSharp.Instructions.Stack
             return true;
         }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             if (CanPushCells())
             {
@@ -64,7 +64,7 @@ namespace BefungeSharp.Instructions.Stack
             return 1;
         }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack,RequiredCells());
             ip.Stack.Pop();
@@ -79,7 +79,7 @@ namespace BefungeSharp.Instructions.Stack
     {
         public SwapInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, this.RequiredCells());
             int a = ip.Stack.Pop();
@@ -120,7 +120,7 @@ namespace BefungeSharp.Instructions.Stack
             return stackSize;
         }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             //This extra stack safety business is not really necissary because
             //.NET's Clear() takes care of it for you but it is included to

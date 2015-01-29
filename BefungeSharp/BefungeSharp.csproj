@@ -55,6 +55,7 @@
     <Compile Include="FileUtils.cs" />
     <Compile Include="Instructions\ArithmeticInstructions.cs" />
     <Compile Include="Instructions\DeltaInstructions.cs" />
+    <Compile Include="Instructions\FlowControlInstructions.cs" />
     <Compile Include="Instructions\Instructions.cs" />
     <Compile Include="Instructions\LogicInstructions.cs" />
     <Compile Include="Instructions\NumberInstructions.cs" />

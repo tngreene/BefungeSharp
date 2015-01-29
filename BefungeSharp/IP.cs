@@ -73,7 +73,7 @@ namespace BefungeSharp
             StringMode = false;
         }
 
-        public IP(Vector2 position, Vector2 delta, Vector2 storageOffset, Stack<int> stack, int parent_id)
+        public IP(Vector2 position, Vector2 delta, Vector2 storageOffset, Stack<int> stack, int parent_id, bool willIncrementCounter)
         {
             _position = position;
             _delta = delta;
@@ -83,8 +83,16 @@ namespace BefungeSharp
             _active = false;
 
             _IP_ParentID = parent_id;
-            _IP_ID = ID_Counter;
-            ID_Counter++;
+
+            if (willIncrementCounter == false)
+            {
+                _IP_ID = -1;
+            }
+            else
+            {
+                _IP_ID = ID_Counter;
+                ID_Counter++;
+            }
             StringMode = false;
         }
 

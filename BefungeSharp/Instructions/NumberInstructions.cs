@@ -27,7 +27,7 @@ namespace BefungeSharp.Instructions.Number
             this.value = value;
         }
 
-        public override bool Preform(IP ip, BoardManager mgr = null)
+        public override bool Preform(IP ip)
         {
             ip.Stack.Push(value);
             return true;
