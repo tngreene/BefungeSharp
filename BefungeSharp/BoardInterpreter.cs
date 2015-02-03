@@ -24,7 +24,8 @@ namespace BefungeSharp
         String,//"
         Concurrent,//t
         Trefunge,//hlm
-        NotImplemented//Many of the Funge-98 instructions. For now! - 12/31/2014
+        NotImplemented,//Many of the Funge-98 instructions. For now! - 12/31/2014
+        Nop//z and ' '
     }
 
     /// <summary>
@@ -383,16 +384,15 @@ namespace BefungeSharp
                     n--;
                     continue;
                 }
-                /* 1.) Find out what is under the IP
-                 * 2.) Lookup Info about it
-                 * 3.) Based on number to pop check to make sure the stack has enough to keep going
-                 * 4.) Execute Command
-                 
+
+                /* If we are in string mode and not ending it, push the value of the command and continue, else
+                 * Attempt to consume all whitespace and "ethereal" space 
+                 * Attempt the next instruction
+                 * If there are no active instructions left, set the interpreter to go back to "edit" mode
+                 * Otherwise, move and wrap all IPs
                  */
+
                 char cmd = _boardRef.GetCharacter(_IPs[n].Position.y, _IPs[n].Position.x);
-
-                CommandInfo info = BoardManager.LookupInfo(cmd);
-
                 //If we are currently in string mode
                 //And its not a space and not a " (so we can leave string mode)
                 if (_IPs[n].StringMode == true && cmd != '"')
@@ -404,6 +404,17 @@ namespace BefungeSharp
                     //Move onto the next thread
                     continue;
                 }
+                if (cmd == ';' || cmd == ' ')
+                {
+                    Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
+                    cmd = _boardRef.GetCharacter(_IPs[n].Position.y, _IPs[n].Position.x);
+                }
+                
+                CommandInfo info = BoardManager.LookupInfo(cmd);
+
+                
+
+                
 
                 bool success = false;
                 try
@@ -419,11 +430,8 @@ namespace BefungeSharp
                 if (success == false)
                     switch (cmd)
                     {
-                        case 'k':
-                            break;
-
                         case 'q'://Not fully implimented
-                            _curMode = BoardMode.Edit;//TODO - Change behavior in f98CNote will change when
+                            _curMode = BoardMode.Edit;
                             return CommandType.StopExecution;
                         //IO
                         case '&'://Read int
@@ -537,14 +545,6 @@ namespace BefungeSharp
                         case 'X':
                         case 'Y':
                         case 'Z':
-                            break;
-
-                        //no operations
-                        case ' ':
-                            break;
-                        case ';':
-                            break;
-                        case 'z'://nop, in 98 it consumes a tick making it different than a simple space
                             break;
                         //Trefunge or more
                         case 'h':

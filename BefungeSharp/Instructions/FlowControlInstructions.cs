@@ -114,7 +114,6 @@ namespace BefungeSharp.Instructions.FlowControl
                 {
                     executable.Preform(temporaryIP);
                 }
-                //InstructionManager.InstructionSet['#'].Preform(ip);
             }
             
             return true;
@@ -123,6 +122,23 @@ namespace BefungeSharp.Instructions.FlowControl
         public int RequiredCells()
         {
             return 1;
+        }
+    }
+
+    public class JumpOverInstruction : FlowControlInstruction
+    {
+        public JumpOverInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+
+        public override bool Preform(IP ip)
+        {
+            do
+            {
+                ip.Move();
+            }
+            while (ip.GetCurrentCell() != ';');
+            ip.Move();
+
+            return true;
         }
     }
 }

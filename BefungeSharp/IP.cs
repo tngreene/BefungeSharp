@@ -148,6 +148,14 @@ namespace BefungeSharp
             _delta.Clear();
         }
 
+        /// <summary>
+        /// Get's the cell currently under the IP and returns it's value
+        /// </summary>
+        /// <returns></returns>
+        public int GetCurrentCell()
+        {
+            return Program.GetBoardManager().GetCharacter(this.Position.y, this.Position.x);
+        }
         public override string ToString()
         {
             return "P: " + this._position + ", D: " + this._delta + ", S:" + this._stack + ", ID: " + this._IP_ID;

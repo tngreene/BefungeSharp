@@ -65,7 +65,7 @@ namespace BefungeSharp.Instructions
             {
                 switch (c)
                 {
-                    //Logic
+                    //--Logic----------
                     case '!':
                         instruction_set.Add(c, new Logic.NotInstruction(c, 0));
                         break;
@@ -81,6 +81,7 @@ namespace BefungeSharp.Instructions
                     case 'w':
                         instruction_set.Add(c, new Logic.CompareInstruction(c, 0));
                         break;
+                    //-----------------
                     //--Flow control---
                     case '^':
                         instruction_set.Add(c, new Delta.CardinalInstruction(c, 0, Vector2.North));
@@ -112,8 +113,7 @@ namespace BefungeSharp.Instructions
                         instruction_set.Add(c, new FlowControl.TrampolineInstruction(c, 0));
                         break;
                     case ';':
-                        //CommandInfo flowCommand = new CommandInfo(c, CommandType.Movement, ConsoleColor.Cyan, 0);
-                        //return flowCommand;
+                        instruction_set.Add(c, new FlowControl.JumpOverInstruction(c, 0));
                         break;
                     case 'j':
                         instruction_set.Add(c, new FlowControl.JumpInstruction(c, 0));
@@ -267,10 +267,15 @@ namespace BefungeSharp.Instructions
                     case 'h'://Go high, 3D movement
                     case 'l'://Go low, 3D movement
                     case 'm'://3D if statment
-                    case 'z'://Does not exist - TODO its actually nop
                         break;
-                        //---------------------------
-                        //return new CommandInfo(c, CommandType.NotImplemented, ConsoleColor.DarkRed, 0);
+                    //--Nop-----------
+                    case ' ':
+                        instruction_set.Add(c, new Nop.SpaceInstruction(c, 0));
+                        break;
+                    case 'z':
+                        instruction_set.Add(c, new Nop.ExplicitNopInstruction(c, 0));
+                        break;
+                    //-----------------
                 }
             }
            // return new CommandInfo(inChar, CommandType.NotImplemented, ConsoleColor.White, 0);//For all other non instructions
@@ -318,6 +323,16 @@ namespace BefungeSharp.Instructions
         /// </summary>
         /// <param name="mode">The new mode</param>
         void SetNewMode(BoardMode mode);
+    }
+
+    public interface INeedsCheckForTimeout
+    {
+        /// <summary>
+        /// If the instruction could cause an infinite loop, TimeoutOccured defines when an instruction has or is about to enter
+        /// into an infinite loop or stall.
+        /// </summary>
+        /// <returns>Returns true if the instruction has just or is about to put execution into a stall, false if not</returns>
+        bool TimeoutOccured();
     }
 
     /// <summary>
