@@ -65,6 +65,55 @@ namespace BefungeSharp.Instructions
             {
                 switch (c)
                 {
+                    //--Delta Changing-
+                    case '^':
+                        instruction_set.Add(c, new Delta.CardinalInstruction(c, 0, Vector2.North));
+                        break;
+                    case '>':
+                        instruction_set.Add(c, new Delta.CardinalInstruction(c, 0, Vector2.East));
+                        break;
+                    case 'v':
+                        instruction_set.Add(c, new Delta.CardinalInstruction(c, 0, Vector2.South));
+                        break;
+                    case '<':
+                        instruction_set.Add(c, new Delta.CardinalInstruction(c, 0, Vector2.West));
+                        break;
+                    case '?':
+                        instruction_set.Add(c, new Delta.RandomDeltaInstruction(c, 0, Vector2.Zero));
+                        break;
+                    case '[':
+                        instruction_set.Add(c, new Delta.RotateDeltaInstruction(c, 0, Vector2.Zero, false));
+                        break;
+                    case ']':
+                        instruction_set.Add(c, new Delta.RotateDeltaInstruction(c, 0, Vector2.Zero, true));
+                        break;
+                    case 'x':
+                        instruction_set.Add(c, new Delta.SetDeltaInstruction(c, 0, Vector2.Zero));
+                        break;
+                    case 'r':
+                        instruction_set.Add(c, new Delta.ReverseDeltaInstruction(c, 0, Vector2.Zero));
+                        break;
+                    //-----------------
+                    //--Flow control---
+                    case '#':
+                        instruction_set.Add(c, new FlowControl.TrampolineInstruction(c, 0));
+                        break;
+                    case ';':
+                        instruction_set.Add(c, new FlowControl.JumpOverInstruction(c, 0));
+                        break;
+                    case 'j':
+                        instruction_set.Add(c, new FlowControl.JumpInstruction(c, 0));
+                        break;
+                    case '@':
+                        instruction_set.Add(c, new FlowControl.StopInstruction(c, 0));
+                        break;
+                    case 'q':
+                        instruction_set.Add(c, new FlowControl.QuitInstruction(c, 0));
+                        break;
+                    case 'k':
+                        instruction_set.Add(c, new FlowControl.IterateInstruction(c, 0));
+                        break;
+                    //-----------------
                     //--Logic----------
                     case '!':
                         instruction_set.Add(c, new Logic.NotInstruction(c, 0));
@@ -82,57 +131,29 @@ namespace BefungeSharp.Instructions
                         instruction_set.Add(c, new Logic.CompareInstruction(c, 0));
                         break;
                     //-----------------
-                    //--Flow control---
-                    case '^':
-                        instruction_set.Add(c, new Delta.CardinalInstruction(c, 0, Vector2.North));
+                    //--Simple Numbers-
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9':
+                        instruction_set.Add(c, new Number.NumberInstruction(c, 0, (int)c - '0'));
                         break;
-                    case '>':
-                        instruction_set.Add(c, new Delta.CardinalInstruction(c, 0, Vector2.East));
-                        break;
-                    case 'v':
-                        instruction_set.Add(c, new Delta.CardinalInstruction(c, 0, Vector2.South));
-                        break;
-                    case '<':
-                        instruction_set.Add(c, new Delta.CardinalInstruction(c, 0, Vector2.West));
-                        break;
-                    case '?':
-                        instruction_set.Add(c, new Delta.RandomDeltaInstruction(c, 0, Vector2.Zero));
-                        break;
-                    
-                    case '[':
-                        instruction_set.Add(c, new Delta.RotateDeltaInstruction(c, 0, Vector2.Zero, false));
-                        break;
-                    case ']': 
-                        instruction_set.Add(c, new Delta.RotateDeltaInstruction(c, 0, Vector2.Zero, true));
-                        break;
-                    case 'r':
-                        instruction_set.Add(c, new Delta.ReverseDeltaInstruction(c, 0, Vector2.Zero));
-                        break;
-                    //--Flow control---
-                    case '#':
-                        instruction_set.Add(c, new FlowControl.TrampolineInstruction(c, 0));
-                        break;
-                    case ';':
-                        instruction_set.Add(c, new FlowControl.JumpOverInstruction(c, 0));
-                        break;
-                    case 'j':
-                        instruction_set.Add(c, new FlowControl.JumpInstruction(c, 0));
-                        break;
-                    case 'x':
-                        instruction_set.Add(c, new Delta.SetDeltaInstruction(c, 0, Vector2.Zero));
-                        break;
-                    case '@':
-                        instruction_set.Add(c, new FlowControl.StopInstruction(c, 0));
-                        break;
-                    case 'q':
-                        instruction_set.Add(c, new FlowControl.QuitInstruction(c, 0));
-                        break;
-                    case 'k':
-                        instruction_set.Add(c, new FlowControl.IterateInstruction(c, 0));
+                    case 'a':
+                    case 'b':
+                    case 'c':
+                    case 'd':
+                    case 'e':
+                    case 'f':
+                        instruction_set.Add(c, new Number.NumberInstruction(c, 0, (int)c - ('a' - 10)));
                         break;
                     //-----------------
-
-                    //Arithmatic-------
+                    //--Arithmatic-----
                     case '+':
                         instruction_set.Add(c, new Arithmetic.AddInstruction(c, 0));
                         break;
@@ -149,31 +170,18 @@ namespace BefungeSharp.Instructions
                         instruction_set.Add(c, new Arithmetic.ModuloInstruction(c, 0));
                         break;
                     //-----------------
-
-                    //--Simple Numbers-
-                    case '0':
-                    case '1':
-                    case '2':
-                    case '3':
-                    case '4':
-                    case '5':
-                    case '6':
-                    case '7':
-                    case '8':
-                    case '9':
-                        instruction_set.Add(c, new Number.NumberInstruction(c,0,(int)c-'0'));
+                    //--Strings--------
+                    case '"':
+                        instruction_set.Add(c, new String.ToggleStringModeInstruction(c, 0));
                         break;
-                    case 'a':
-                    case 'b':
-                    case 'c':
-                    case 'd':
-                    case 'e':
-                    case 'f':
-                        instruction_set.Add(c, new Number.NumberInstruction(c, 0,(int)c-('a'-10)));
+                    case '\''://This is the ' character, aka fetch
+                        instruction_set.Add(c, new String.FetchCharacterInstruction(c, 0));
+                        break;
+                    case 's':
+                        instruction_set.Add(c, new String.StoreCharacterInstruction(c, 0));
                         break;
                     //-----------------
-
-                    //Stack Manipulation
+                    //--Stack Manipulation
                     case ':':
                         instruction_set.Add(c, new Stack.DuplicateInstruction(c, 0));
                         break;
@@ -187,7 +195,12 @@ namespace BefungeSharp.Instructions
                         instruction_set.Add(c, new Stack.ClearStackInstruction(c, 0));
                         break;
                     //-----------------
-
+                    //--StackStack Manipulation
+                    case 'u':
+                    case '{':
+                    case '}':
+                        break;
+                    //-----------------
                     //IO
                     case '&':
                     case '~':
@@ -213,21 +226,17 @@ namespace BefungeSharp.Instructions
                         break;
                     //---------------------
 
-                    //String Manipulation
-                    case '"':
+                    
                         //return new CommandInfo(c, CommandType.String, ConsoleColor.Green, 0);
                     case 't'://Split IP, for concurrent Funge
                         //return new CommandInfo(c, CommandType.Concurrent, ConsoleColor.DarkBlue, 0);
-                    case 's':
+                    
 
-                    case '\''://This is the ' charector
+                    
 
 
 
-                    //Stack-Stack Manipulation 98
-                    case 'u':
-                    case '{':
-                    case '}':
+                    
 
                     //Funge-98 ONLY Schematics
                     case '=':

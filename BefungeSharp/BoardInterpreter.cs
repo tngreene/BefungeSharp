@@ -488,18 +488,6 @@ namespace BefungeSharp
 
                             }
                             break;
-                        case 's':
-
-                            break;
-                        //String Manipulation
-                        case '"':
-                            //Negates and assaigns, a fancy toggle
-                            _IPs[n].StringMode = !_IPs[n].StringMode;
-                            break;
-                        case '\''://' "Fetch Character", 
-                            //pushes the next character at (pos + delta)'s char value
-                            //and skips over it, like a # command
-                            break;
                         case 't'://Split IP Concurrent
                             {
                                 //A temporary reference to the new IP
