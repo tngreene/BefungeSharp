@@ -24,9 +24,8 @@ namespace BefungeSharp.Instructions.Storage
         public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, RequiredCells());
-            int y = ip.Stack.Pop();
-            int x = ip.Stack.Pop();
-            char foundChar = Program.GetBoardManager().GetCharacter(y, x);
+            Vector2 v = StackUtils.PopVector(ip.Stack);
+            char foundChar = Program.GetBoardManager().GetCharacter(v.y, v.x);
 
             if (CanPushCells() == true)
             {
@@ -57,13 +56,12 @@ namespace BefungeSharp.Instructions.Storage
         public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, RequiredCells());
-            
-            int y = ip.Stack.Pop();
-            int x = ip.Stack.Pop();
+
+            Vector2 v = StackUtils.PopVector(ip.Stack);
             
             int charToPlace = ip.Stack.Pop();
-            bool couldPlace = Program.GetBoardManager().PutCharacter(y, x, (char)charToPlace);
-            
+            bool couldPlace = Program.GetBoardManager().PutCharacter(v.y, v.x, (char)charToPlace);
+
             return couldPlace;
         }
 

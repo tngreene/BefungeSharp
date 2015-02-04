@@ -225,23 +225,19 @@ namespace BefungeSharp.Instructions
                         instruction_set.Add(c, new Storage.PutInstruction(c, 0));
                         break;
                     //---------------------
-
-                    
-                        //return new CommandInfo(c, CommandType.String, ConsoleColor.Green, 0);
                     case 't'://Split IP, for concurrent Funge
                         //return new CommandInfo(c, CommandType.Concurrent, ConsoleColor.DarkBlue, 0);
                     
-
-                    
-
-
-
-                    
-
-                    //Funge-98 ONLY Schematics
+                    //--System---------
                     case '=':
+                        instruction_set.Add(c, new System.ExecuteInstruction(c, 0));
+                        break;
+
                     //Handprint stuff
                     case 'y':
+                        break;
+                    //-----------------
+
                     //Footprint stuff
                     case '(':
                     case ')':

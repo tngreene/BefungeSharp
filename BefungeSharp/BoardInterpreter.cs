@@ -17,9 +17,10 @@ namespace BefungeSharp
         Arithmetic,//Operators like +-*/
         Numbers,//0-9,a-f that will be pushed onto the stack
         StackManipulation,//:$u{}
+        DataStorage,//gp
         IO,//&~,.
         FileIO,//io
-        DataStorage,//gp
+        System,//=y
         StopExecution,//@
         String,//"
         Concurrent,//t
