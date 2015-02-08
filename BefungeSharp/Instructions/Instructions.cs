@@ -230,7 +230,7 @@ namespace BefungeSharp.Instructions
                     
                     //--System---------
                     case '=':
-                        instruction_set.Add(c, new System.ExecuteInstruction(c, 0));
+                        instruction_set.Add(c, new SystemCalls.ExecuteInstruction(c, 0));
                         break;
 
                     //Handprint stuff

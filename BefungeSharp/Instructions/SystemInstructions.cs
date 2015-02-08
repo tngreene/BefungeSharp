@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
-namespace BefungeSharp.Instructions.System
+namespace BefungeSharp.Instructions.SystemCalls
 {
     public abstract class SystemInstruction : Instruction
     {
@@ -21,10 +21,9 @@ namespace BefungeSharp.Instructions.System
             base.EnsureStackSafety(ip.Stack, RequiredCells());
             
             //Pop a command that will be fed into cmd, /k forces the window to stay open
-            string command = "/k " + StackUtils.PopString(ip.Stack);
-
-            //start the cmd.exe process
-            Process cmd = Process.Start("cmd.exe", command);
+            string command = StackUtils.PopString(ip.Stack,true);
+            
+            Process cmd = Process.Start("cmd.exe", "/k" + command);
             //Pause the execution of this program to wait
             cmd.WaitForExit();
             //Check the exit code of the commandline
@@ -42,6 +41,16 @@ namespace BefungeSharp.Instructions.System
         {
             //Requires to pop atleast a 0, aka null string
             return 1;
+        }
+    }
+
+    public class GetSysInfo : SystemInstruction
+    {
+        public GetSysInfo(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+
+        public override bool Preform(IP ip)
+        {
+            throw new NotImplementedException();
         }
     }
 }
