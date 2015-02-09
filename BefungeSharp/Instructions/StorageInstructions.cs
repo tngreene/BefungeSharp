@@ -14,17 +14,17 @@ namespace BefungeSharp.Instructions.Storage
         /// </summary>
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
-        public StorageInstruction(char inName, UInt32 minimum_flags) : base(inName, CommandType.IO, ConsoleColor.Green, minimum_flags) { }
+        public StorageInstruction(char inName, int minimum_flags) : base(inName, CommandType.IO, ConsoleColor.Green, minimum_flags) { }
     }
 
     public class GetInstruction : StorageInstruction, IRequiresPush, IRequiresPop
     {
-        public GetInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public GetInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
         
         public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, RequiredCells());
-            Vector2 v = StackUtils.PopVector(ip.Stack);
+            Vector2 v = StackUtils.VectorPop(ip.Stack);
             char foundChar = Program.GetBoardManager().GetCharacter(v.y, v.x);
 
             if (CanPushCells() == true)
@@ -51,13 +51,13 @@ namespace BefungeSharp.Instructions.Storage
 
     public class PutInstruction : StorageInstruction, IRequiresPop
     {
-        public PutInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public PutInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
         
         public override bool Preform(IP ip)
         {
             base.EnsureStackSafety(ip.Stack, RequiredCells());
 
-            Vector2 v = StackUtils.PopVector(ip.Stack);
+            Vector2 v = StackUtils.VectorPop(ip.Stack);
             
             int charToPlace = ip.Stack.Pop();
             bool couldPlace = Program.GetBoardManager().PutCharacter(v.y, v.x, (char)charToPlace);

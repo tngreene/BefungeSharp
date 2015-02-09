@@ -8,12 +8,12 @@ namespace BefungeSharp.Instructions.FlowControl
 {
     public abstract class FlowControlInstruction : Instruction
     {
-        public FlowControlInstruction(char inName, UInt32 minimum_flags) : base(inName, CommandType.FlowControl, ConsoleColor.Cyan, minimum_flags) { }
+        public FlowControlInstruction(char inName, int minimum_flags) : base(inName, CommandType.FlowControl, ConsoleColor.Cyan, minimum_flags) { }
     }
 
     public class TrampolineInstruction : FlowControlInstruction
     {
-        public TrampolineInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public TrampolineInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
         
         public override bool Preform(IP ip)
         {
@@ -24,7 +24,7 @@ namespace BefungeSharp.Instructions.FlowControl
 
     public class StopInstruction : FlowControlInstruction
     {
-        public StopInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public StopInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -36,7 +36,7 @@ namespace BefungeSharp.Instructions.FlowControl
 
     public class JumpInstruction : FlowControlInstruction, IRequiresPop
     {
-        public JumpInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public JumpInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -66,7 +66,7 @@ namespace BefungeSharp.Instructions.FlowControl
 
     public class QuitInstruction : FlowControlInstruction, IRequiresPop
     {
-        public QuitInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public QuitInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -84,7 +84,7 @@ namespace BefungeSharp.Instructions.FlowControl
 
     public class IterateInstruction : FlowControlInstruction, IRequiresPop
     {
-        public IterateInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public IterateInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -127,7 +127,7 @@ namespace BefungeSharp.Instructions.FlowControl
 
     public class JumpOverInstruction : FlowControlInstruction
     {
-        public JumpOverInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public JumpOverInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {

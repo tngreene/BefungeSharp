@@ -12,9 +12,9 @@ namespace BefungeSharp.Instructions
         protected char name;//What is the name of it, such as < or | or 4
         protected CommandType type;//What type the command is
         protected ConsoleColor color;//What color to display it as
-        protected UInt32 flags;//What minimum flags are needed, aka what minimum language and features are required for the instructions to work
+        protected int flags;//What minimum flags are needed, aka what minimum language and features are required for the instructions to work
 
-        public Instruction(char inName, CommandType inType, ConsoleColor inColor, UInt32 minimum_flags)
+        public Instruction(char inName, CommandType inType, ConsoleColor inColor, int minimum_flags)
         {
             this.name = inName;
             this.type = inType;
@@ -232,9 +232,8 @@ namespace BefungeSharp.Instructions
                     case '=':
                         instruction_set.Add(c, new SystemCalls.ExecuteInstruction(c, 0));
                         break;
-
-                    //Handprint stuff
                     case 'y':
+                        instruction_set.Add(c, new SystemCalls.GetSysInfo(c, 0));
                         break;
                     //-----------------
 

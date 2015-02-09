@@ -8,13 +8,21 @@ namespace BefungeSharp
 {
     public static class StackUtils
     {
+        public static void StringPush(Stack<int> stack, string inString)
+        {
+            for (int i = inString.Length - 1; i >= 0 ; i--)
+			{
+                stack.Push(inString[i]);
+			}
+        }
+
         /// <summary>
         /// (Attempts to) Pop a Funge98 null terminated string off the stack
         /// </summary>
         /// <param name="stack">The input stack</param>
         /// <param name="isPath">If the intended string is a file path it will do clean up to ensure it is executable</param>
         /// <returns>Returns the string from the stack or an empty string if there was not enough characters on the stack</returns>
-        public static string PopString(Stack<int> stack, bool isPath = false)
+        public static string StringPop(Stack<int> stack, bool isPath = false)
         {
             string outString = "";
             char c;
@@ -56,7 +64,16 @@ namespace BefungeSharp
             return outString;
         }
 
-        public static Vector2 PopVector(Stack<int> stack)
+        public static void VectorPush(Stack<int> stack, Vector2 v)
+        {
+            int b = v.y;
+            int a = v.x;
+
+            stack.Push(a);
+            stack.Push(b);
+        }
+
+        public static Vector2 VectorPop(Stack<int> stack)
         {
             int stackOriginalCount = stack.Count;
 

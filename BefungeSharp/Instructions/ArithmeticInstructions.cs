@@ -16,7 +16,7 @@ namespace BefungeSharp.Instructions.Arithmetic
     */
     public abstract class ArithmeticInstruction : Instruction, IRequiresPop
     {
-        public ArithmeticInstruction(char inName, UInt32 minimum_flags) : base(inName, CommandType.Arithmetic, ConsoleColor.Green, minimum_flags) { }
+        public ArithmeticInstruction(char inName, int minimum_flags) : base(inName, CommandType.Arithmetic, ConsoleColor.Green, minimum_flags) { }
 
         /// <summary>
         /// Implements IStackAltering
@@ -33,7 +33,7 @@ namespace BefungeSharp.Instructions.Arithmetic
     /// </summary>
     public class AddInstruction : ArithmeticInstruction
     {
-        public AddInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public AddInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -48,7 +48,7 @@ namespace BefungeSharp.Instructions.Arithmetic
     /// </summary>
     public class SubtractInstruction : ArithmeticInstruction
     {
-        public SubtractInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public SubtractInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -65,7 +65,7 @@ namespace BefungeSharp.Instructions.Arithmetic
     /// </summary>
     public class MultiplyInstruction : ArithmeticInstruction
     {
-        public MultiplyInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public MultiplyInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -80,7 +80,7 @@ namespace BefungeSharp.Instructions.Arithmetic
     /// </summary>
     public class DivideInstruction : ArithmeticInstruction
     {
-        public DivideInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public DivideInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -106,7 +106,7 @@ namespace BefungeSharp.Instructions.Arithmetic
     /// </summary>
     public class ModuloInstruction : ArithmeticInstruction
     {
-        public ModuloInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public ModuloInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {

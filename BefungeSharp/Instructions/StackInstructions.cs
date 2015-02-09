@@ -13,7 +13,7 @@ namespace BefungeSharp.Instructions.Stack
         /// </summary>
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
-        public StackInstruction(char inName, UInt32 minimum_flags) : base(inName, CommandType.StackManipulation, ConsoleColor.DarkYellow, minimum_flags) { }
+        public StackInstruction(char inName, int minimum_flags) : base(inName, CommandType.StackManipulation, ConsoleColor.DarkYellow, minimum_flags) { }
     }
 
     /// <summary>
@@ -26,7 +26,7 @@ namespace BefungeSharp.Instructions.Stack
         /// </summary>
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
-        public DuplicateInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public DuplicateInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
         
         public bool CanPushCells()
         {
@@ -57,7 +57,7 @@ namespace BefungeSharp.Instructions.Stack
         /// </summary>
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
-        public PopInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public PopInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
 
         public int RequiredCells()
         {
@@ -77,7 +77,7 @@ namespace BefungeSharp.Instructions.Stack
     /// </summary>
     public class SwapInstruction : StackInstruction, IRequiresPush, IRequiresPop
     {
-        public SwapInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { }
+        public SwapInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -113,7 +113,7 @@ namespace BefungeSharp.Instructions.Stack
         /// </summary>
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
-        public ClearStackInstruction(char inName, UInt32 minimum_flags) : base(inName, minimum_flags) { stackSize = 0; }
+        public ClearStackInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { stackSize = 0; }
 
         public int RequiredCells()
         {
