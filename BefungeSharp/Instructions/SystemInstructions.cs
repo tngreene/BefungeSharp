@@ -64,6 +64,10 @@ namespace BefungeSharp.Instructions.SystemCalls
 
         public override bool Preform(IP ip)
         {
+            //Instead of putting all 20 values on the stack only to remove 19 or 20 of them we simply
+            //imitate the end result and move on. If someone can tell me why the spec should be followed to the
+            //letter please e-mail the author. They would greatly appreciate it.
+            
             base.EnsureStackSafety(ip.Stack, RequiredCells());
             int initialTOSS_Size = ip.Stack.Count;
 
@@ -263,9 +267,11 @@ namespace BefungeSharp.Instructions.SystemCalls
                         break;
                     default:
                         {
-                            ip.Stack.DefaultIfEmpty(0);
+                            //Since it is impossible to get stack[20-20]
+                            //We must ensure we can atleast access stack[1]
+                            base.EnsureStackSafety(ip.Stack, (toExamine - 20) + 1);
                             //If it is greater than 20 we will be "picking" off the stack
-                            int result = ip.Stack.ElementAtOrDefault((ip.Stack.Count - 1) - (toExamine - 20));
+                            int result = ip.Stack.ElementAtOrDefault(toExamine - 20);
                             ip.Stack.Push(result);
                         }
                         break;
@@ -281,17 +287,6 @@ namespace BefungeSharp.Instructions.SystemCalls
                 toTake--;
             }
             return true;
-
-            /* Why the following doesn't follow the spec exactly:
-             *  
-             * This business of putting everything on the stack and removing it seems to me like a very large increase in complexity and time
-             * for no purpose what so ever. The only thing I can imagine this needing for is testing if 0y will induce a stack overflow,
-             * which is useless given it will end most interpreters.
-             * 
-             * Instead my code imitates the end result without the massive push and pop operations
-             * the spec requires. If you disagree with me please send an email 
-             * to theodorengreene@gmail.com and tell me why it matters. I would greatly appreciate it.
-            */
         }
 
         public int RequiredCells()

@@ -53,6 +53,8 @@
     <Compile Include="BoardInterpreter.cs" />
     <Compile Include="ClipboardTools.cs" />
     <Compile Include="FileUtils.cs" />
+    <Compile Include="FungeSpace\FungeSpaceUtils.cs" />
+    <Compile Include="FungeSpace\FungeSparseMatrix.cs" />
     <Compile Include="Instructions\ArithmeticInstructions.cs" />
     <Compile Include="Instructions\DeltaInstructions.cs" />
     <Compile Include="Instructions\FlowControlInstructions.cs" />
