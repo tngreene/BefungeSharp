@@ -49,7 +49,8 @@ namespace BefungeSharp.FungeSpace
         }
 
         /// <summary>
-        /// Gets and sets the north Node
+        /// Gets and sets the north Node,
+        /// set is internal so the matrix cannot be pulled apart
         /// </summary>
         public FungeNode North
         {
@@ -57,7 +58,8 @@ namespace BefungeSharp.FungeSpace
             internal set { north = value; }
         }
         /// <summary>
-        /// Gets and sets the east Node
+        /// Gets and sets the east Node,
+        /// set is internal so the matrix cannot be pulled apart
         /// </summary>
         public FungeNode East
         {
@@ -66,6 +68,7 @@ namespace BefungeSharp.FungeSpace
         }
         /// <summary>
         /// Gets and sets the south Node
+        /// set is internal so the matrix cannot be pulled apart
         /// </summary>
         public FungeNode South
         {
@@ -73,7 +76,8 @@ namespace BefungeSharp.FungeSpace
             internal set { south = value; }
         }
         /// <summary>
-        /// Gets and sets the west Node
+        /// Gets and sets the west Node,
+        /// set is internal so the matrix cannot be pulled apart
         /// </summary>
         public FungeNode West
         {
@@ -94,8 +98,6 @@ namespace BefungeSharp.FungeSpace
             east = this;
             south = this;
             west = this;
-
-            Random rnd = new Random();
         }
 
         public override string ToString()
@@ -117,10 +119,10 @@ namespace BefungeSharp.FungeSpace
         /// <summary>
         /// The Origin, at 0,0 in the matrix. Is always ensured to exist.
         /// </summary>
-        public FungeNode Origin { get { return m_Origin; } }
+        public FungeNode Origin { get { return m_Origin; } private set { m_Origin = value; } }
 
         /// <summary>
-        /// Instantiates a new FungeSparseMatrix
+        /// Instantiates a new blank FungeSparseMatrix
         /// </summary>
         public FungeSparseMatrix()
         {
@@ -132,13 +134,7 @@ namespace BefungeSharp.FungeSpace
             data.value = ' ';
 
             m_Origin = new FungeNode(data);
-
-            //Create a torus of one
-            m_Origin.North = m_Origin;
-            m_Origin.East = m_Origin;
-            m_Origin.South = m_Origin;
-            m_Origin.West = m_Origin;
-
+            
             m_Nodes.Add(m_Origin);
         }
 
@@ -157,14 +153,7 @@ namespace BefungeSharp.FungeSpace
 
             m_Origin = new FungeNode(data);
 
-            //Create a torus of one
-            m_Origin.North = m_Origin;
-            m_Origin.East = m_Origin;
-            m_Origin.South = m_Origin;
-            m_Origin.West = m_Origin;
-
             m_Nodes.Add(m_Origin);
-
 
             for (int y = 0; y < rows; y++)
             {
@@ -504,14 +493,20 @@ namespace BefungeSharp.FungeSpace
 
         }
 
+        /// <summary>
+        /// Attempts to hook a new node's North and South to the next
+        /// availble node above and below it as needed.
+        /// </summary>
+        /// <param name="attempt_origin">The new node to attempt this</param>
+        /// <returns>Returns true if the any hook, N or S, was made. False if not.</returns>
         private bool AttemptCoupling(FungeNode attempt_origin)
         {
-            //Problem: Cells where x != 0, and garunteed for new cells, may not have their and NS hooked up
+            //Problem: Cells where x != 0, may not have their and N or S hooked up when they could and should be
 
-            //Solution: Every new cell has the burden of attaching to any closest cell (which could be adjacent) to the N or S if the new cell's x matches with their x
-            //The Search: We travel back to the central column (0,y) and travel up a row, attempt to traverse it until we find a node with the same x location as our original
-            //We continue going up rows and searching until we arrive back at the same row. If one is found above it, the North is hooked up. If bellow the South is hooked up.
-
+            //Solution: Every new cell must attempt to attach to their closest possible node to their North or South.
+            //The Search: We travel back to the central column (0,y) and travel up each row, searching until we find a place where the x locations match.
+            //We hook up applicable nodes until we arrive back at the row we started at.
+            
             FungeNode traverse = attempt_origin;
 
             //Move back to the central column
@@ -526,15 +521,15 @@ namespace BefungeSharp.FungeSpace
             traverse = traverse.North;
 
             //Our current place in the "spine" of the central column
-            FungeNode centralColumn = traverse;
+            FungeNode vertibrae = traverse;
 
             FungeNode northNode = null;
             FungeNode southNode = null;
 
-            while(centralColumn.Data.y != attempt_origin.Data.y)
+            while(vertibrae.Data.y != attempt_origin.Data.y)
             {
                 //Start at the vertibrae
-                traverse = centralColumn;
+                traverse = vertibrae;
                 
                 do
                 {
@@ -565,10 +560,10 @@ namespace BefungeSharp.FungeSpace
                         }
                     }
                 }
-                while (traverse.Data.x != centralColumn.Data.x);
+                while (traverse.Data.x != vertibrae.Data.x);
                 
                 //Go up to the next vertibrae
-                centralColumn = centralColumn.North;
+                vertibrae = vertibrae.North;
             }
             
             //now that we (possibly have the north and south nodes found its time to connect them up to the attempt_origin
@@ -597,6 +592,10 @@ namespace BefungeSharp.FungeSpace
             return true;
         }
 
+        /// <summary>
+        /// Attempts to print all the cells in funge space,
+        /// it is not aligned or made extra pretty.
+        /// </summary>
         public void PrintFungeSpace()
         {
             FungeNode f = m_Nodes[0];
