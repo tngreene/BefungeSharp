@@ -49,36 +49,36 @@ namespace BefungeSharp.FungeSpace
         }
 
         /// <summary>
-        /// Gets and sets the next Node
+        /// Gets and sets the north Node
         /// </summary>
         public FungeNode North
         {
             get { return north; }
-            set { north = value; }
+            internal set { north = value; }
         }
         /// <summary>
-        /// Gets and sets the next Node
+        /// Gets and sets the east Node
         /// </summary>
         public FungeNode East
         {
             get { return east; }
-            set { east = value; }
+            internal set { east = value; }
         }
         /// <summary>
-        /// Gets and sets the next Node
+        /// Gets and sets the south Node
         /// </summary>
         public FungeNode South
         {
             get { return south; }
-            set { south = value; }
+            internal set { south = value; }
         }
         /// <summary>
-        /// Gets and sets the next Node
+        /// Gets and sets the west Node
         /// </summary>
         public FungeNode West
         {
             get { return west; }
-            set { west = value; }
+            internal set { west = value; }
         }
 
         /// <summary>
@@ -365,7 +365,7 @@ namespace BefungeSharp.FungeSpace
             {
                 //Create our column on our row
                 column_node = InsertColumn(cell, row_node);
-
+                bool connectedNoS = AttemptCoupling(column_node);
                 //Now we'll add it to the list only after we know it didn't exist before
                 m_Nodes.Add(column_node);
                 return;
@@ -506,24 +506,95 @@ namespace BefungeSharp.FungeSpace
 
         private bool AttemptCoupling(FungeNode attempt_origin)
         {
-            //Problem: Every cell at [0,y] will have it's NESW taken care of, due to the rows first and "anchored garuntee".
-            //Every cell at [x where x != 0,y] will have is EW taken care of, due to columns always being inserted on real rows. However,
-            //Every new cell at [x where x != 0,y] will not have it's NS taken care of and some old cells at [x where x != 0, y] will not have their NS
-            //taken care of. This exists when initially there was nothing above or bellow to attach to, but later on there is
+            //Problem: Cells where x != 0, and garunteed for new cells, may not have their and NS hooked up
 
             //Solution: Every new cell has the burden of attaching to any closest cell (which could be adjacent) to the N or S if the new cell's x matches with their x
-            //The Search: We travel back to the central column (0,y)
-            //1. From the starting origin, move back one in it's row to the last node it encountered before being inserted
-            FungeNode traverse = attempt_origin.West;
+            //The Search: We travel back to the central column (0,y) and travel up a row, attempt to traverse it until we find a node with the same x location as our original
+            //We continue going up rows and searching until we arrive back at the same row. If one is found above it, the North is hooked up. If bellow the South is hooked up.
 
-            //2. Now we attempt as hard as we can to find some  to travel upward to a node that isn't us
-            while (traverse.North != attempt_origin.West)
+            FungeNode traverse = attempt_origin;
+
+            //Move back to the central column
+            while (traverse.Data.x != 0)
             {
-                traverse = traverse.North;
+                //If this turns out to be very slow
+                //We'll add some heuristics
+                traverse = traverse.East;
+            }
+            
+            //Attempt to go north one column
+            traverse = traverse.North;
+
+            //Our current place in the "spine" of the central column
+            FungeNode centralColumn = traverse;
+
+            FungeNode northNode = null;
+            FungeNode southNode = null;
+
+            while(centralColumn.Data.y != attempt_origin.Data.y)
+            {
+                //Start at the vertibrae
+                traverse = centralColumn;
+                
+                do
+                {
+                    //Travel around the row
+                    traverse = traverse.East;
+                    //We get find a place where the x's line up
+                    if (traverse.Data.x == attempt_origin.Data.x)
+                    {
+                        //Now we test if we are north or south of the original attempt
+                        //Remember, y increases as we go down and number != north or south!
+                        if (traverse.Data.y > attempt_origin.Data.y)
+                        {
+                            if (southNode == null)
+                            {
+                                //Traverse is our south node
+                                southNode = traverse;
+                            }
+                            break;
+                        }
+                        else if (traverse.Data.y < attempt_origin.Data.y)
+                        {
+                            if (northNode == null)
+                            {
+                                //Traverse is our north node
+                                northNode = traverse;
+                            }
+                            break;
+                        }
+                    }
+                }
+                while (traverse.Data.x != centralColumn.Data.x);
+                
+                //Go up to the next vertibrae
+                centralColumn = centralColumn.North;
+            }
+            
+            //now that we (possibly have the north and south nodes found its time to connect them up to the attempt_origin
+            if (northNode != null)
+            {
+                attempt_origin.North = northNode;
+                attempt_origin.South = northNode.South;
+
+                northNode.South.North = attempt_origin;
+                northNode.South = attempt_origin;
             }
 
-            //There are now 
-            return false;
+            if (southNode != null)
+            {
+                attempt_origin.South = southNode;
+                attempt_origin.North = southNode.North;
+
+                southNode.North.South = attempt_origin;
+                southNode.North = attempt_origin;
+            }
+
+            if (northNode == null && southNode == null)
+            {
+                return false;
+            }
+            return true;
         }
 
         public void PrintFungeSpace()
