@@ -386,7 +386,7 @@ namespace BefungeSharp.FungeSpace
             {
                 //Keep moving while cell.y is bigger than the current cell.y
                 //and we haven't reached the end of the list yet
-                while (cell.y > traverse.South.Data.y && traverse.South != operation_origin)
+                while (cell.y > traverse.South.Data.y/* && traverse.South != operation_origin*/)
                 {
                     //If the next thing is actually a negative number
                     if (traverse.South.Data.y <= 0)
@@ -408,7 +408,7 @@ namespace BefungeSharp.FungeSpace
             {
                 //Keep moving while cell.y is smaller than the current cell.y
                 //and we haven't reached the end of the list yet
-                while (cell.y < traverse.North.Data.y && traverse != operation_origin.North)
+                while (cell.y < traverse.North.Data.y /*&& traverse.North != operation_origin*/)
                 {
                     //If the next thing is actually a positive number
                     if (traverse.North.Data.y >= 0)
@@ -449,7 +449,7 @@ namespace BefungeSharp.FungeSpace
             {
                 //Keep moving while cell.x is bigger than the current cell.x
                 //and we haven't reached the end of the list yet
-                while (cell.x > traverse.East.Data.x && traverse.East != operation_origin)
+                while (cell.x > traverse.East.Data.x /*&& traverse.East != operation_origin*/)
                 {
                     //If the next thing is actually a negative number
                     if (traverse.East.Data.x <= 0)
@@ -471,7 +471,7 @@ namespace BefungeSharp.FungeSpace
             {
                 //Keep moving while cell.x is smaller than the current cell.x
                 //and we haven't reached the end of the list yet
-                while (cell.x < traverse.West.Data.x && traverse != operation_origin.West)
+                while (cell.x < traverse.West.Data.x /*&& traverse.West != operation_origin*/)
                 {
                     //If the next thing is actually a positive number
                     if (traverse.West.Data.x >= 0)
