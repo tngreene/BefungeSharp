@@ -154,7 +154,7 @@ namespace BefungeSharp
         /// <returns></returns>
         public int GetCurrentCell()
         {
-            return Program.GetBoardManager().GetCharacter(this.Position.y, this.Position.x);
+            return Program.BoardManager.GetCharacter(this.Position.y, this.Position.x);
         }
         public override string ToString()
         {

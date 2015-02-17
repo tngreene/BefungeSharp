@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 
+using BefungeSharp.FungeSpace;
 namespace BefungeSharp
 {
     enum ProgramMode
@@ -20,12 +21,16 @@ namespace BefungeSharp
 
     public class Program
     {
-        private static BoardManager s_board_manager;// = new BoardManager(0, 0);
-        //public BoardManager BoardManager { get { return s_board_manager; } }
+        private static BoardManager s_board_manager;
+        public static BoardManager BoardManager { get { return s_board_manager; } }
 
+        private static WindowUI s_window_UI;
+        public static WindowUI WindowUI { get { return s_window_UI; } set { s_window_UI = value; } }
+        
         [STAThread]
         static void Main(string[] args)
         {
+            //FungeSpaceUtils.TestMatrix();
             /* 1.) Attempt to read program options, if none create defaults
              * 2.) Ask user to select program mode
              * 3.) Run that mode's update method
@@ -117,16 +122,13 @@ namespace BefungeSharp
 
                 Console.Clear();
 
-                //Create the board and inialize it based on the above
-                //(you also have the potential to enter the options or help
-                BoardManager board;
-
                 switch (programMode)
                 {
                     case ProgramMode.NewFile:
                         List<string> s = new List<string>();
                         //s.Add("\"dlroW olleH\">:#,_@");
                         s_board_manager = new BoardManager(25, 80, s);
+
                         s_board_manager.UpdateBoard();
                         break;
                     case ProgramMode.OpenFile:
@@ -157,10 +159,6 @@ namespace BefungeSharp
             }//While(runProgram)
         }//Main(string[]args)
 
-        public static BoardManager GetBoardManager()
-        {
-            return s_board_manager;
-        }
 
         static List<string> OpenSubMenu()
         {

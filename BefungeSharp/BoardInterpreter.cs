@@ -397,30 +397,30 @@ namespace BefungeSharp
                             if (succeded == true)
                             {
                                 _IPs[n].Stack.Push(outResult);
-                                _boardRef.UI.AddText(input, BoardUI.Categories.IN);
+                                Program.WindowUI.AddText(input, WindowUI.Categories.IN);
                             }
                             else
                             {
                                 _IPs[n].Stack.Push(0);
-                                _boardRef.UI.AddText("0", BoardUI.Categories.IN);
+                                Program.WindowUI.AddText("0", WindowUI.Categories.IN);
                             }
                             break;
                         case '~'://Read char
                             //TODO - allow for mass input
                             char charInput = Console.ReadKey(true).KeyChar;
                             _IPs[n].Stack.Push((int)charInput);
-                            _boardRef.UI.AddText(charInput.ToString(), BoardUI.Categories.IN);
+                            Program.WindowUI.AddText(charInput.ToString(), WindowUI.Categories.IN);
                             break;
                         case ','://Output character
                             {
                                 char outChar = (char)_IPs[n].Stack.Pop();
                                 string outVal = outChar.ToString();
 
-                                _boardRef.UI.AddText(outVal, BoardUI.Categories.OUT);
+                                Program.WindowUI.AddText(outVal, WindowUI.Categories.OUT);
                             }
                             break;
                         case '.'://Output as number
-                            _boardRef.UI.AddText(_IPs[n].Stack.Pop().ToString(), BoardUI.Categories.OUT);
+                            Program.WindowUI.AddText(_IPs[n].Stack.Pop().ToString(), WindowUI.Categories.OUT);
                             break;
                         //Funge 98 stack manipulation
                         //TODO - implement

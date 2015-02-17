@@ -25,7 +25,7 @@ namespace BefungeSharp.Instructions.Storage
         {
             base.EnsureStackSafety(ip.Stack, RequiredCells());
             Vector2 v = StackUtils.VectorPop(ip.Stack);
-            char foundChar = Program.GetBoardManager().GetCharacter(v.y, v.x);
+            char foundChar = Program.BoardManager.GetCharacter(v.y, v.x);
 
             if (CanPushCells() == true)
             {
@@ -60,7 +60,7 @@ namespace BefungeSharp.Instructions.Storage
             Vector2 v = StackUtils.VectorPop(ip.Stack);
             
             int charToPlace = ip.Stack.Pop();
-            bool couldPlace = Program.GetBoardManager().PutCharacter(v.y, v.x, (char)charToPlace);
+            bool couldPlace = Program.BoardManager.PutCharacter(v.y, v.x, (char)charToPlace);
 
             return couldPlace;
         }

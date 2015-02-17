@@ -7,9 +7,8 @@ using BefungeSharp.UI;
 
 namespace BefungeSharp
 {
-    public class BoardUI
+    public class WindowUI
     {
-        private BoardManager _boardRef;
         private BoardInterpreter _interpRef;
         /* The board UI area extends from a (currently arbitray/hardcoded area) from row 26 to row 31 and columns 0 through 80
          * except for the space [31,80] which makes it go to a new line
@@ -49,9 +48,8 @@ namespace BefungeSharp
 
         private Selection _selection;
         
-        public BoardUI(BoardManager mgr, BoardInterpreter interp)
+        public WindowUI(BoardInterpreter interp)
         {
-            _boardRef = mgr;
             _interpRef = interp;
 
             //All of the rows follow after each other
@@ -80,10 +78,8 @@ namespace BefungeSharp
         /// <param name="mode">The mode of the board</param>
         public void Draw(BoardMode mode)
         {
-
             DrawField(mode);
             DrawInfo(mode);
-            
 
             switch (mode)
             {
@@ -206,13 +202,13 @@ namespace BefungeSharp
         public void ClearArea(BoardMode mode)
         {
             //De-create the boarder of the playing field
-            for (int row = 0; row < _boardRef.BoardArray.Count; row++)
+            for (int row = 0; row < UI_RIGHT; row++)
             {
-                ConEx.ConEx_Draw.InsertCharacter(' ', row, _boardRef.BoardArray[0].Count);
+                ConEx.ConEx_Draw.InsertCharacter(' ', row, UI_RIGHT);
             }
 
-            string bottom = new string(' ', _boardRef.BoardArray[0].Count);
-            ConEx.ConEx_Draw.InsertString(bottom, _boardRef.BoardArray.Count, 0, false);
+            string bottom = new string(' ', UI_RIGHT);
+            ConEx.ConEx_Draw.InsertString(bottom, UI_RIGHT, 0, false);
 
             ConEx.ConEx_Draw.FillArea(' ', UI_TOP, 0, ConEx.ConEx_Draw.Dimensions.width, ConEx.ConEx_Draw.Dimensions.height);
         }
@@ -329,7 +325,7 @@ namespace BefungeSharp
                 for (int r = _selection.dimensions.Top; r <= _selection.dimensions.Bottom; r++)
                 {
                     char prevChar = '\0';
-                    prevChar = _boardRef.GetCharacter(r,c);
+                    prevChar = Program.BoardManager.GetCharacter(r,c);
 
                     if (prevChar != '\0')
                     {
@@ -389,7 +385,7 @@ namespace BefungeSharp
                             case ConsoleKey.Delete:
                                 if (_selection.content.Count == 0)
                                 {
-                                    bool success = _boardRef.PutCharacter(_interpRef.EditIP.Position.y, _interpRef.EditIP.Position.x, ' ');
+                                    bool success = Program.BoardManager.PutCharacter(_interpRef.EditIP.Position.y, _interpRef.EditIP.Position.x, ' ');
                                 }
                                 else
                                 {
@@ -404,7 +400,7 @@ namespace BefungeSharp
                                     nVec.Negate();
                                     _interpRef.EditIP.Delta = nVec;
                                     _interpRef.EditIP.Move();
-                                    bool success = _boardRef.PutCharacter(_interpRef.EditIP.Position.y, _interpRef.EditIP.Position.x, ' ');
+                                    bool success = Program.BoardManager.PutCharacter(_interpRef.EditIP.Position.y, _interpRef.EditIP.Position.x, ' ');
                                     _interpRef.EditIP.Delta = old;
                                 }
                                 break;
@@ -488,7 +484,7 @@ namespace BefungeSharp
                 string line = "";
                 for (int column = _selection.dimensions.Left; column <= _selection.dimensions.Right; column++)
                 {
-                    line += _boardRef.GetCharacter(row, column);
+                    line += Program.BoardManager.GetCharacter(row, column);
                 }
                 outlines.Add(line);
             }
@@ -511,7 +507,7 @@ BefungeSharp for the logo*/
                 for (int s_column = 0; s_column < _selection.content[s_row].Length; s_column++)
                 {
                     //Put the character in the "real" location + the selection offset
-                    _boardRef.PutCharacter(top + s_row, left + s_column, _selection.content[s_row][s_column]);
+                    Program.BoardManager.PutCharacter(top + s_row, left + s_column, _selection.content[s_row][s_column]);
                 }
             }
 
@@ -613,7 +609,7 @@ BefungeSharp for the logo*/
                 for (int s_column = 0; s_column < _selection.content[s_row].Length; s_column++)
                 {
                     //Put the character in the "real" location + the selection offset
-                    _boardRef.PutCharacter(top + s_row, left + s_column, ' ');
+                    Program.BoardManager.PutCharacter(top + s_row, left + s_column, ' ');
                 }
             }
         }

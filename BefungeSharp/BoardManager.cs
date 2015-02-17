@@ -15,10 +15,7 @@ namespace BefungeSharp
         /// </summary>
         private List<List<char>> _boardArray;
         public List<List<char>> BoardArray { get { return _boardArray; } }
-
-        private BoardUI _UI;
-        public BoardUI UI { get { return _UI; } }
-
+        
         private BoardSideBar _bSideBar;
         private BoardInterpreter _bInterp;
 
@@ -71,14 +68,14 @@ namespace BefungeSharp
                         
             _bInterp = new BoardInterpreter(this, initGlobalStack,mode);
            
-            _UI = new BoardUI(this, _bInterp);
+            Program.WindowUI = new WindowUI(_bInterp);
             _bSideBar = new BoardSideBar(this, _bInterp);
           
             Console.CursorVisible = false;
          
             //Draw the field and ui and reset the position
-            _UI.ClearArea(_bInterp.CurMode);
-            _UI.Draw(_bInterp.CurMode);
+            Program.WindowUI.ClearArea(_bInterp.CurMode);
+            Program.WindowUI.Draw(_bInterp.CurMode);
 
             _bSideBar.ClearArea(_bInterp.CurMode);
             _bSideBar.Draw(_bInterp.CurMode);
@@ -155,7 +152,7 @@ namespace BefungeSharp
                 //Get the current keys
                 ConsoleKeyInfo[] keysHit = ConEx.ConEx_Input.GetInput();
                 Instructions.CommandType type = _bInterp.Update(_bInterp.CurMode, keysHit);
-                                   _UI.Update(_bInterp.CurMode, keysHit);
+                                   Program.WindowUI.Update(_bInterp.CurMode, keysHit);
                                    _bSideBar.Update(_bInterp.CurMode, keysHit);
 
                 //Based on what mode it is handle those keys
@@ -224,8 +221,8 @@ namespace BefungeSharp
                     this.Draw(_bInterp.CurMode);
 
                     //Draw the UI and selection to override the black
-                    _UI.ClearArea(_bInterp.CurMode);
-                    _UI.Draw(_bInterp.CurMode);
+                    Program.WindowUI.ClearArea(_bInterp.CurMode);
+                    Program.WindowUI.Draw(_bInterp.CurMode);
 
                     //Draw the IP ontop of the board
                     _bInterp.DrawIP();

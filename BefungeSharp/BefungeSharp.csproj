@@ -49,7 +49,7 @@
   <ItemGroup>
     <Compile Include="BoardSideBar.cs" />
     <Compile Include="BoardManager.cs" />
-    <Compile Include="BoardUI.cs" />
+    <Compile Include="WindowUI.cs" />
     <Compile Include="BoardInterpreter.cs" />
     <Compile Include="ClipboardTools.cs" />
     <Compile Include="FileUtils.cs" />

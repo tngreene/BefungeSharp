@@ -52,7 +52,7 @@ namespace BefungeSharp.Instructions.String
             int x = ip.Stack.Pop();
 
             int charToPlace = ip.Stack.Pop();
-            bool couldPlace = Program.GetBoardManager().PutCharacter(y, x, (char)charToPlace);
+            bool couldPlace = Program.BoardManager.PutCharacter(y, x, (char)charToPlace);
             //The IP will be moved again when the instruction is finised calling
             return true;
         }
