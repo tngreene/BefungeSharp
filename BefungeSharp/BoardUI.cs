@@ -333,7 +333,13 @@ namespace BefungeSharp
 
                     if (prevChar != '\0')
                     {
-                        ConEx.ConEx_Draw.SetAttributes(r, c, BoardManager.LookupInfo(prevChar).color, ConsoleColor.DarkGreen);
+                        ConsoleColor color = ConsoleColor.White;
+                        if (prevChar >= ' ' || prevChar <= '~')
+                        {
+                            color = Instructions.InstructionManager.InstructionSet[prevChar].Color;
+                        }
+
+                        ConEx.ConEx_Draw.SetAttributes(r, c, color, ConsoleColor.DarkGreen);
                     }
                 }
             }

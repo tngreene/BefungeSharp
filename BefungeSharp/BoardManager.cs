@@ -145,6 +145,8 @@ namespace BefungeSharp
             //Keep going until we return something
             while (true)
             {
+
+                var watch = System.Diagnostics.Stopwatch.StartNew();
                 //Find out what modifier keys are being held down
                 bool shift = ConEx.ConEx_Input.ShiftDown;
                 bool alt = ConEx.ConEx_Input.AltDown;
@@ -152,7 +154,7 @@ namespace BefungeSharp
 
                 //Get the current keys
                 ConsoleKeyInfo[] keysHit = ConEx.ConEx_Input.GetInput();
-                CommandType type = _bInterp.Update(_bInterp.CurMode, keysHit);
+                Instructions.CommandType type = _bInterp.Update(_bInterp.CurMode, keysHit);
                                    _UI.Update(_bInterp.CurMode, keysHit);
                                    _bSideBar.Update(_bInterp.CurMode, keysHit);
 
@@ -208,7 +210,7 @@ namespace BefungeSharp
                         //After the cursor has finished its drawing restore it to the old position
                         break;
                 }//switch(currentMode)
-                
+
                 //Draw all components of the board
                 //First clear it's area, then draw it
                 if (true)
@@ -229,6 +231,7 @@ namespace BefungeSharp
                     _bInterp.DrawIP();
                     ConEx.ConEx_Draw.DrawScreen();
                 }
+                double mm = watch.ElapsedMilliseconds;
                 //Based on the mode sleep the program so it does not scream by
                 System.Threading.Thread.Sleep((int)_bInterp.CurMode);
             }//while(true)
@@ -294,180 +297,21 @@ namespace BefungeSharp
                 for (int column = 0; column < _boardArray[0].Count; column++)
                 {
                     char character = GetCharacter(row,column);
-                    ConEx.ConEx_Draw.InsertCharacter(character, row, column, LookupInfo(character).color, ConsoleColor.Black);
+                    ConsoleColor color = ConsoleColor.White;
+
+                    try
+                    {
+                        color = Instructions.InstructionManager.InstructionSet[character].Color;
+                    }
+                    catch(Exception e)
+                    {
+                    }
+
+                    ConEx.ConEx_Draw.InsertCharacter(character, row, column, color, ConsoleColor.Black);
                 }
             }
         }
-        
-
-        /// <summary>
-        /// Based on the character return the CommandInfo associated with it
-        /// </summary>
-        /// <param name="inChar">The character to reference</param>
-        /// <returns>The corisponding CommandInfo</returns>
-        public static CommandInfo LookupInfo(char inChar)
-        {
-            switch (inChar)
-            {
-                //Logic
-                case '!':
-                case '_':
-                case '|':
-                    return new CommandInfo(inChar, CommandType.Logic, ConsoleColor.DarkGreen, 1);
-                case '`':
-                case 'w':
-                    return new CommandInfo(inChar, CommandType.Logic, ConsoleColor.DarkGreen, 2);
-
-                //Flow control
-                case '^':
-                case '>':
-                case '<':
-                case 'v':
-                case '?':
-                case '#':  
-                //Funge-98 flow control
-                case '[':
-                case ']':
-                case 'r':
-                case ';':
-                    CommandInfo flowCommand = new CommandInfo(inChar, CommandType.Movement, ConsoleColor.Cyan, 0);
-                    return flowCommand;
-                case 'j':
-                case 'k':
-                    CommandInfo flowCommand98 = new CommandInfo(inChar, CommandType.Movement, ConsoleColor.Cyan, 1);
-                    return flowCommand98;
-                case 'x':
-                    return new CommandInfo(inChar, CommandType.Movement, ConsoleColor.Cyan, 2);
-                case '@':
-                case 'q':
-                    CommandInfo stopCommand = new CommandInfo(inChar, CommandType.StopExecution, ConsoleColor.Red, 0);
-                    return stopCommand;
-                    
-                
-                //Arithmetic
-                case '*':
-                case '+':
-                case '-':
-                case '/':
-                case '%':
-                    CommandInfo ArithmeticCommand = new CommandInfo(inChar, CommandType.Arithmetic, ConsoleColor.Green, 2);
-                    return ArithmeticCommand;
-                //Numbers
-                case '0':
-                case '1':
-                case '2':
-                case '3':
-                case '4':
-                case '5':
-                case '6':
-                case '7':
-                case '8':
-                case '9':
-                case 'a':
-                case 'b':
-                case 'c':
-                case 'd':
-                case 'e':
-                case 'f':
-                    CommandInfo numberCommand = new CommandInfo(inChar, CommandType.Numbers, ConsoleColor.Magenta, -1);
-                    return numberCommand;
-
-                //Stack Manipulation
-                CommandInfo stackManipCommand;
-                case ':':
-                    stackManipCommand = new CommandInfo(inChar, 
-                                                        CommandType.StackManipulation, 
-                                                        ConsoleColor.DarkYellow, 1);//Technically we're not poping
-                                                                                    //But it does require something on the stack
-                    return stackManipCommand;
-                case '$':
-                    stackManipCommand = new CommandInfo(inChar, CommandType.StackManipulation, ConsoleColor.DarkYellow, 1);
-                    return stackManipCommand;
-                case '\\':
-                    stackManipCommand = new CommandInfo(inChar, CommandType.StackManipulation, ConsoleColor.DarkYellow, 2);
-                    return stackManipCommand;
-                case 'n':
-                    return new CommandInfo(inChar, CommandType.StackManipulation, ConsoleColor.DarkYellow, 1);//Op must be >=1 on stack
-                    
-                //IO
-                case '&':
-                case '~':
-                    return new CommandInfo(inChar, CommandType.IO, ConsoleColor.Gray, -1);
-                case ',':
-                case '.':
-                    return new CommandInfo(inChar, CommandType.IO, ConsoleColor.Gray, 1);
-                //Funge-98
-                case 'i':
-                case 'o':
-                    return new CommandInfo(inChar,
-                                           CommandType.FileIO,
-                                           ConsoleColor.Gray,-Int32.MaxValue);//Beware, must be a try catch operation!
-                //Data Storage
-                case 'g':
-                    return new CommandInfo(inChar, CommandType.DataStorage, ConsoleColor.Green, 2);
-                case 'p':
-                    return new CommandInfo(inChar, CommandType.DataStorage, ConsoleColor.Green, 3);
-                //String Manipulation
-                case '"':
-                    return new CommandInfo(inChar, CommandType.String, ConsoleColor.Green, 0);
-                case 't'://Split IP, for concurrent Funge
-                    return new CommandInfo(inChar, CommandType.Concurrent, ConsoleColor.DarkBlue, 0);
-                case 's':
-
-                case '\''://This is the ' charector
-            
-                
-
-                //Stack-Stack Manipulation 98
-                case 'u':
-                case '{':
-                case '}':
-
-                //Funge-98 ONLY Schematics
-                case '=':
-                //Handprint stuff
-                case 'y':
-                //Footprint stuff
-                case '(':
-                case ')':
-                case 'A':
-                case 'B':
-                case 'C':
-                case 'D':
-                case 'E':
-                case 'F':
-                case 'G':
-                case 'H':
-                case 'I':
-                case 'J':
-                case 'K':
-                case 'L':
-                case 'M':
-                case 'N':
-                case 'O':
-                case 'P':
-                case 'Q':
-                case 'R':
-                case 'S':
-                case 'T':
-                case 'U':
-                case 'V':
-                case 'W':
-                case 'X':
-                case 'Y':
-                case 'Z':
-
-                //Trefunge
-                case 'h'://Go high, 3D movement
-                case 'l'://Go low, 3D movement
-                case 'm'://3D if statment
-                case 'z'://Does not exist - TODO its actually nop
-                //---------------------------
-                    return new CommandInfo(inChar, CommandType.NotImplemented, ConsoleColor.DarkRed, 0);        
-            }
-            return new CommandInfo(inChar, CommandType.NotImplemented, ConsoleColor.White, 0);//For all other non instructions
-        }
-
+      
         /// <summary>
         /// Saves the current board to the default save location
         /// </summary>

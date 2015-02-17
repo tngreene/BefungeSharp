@@ -6,56 +6,7 @@ using System.Threading.Tasks;
 
 namespace BefungeSharp
 {
-    //Types of commands that there could be
-    public enum CommandType
-    {
-        //These are not necissarily complete lists
-        Movement,//>v^<?
-        FlowControl,//#@;jqk
-        Logic,//!_|`
-        
-        Arithmetic,//Operators like +-*/
-        Numbers,//0-9,a-f that will be pushed onto the stack
-        StackManipulation,//:$u{}
-        DataStorage,//gp
-        IO,//&~,.
-        FileIO,//io
-        System,//=y
-        StopExecution,//@
-        String,//"
-        Concurrent,//t
-        Trefunge,//hlm
-        NotImplemented,//Many of the Funge-98 instructions. For now! - 12/31/2014
-        Nop//z and ' '
-    }
-
-    /// <summary>
-    /// Stores some information about a command
-    /// </summary>
-    public struct CommandInfo
-    {
-        public char name;//What is the name of it, such as < or | or 4
-        public CommandType type;//What type the command is
-        public ConsoleColor color;//What color to display it as
-        public int requiredCells;//Could be 0 (for things like direction),
-        //1 for things like _ or |, 2 for most things, or 3 for the rare g and p
-        //-1 signifies we are pushing
-        
-        /// <summary>
-        /// A struct to store information relating to a command
-        /// </summary>
-        /// <param name="inName">The char representing it</param>
-        /// <param name="inType">The command type it is</param>
-        /// <param name="inColor">How the console should display it</param>
-        /// <param name="numToPop">How many pop operations you'll need (-1 for push)</param>
-        public CommandInfo(char inName, CommandType inType, ConsoleColor inColor, int numToPop)
-        {
-            name = inName;
-            type = inType;
-            color = inColor;
-            this.requiredCells = numToPop;
-        }
-    }
+    
 
     /// <summary>
     /// An enum of how the board should behave while running
@@ -136,11 +87,11 @@ namespace BefungeSharp
             
         }
 
-        public CommandType Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
+        public Instructions.CommandType Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
             //Save the last position because we're about to take a step
             _Last_IP = _IPs[0].Position;
-            CommandType type = CommandType.NotImplemented;
+            Instructions.CommandType type = Instructions.CommandType.NotImplemented;
 
             bool shift = ConEx.ConEx_Input.ShiftDown;
             bool alt = ConEx.ConEx_Input.AltDown;
@@ -280,7 +231,7 @@ namespace BefungeSharp
                                 break;
                             case ConsoleKey.Escape:
                                 IP.ResetCounter();
-                                return type = CommandType.StopExecution;//Go back to the main menu
+                                return type = Instructions.CommandType.StopExecution;//Go back to the main menu
                             default:
                                 if (keysHit[i].KeyChar >= 32 && keysHit[i].KeyChar <= 126 
                                     && (ConEx.ConEx_Input.AltDown || ConEx.ConEx_Input.CtrlDown) == false)
@@ -333,7 +284,17 @@ namespace BefungeSharp
 
                 //Get the current ip's
                 char characterUnder = _boardRef.GetCharacter(_IPs[n].Position.y, _IPs[n].Position.x);
-                ConEx.ConEx_Draw.SetAttributes(_IPs[n].Position.y, _IPs[n].Position.x, BoardManager.LookupInfo(characterUnder).color, (ConsoleColor)ConsoleColor.Gray + (n % 3) );
+
+                ConsoleColor color = ConsoleColor.White;
+                try
+                {
+                    color = Instructions.InstructionManager.InstructionSet[characterUnder].Color;
+                }
+                catch (Exception e)
+                {
+                }
+
+                ConEx.ConEx_Draw.SetAttributes(_IPs[n].Position.y, _IPs[n].Position.x, color, (ConsoleColor)ConsoleColor.Gray + (n % 3));
             }
         }
 
@@ -371,7 +332,7 @@ namespace BefungeSharp
             return newVector;
         }
 
-        private CommandType TakeStep()
+        private Instructions.CommandType TakeStep()
         {
             //Start at the end of the list
             int n = IPs.Count - 1;
@@ -409,23 +370,17 @@ namespace BefungeSharp
                 {
                     Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
                     cmd = _boardRef.GetCharacter(_IPs[n].Position.y, _IPs[n].Position.x);
-                }
-                
-                CommandInfo info = BoardManager.LookupInfo(cmd);
-
-                
-
-                
+                }             
 
                 bool success = false;
                 try
                 {
                     success = Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
 
-
+                    int x = 1;
                 }
                 
                 if (success == false)
@@ -433,7 +388,7 @@ namespace BefungeSharp
                     {
                         case 'q'://Not fully implimented
                             _curMode = BoardMode.Edit;
-                            return CommandType.StopExecution;
+                            return Instructions.CommandType.StopExecution;
                         //IO
                         case '&'://Read int
                             string input = Console.ReadLine();
@@ -501,10 +456,6 @@ namespace BefungeSharp
                                 childIP.Negate();
                             }
                             break;
-                        //Funge-98 ONLY Schematics
-                        case '=':
-                        //Handprint stuff
-                        case 'y':
                         //Footprint stuff
                         case '(':
                         case ')':
@@ -564,8 +515,8 @@ namespace BefungeSharp
             //TODO - for what though
             Console.SetCursorPosition(_IPs[_IPFollowID].Position.x, _IPs[_IPFollowID].Position.y);
 
-            
-            return CommandType.NotImplemented;//TODO - Needs a better idea
+
+            return Instructions.CommandType.NotImplemented;//TODO - Needs a better idea
         }
     }
 }

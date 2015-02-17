@@ -6,14 +6,56 @@ using System.Threading.Tasks;
 
 namespace BefungeSharp.Instructions
 {
+    //Types of commands that there could be
+    public enum CommandType
+    {
+        //These are not necissarily complete lists
+        Movement,//>v^<?
+        FlowControl,//#@;jqk
+        Logic,//!_|`
+
+        Arithmetic,//Operators like +-*/
+        Numbers,//0-9,a-f that will be pushed onto the stack
+        StackManipulation,//:$u{}
+        DataStorage,//gp
+        IO,//&~,.
+        FileIO,//io
+        System,//=y
+        StopExecution,//@
+        String,//"
+        Concurrent,//t
+        Trefunge,//hlm
+        NotImplemented,//Many of the Funge-98 instructions. For now! - 12/31/2014
+        Nop//z and ' '
+    }
+
     public abstract class Instruction
     {
+        protected char name;
+        /// <summary>
+        /// What is the character that identifys this instruction
+        /// </summary>
+        public char Name { get { return name; } }
         
-        protected char name;//What is the name of it, such as < or | or 4
-        protected CommandType type;//What type the command is
-        protected ConsoleColor color;//What color to display it as
-        protected int flags;//What minimum flags are needed, aka what minimum language and features are required for the instructions to work
+        protected CommandType type;
+        /// <summary>
+        /// What command type the command
+        /// </summary>
+        public CommandType Type { get { return type; } }
 
+        protected ConsoleColor color;
+        /// <summary>
+        /// What custom color to display it as
+        /// </summary>
+        public ConsoleColor Color { get { return color;} }
+        
+        protected int flags;
+        
+        /// <summary>
+        /// What minimum flags are needed, aka what minimum language and features are required for the instructions to work
+        /// </summary>
+        public int MinimumFlags { get { return flags; } }
+        
         public Instruction(char inName, CommandType inType, ConsoleColor inColor, int minimum_flags)
         {
             this.name = inName;
@@ -79,19 +121,19 @@ namespace BefungeSharp.Instructions
                         instruction_set.Add(c, new Delta.CardinalInstruction(c, 0, Vector2.West));
                         break;
                     case '?':
-                        instruction_set.Add(c, new Delta.RandomDeltaInstruction(c, 0, Vector2.Zero));
+                        instruction_set.Add(c, new Delta.RandomDeltaInstruction(c, 0));
                         break;
                     case '[':
-                        instruction_set.Add(c, new Delta.RotateDeltaInstruction(c, 0, Vector2.Zero, false));
+                        instruction_set.Add(c, new Delta.RotateDeltaInstruction(c, 0, false));
                         break;
                     case ']':
-                        instruction_set.Add(c, new Delta.RotateDeltaInstruction(c, 0, Vector2.Zero, true));
+                        instruction_set.Add(c, new Delta.RotateDeltaInstruction(c, 0, true));
                         break;
                     case 'x':
-                        instruction_set.Add(c, new Delta.SetDeltaInstruction(c, 0, Vector2.Zero));
+                        instruction_set.Add(c, new Delta.SetDeltaInstruction(c, 0));
                         break;
                     case 'r':
-                        instruction_set.Add(c, new Delta.ReverseDeltaInstruction(c, 0, Vector2.Zero));
+                        instruction_set.Add(c, new Delta.ReverseDeltaInstruction(c, 0));
                         break;
                     //-----------------
                     //--Flow control---
@@ -271,6 +313,7 @@ namespace BefungeSharp.Instructions
                     case 'h'://Go high, 3D movement
                     case 'l'://Go low, 3D movement
                     case 'm'://3D if statment
+                        instruction_set.Add(c, new Delta.ReverseDeltaInstruction(c, 0));
                         break;
                     //--Nop-----------
                     case ' ':
