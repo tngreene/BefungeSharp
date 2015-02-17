@@ -30,6 +30,7 @@ namespace BefungeSharp.FungeSpace
             //For every row
             do
             {
+                FungeNode columnsStart = traverse;
                 //For ever column
                 do
                 {
@@ -45,18 +46,36 @@ namespace BefungeSharp.FungeSpace
                     }
                     traverse = traverse.East;
                 }
-                while(traverse != matrix.Origin);
-                
-                
+                while(traverse != columnsStart);
+
+                if (traverse.Data.y > bottom)
+                {
+                    bottom = traverse.Data.y;
                 }
-                    while(traverse != matrix.Origin);
+                if (traverse.Data.y < top)
+                {
+                    top = traverse.Data.y;
+                }
+                
+                //Go to the next row down
+                traverse = traverse.South;
+            }
+            while(traverse != matrix.Origin);
+            
+            //Assaign the top left corner
+            bounds[0].x = left;
+            bounds[0].y = top;
+
+            bounds[1].x = right;
+            bounds[1].y = bottom;
+
             return bounds;
         }
 
         public static void TestMatrix()
         {
             FungeNode traverse = null;
-            if (true)
+            if (false)
             {
                 //Many columns, 1 row
                 FungeSparseMatrix matrix1 = new FungeSparseMatrix(4, 4);
@@ -70,36 +89,42 @@ namespace BefungeSharp.FungeSpace
                 matrix1.InsertCell(0, -4, ' ');
                 matrix1.PrintFungeSpace();
 
-                FungeSpaceUtils.GetMatrixBounds(matrix1);
+                Vector2[] bounds = FungeSpaceUtils.GetMatrixBounds(matrix1);
+                Console.WriteLine("TL: " + bounds[0] + "BR: " + bounds[1]);
                 WalkOnMatrix(matrix1);
-            }
-            FungeSparseMatrix matrix2 = new FungeSparseMatrix();;
-            Console.WriteLine("----------------------------------------");
-            matrix2.InsertCell(0,5,'a');
-            matrix2.InsertCell(0,6,'b');
-            matrix2.InsertCell(0,4,'c');
-            matrix2.InsertCell(0,1,'d');
-            matrix2.InsertCell(0,2,'e');
-            matrix2.InsertCell(0,3,'f');
-            matrix2.InsertCell(1,0,'g');
-            matrix2.InsertCell(5,0,'h');
-            matrix2.InsertCell(5,3,'i');
-            matrix2.InsertCell(10,0,'j');
-            matrix2.InsertCell(10, 6,'k');
-            
-            matrix2.PrintFungeSpace();
-            WalkOnMatrix(matrix2);
-            matrix2.InsertCell(-1,  0, 'l');
-            matrix2.InsertCell(-5,  0, 'm');
-            matrix2.InsertCell(-3,  0, 'o');
-            matrix2.InsertCell(-6,  0, 'p');
-            matrix2.InsertCell(-1, 1+0, 'l');
-            matrix2.InsertCell(-5, 1+0, 'm');
-            matrix2.InsertCell(-3, 1+0, 'o');
-            matrix2.InsertCell(-6, 1+0, 'p');
-            matrix2.PrintFungeSpace();
-            WalkOnMatrix(matrix2);
 
+                FungeSparseMatrix matrix2 = new FungeSparseMatrix(); ;
+                Console.WriteLine("----------------------------------------");
+                matrix2.InsertCell(0, 5, 'a');
+                matrix2.InsertCell(0, 6, 'b');
+                matrix2.InsertCell(0, 4, 'c');
+                matrix2.InsertCell(0, 1, 'd');
+                matrix2.InsertCell(0, 2, 'e');
+                matrix2.InsertCell(0, 3, 'f');
+                matrix2.InsertCell(1, 0, 'g');
+                matrix2.InsertCell(5, 0, 'h');
+                matrix2.InsertCell(5, 3, 'i');
+                matrix2.InsertCell(10, 0, 'j');
+                matrix2.InsertCell(10, 6, 'k');
+
+                matrix2.PrintFungeSpace();
+                Vector2[] bounds2 = FungeSpaceUtils.GetMatrixBounds(matrix2);
+                Console.WriteLine("TL: " + bounds2[0] + "BR: " + bounds2[1]);
+                WalkOnMatrix(matrix2);
+                matrix2.InsertCell(-1, 0, 'l');
+                matrix2.InsertCell(-5, 0, 'm');
+                matrix2.InsertCell(-3, 0, 'o');
+                matrix2.InsertCell(-6, 0, 'p');
+                matrix2.InsertCell(-1, 1 + 0, 'l');
+                matrix2.InsertCell(-5, 1 + 0, 'm');
+                matrix2.InsertCell(-3, 1 + 0, 'o');
+                matrix2.InsertCell(-6, 1 + 0, 'p');
+                matrix2.PrintFungeSpace();
+                WalkOnMatrix(matrix2);
+
+                bounds2 = FungeSpaceUtils.GetMatrixBounds(matrix2);
+                Console.WriteLine("TL: " + bounds2[0] + "BR: " + bounds2[1]);
+            }
             FungeSparseMatrix matrix3 = new FungeSparseMatrix();
             char v = 'a';
             while (true)
@@ -122,6 +147,9 @@ namespace BefungeSharp.FungeSpace
                 FungeCell _cell = new FungeCell(x, y, value);
                 matrix3.InsertCell(_cell);
                 matrix3.PrintFungeSpace();
+
+                Vector2[] bounds3 = FungeSpaceUtils.GetMatrixBounds(matrix3);
+                Console.WriteLine("TL: " + bounds3[0] + "BR: " + bounds3[1]);
                 v++;
             }
 
