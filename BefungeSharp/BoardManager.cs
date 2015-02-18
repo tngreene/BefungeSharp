@@ -9,8 +9,7 @@ namespace BefungeSharp
     public class BoardManager
     {
         /// <summary>
-        /// Represents a 2 dimensional space of characters, non jagged
-        /// Accessed with boardArray[row+i][column+j]
+        /// A two dimensional grid of the original file input, if there was any
         /// </summary>
         private List<List<char>> _boardArray;
         public List<List<char>> BoardArray { get { return _boardArray; } }
@@ -64,7 +63,7 @@ namespace BefungeSharp
                 }
             }
                         
-            _bInterp = new BoardInterpreter(this, initGlobalStack,mode);
+            _bInterp = new BoardInterpreter(this, initGlobalStack, mode);
            
             Program.WindowUI = new WindowUI(_bInterp);
             Program.WindowSideBar = new WindowSideBar(this, _bInterp);

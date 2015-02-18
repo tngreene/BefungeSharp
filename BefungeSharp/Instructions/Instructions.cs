@@ -97,12 +97,12 @@ namespace BefungeSharp.Instructions
 
     public static class InstructionManager
     {
-        private static Dictionary<char, Instruction> instruction_set;
-        public static Dictionary<char, Instruction> InstructionSet { get { return instruction_set; } }
+        private static Dictionary<int, Instruction> instruction_set;
+        public static Dictionary<int, Instruction> InstructionSet { get { return instruction_set; } }
 
         public static void BuildInstructionSet()
         {
-            instruction_set = new Dictionary<char, Instruction>();
+            instruction_set = new Dictionary<int, Instruction>();
             for (char c = ' '; c <= '~'; c++)
             {
                 switch (c)

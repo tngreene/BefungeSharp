@@ -118,7 +118,7 @@ namespace BefungeSharp
 
         public void Move()
         {
-            FungeSpaceUtils.MoveBy(this._position, this._delta);
+            FungeSpaceUtils.MoveBy(ref this._position, this._delta);
         }
 
         public void Move(int repeat)

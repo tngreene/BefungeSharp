@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using BefungeSharp.FungeSpace;
 namespace BefungeSharp
 {
     
@@ -24,6 +25,11 @@ namespace BefungeSharp
     public class BoardInterpreter
     {
         private BoardManager _boardRef;
+
+        /// <summary>
+        /// Our Representation of FungeSpace
+        /// </summary>
+        private FungeSpace.FungeSparseMatrix _fungeSpace;
         
         //The current mode of the board
         private BoardMode _curMode;
@@ -52,10 +58,13 @@ namespace BefungeSharp
         {
             _boardRef = mgr;
 
+            _fungeSpace = new FungeSparseMatrix();
+            FungeSpaceUtils.DynamicArrayToMatrix(_fungeSpace, _boardRef.BoardArray);
             _IPs = new List<IP>();
 
             //Add the EDIT IP
             _IPs.Add(new IP());
+            _IPs[0].Position = _fungeSpace.Origin;
             EditIP.Active = true;
 
             _curMode = mode;
@@ -65,13 +74,13 @@ namespace BefungeSharp
         
         public void Reset()
         {
-            //Start by removing every except the edit IP
+            //Remove everything
             _IPs.Clear();
             IP.ResetCounter();
 
             //Add the main thread IP/standard IP
             _IPs.Add(new IP());
-
+            _IPs[0].Position = _fungeSpace.Origin;
             _IPs[0].Reset();
             _IPs[0].Active = true;
 
@@ -342,7 +351,7 @@ namespace BefungeSharp
                  * Otherwise, move and wrap all IPs
                  */
 
-                char cmd = _boardRef.GetCharacter(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x);
+                int cmd = _fungeSpace.GetNode(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x).Data.value;
                 //If we are currently in string mode
                 //And its not a space and not a " (so we can leave string mode)
                 if (_IPs[n].StringMode == true && cmd != '"')
@@ -357,7 +366,7 @@ namespace BefungeSharp
                 if (cmd == ';' || cmd == ' ')
                 {
                     Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
-                    cmd = _boardRef.GetCharacter(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x);
+                    cmd = _fungeSpace.GetNode(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x).Data.value;
                 }             
 
                 bool success = false;

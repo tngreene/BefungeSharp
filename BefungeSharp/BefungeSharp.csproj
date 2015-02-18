@@ -50,7 +50,7 @@
     <Compile Include="WindowSideBar.cs" />
     <Compile Include="BoardManager.cs" />
     <Compile Include="WindowUI.cs" />
-    <Compile Include="BoardInterpreter.cs" />
+    <Compile Include="Interpreter.cs" />
     <Compile Include="ClipboardTools.cs" />
     <Compile Include="FileUtils.cs" />
     <Compile Include="FungeSpace\FungeSpaceUtils.cs" />

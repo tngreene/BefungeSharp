@@ -11,6 +11,16 @@ namespace BefungeSharp.FungeSpace
     /// </summary>
     public static class FungeSpaceUtils
     {
+        public static void DynamicArrayToMatrix(FungeSparseMatrix matrix, List<List<char>> dynamic_array_representation)
+        {
+            for (int r = 0; r < dynamic_array_representation.Count; r++)
+            {
+                for (int c = 0; c < dynamic_array_representation[r].Count; c++)
+                {
+                    matrix.InsertCell(c,r, dynamic_array_representation[r][c]);
+                }
+            }
+        }
         /// <summary>
         /// Get's a matrix upper and lower bounds
         /// </summary>
@@ -99,7 +109,7 @@ namespace BefungeSharp.FungeSpace
         /// </summary>
         /// <param name="position">The start position of the object</param>
         /// <param name="delta">The delta with which to move it</param>
-        public static void MoveBy(FungeNode position, Vector2 delta)
+        public static void MoveBy(ref FungeNode position, Vector2 delta)
         {
             //If we are traveling one of the "easy" directions
             if (delta.x == 0 || delta.y == 0)

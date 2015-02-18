@@ -330,10 +330,16 @@ namespace BefungeSharp
                     if (prevChar != '\0')
                     {
                         ConsoleColor color = ConsoleColor.White;
-                        if (prevChar >= ' ' || prevChar <= '~')
-                        {
-                            color = Instructions.InstructionManager.InstructionSet[prevChar].Color;
-                        }
+                        try 
+	                    {	        
+		                    color = Instructions.InstructionManager.InstructionSet[prevChar].Color;
+	                    }
+	                    catch (Exception)
+	                    {
+		
+	                    }
+                            
+                        
 
                         ConEx.ConEx_Draw.SetAttributes(r, c, color, ConsoleColor.DarkGreen);
                     }
