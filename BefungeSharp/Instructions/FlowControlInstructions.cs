@@ -52,8 +52,10 @@ namespace BefungeSharp.Instructions.FlowControl
 
             for (int i = 0; i < cellsToMove; i++)
             {
+                int nextX = ip.Position.Data.x + moveDelta.x;
+                int nextY = ip.Position.Data.y + moveDelta.y;
                 //Move using our special move delta
-                ip.Position += moveDelta;
+                FungeSpace.FungeSpaceUtils.MoveTo(ip.Position, nextY, nextX);
             }
             return true;
         }
@@ -109,7 +111,7 @@ namespace BefungeSharp.Instructions.FlowControl
             }
             else
             {
-                Instruction executable = InstructionManager.InstructionSet[Program.BoardManager.GetCharacter(temporaryIP.Position.y, temporaryIP.Position.x)];
+                Instruction executable = InstructionManager.InstructionSet[Program.BoardManager.GetCharacter(temporaryIP.Position.Data.y, temporaryIP.Position.Data.x)];
                 for (int i = 0; i < iterations; i++)
                 {
                     executable.Preform(temporaryIP);
@@ -135,7 +137,7 @@ namespace BefungeSharp.Instructions.FlowControl
             {
                 ip.Move();
             }
-            while (ip.GetCurrentCell() != ';');
+            while (ip.GetCurrentCell().value != ';');
             ip.Move();
 
             return true;

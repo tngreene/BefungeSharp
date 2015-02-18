@@ -177,7 +177,7 @@ namespace BefungeSharp.Instructions.SystemCalls
                     case 12:
                         //12. A vector containing the storage offset of the ip (ip specific)
                         {
-                            StackUtils.VectorPush(ip.Stack, ip.StorageOffset);
+                            StackUtils.VectorPush(ip.Stack, new Vector2(ip.StorageOffset.Data.x,ip.StorageOffset.Data.y));
                         }
                         break;
                     case 11:
@@ -189,7 +189,7 @@ namespace BefungeSharp.Instructions.SystemCalls
                     case 10:
                         //10. A vector containing the position of the ip (ip specific)
                         {
-                            StackUtils.VectorPush(ip.Stack, ip.Position);
+                            StackUtils.VectorPush(ip.Stack, new Vector2(ip.Position.Data.x, ip.Position.Data.y));
                         }
                         break;
                     case 9:

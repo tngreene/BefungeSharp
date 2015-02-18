@@ -19,6 +19,11 @@ namespace BefungeSharp.FungeSpace
             this.value = value;
         }
 
+        public static implicit operator Vector2(FungeCell cell)
+        {
+            return new Vector2(cell.x, cell.y);
+        }
+
         public override string ToString()
         {
             return "X: " + x + " Y: " + y + " Value: " + value;
@@ -39,6 +44,18 @@ namespace BefungeSharp.FungeSpace
         //private FungeNode up;
         //private FungeNode down;
 
+        private FungeSparseMatrix parentMatrix;
+        public FungeSparseMatrix ParentMatrix
+        {
+            get
+            {
+                return parentMatrix;
+            }
+            internal set 
+            {
+                parentMatrix = value; 
+            }
+        }
         /// <summary>
         /// Gets and sets the data of this node
         /// </summary>
@@ -92,7 +109,7 @@ namespace BefungeSharp.FungeSpace
         public FungeNode(FungeCell data)
         {
             this.data = data;
-
+            this.parentMatrix = null;
             //All sides wrap around to themselfs unless otherwise set
             north = this;
             east = this;
@@ -134,7 +151,7 @@ namespace BefungeSharp.FungeSpace
             data.value = ' ';
 
             m_Origin = new FungeNode(data);
-            
+            m_Origin.ParentMatrix = this;
             m_Nodes.Add(m_Origin);
         }
 
@@ -152,7 +169,7 @@ namespace BefungeSharp.FungeSpace
             data.value = ' ';
 
             m_Origin = new FungeNode(data);
-
+            m_Origin.ParentMatrix = this;
             m_Nodes.Add(m_Origin);
 
             for (int y = 0; y < rows; y++)
@@ -312,9 +329,11 @@ namespace BefungeSharp.FungeSpace
         /// </summary>
         /// <param name="x">The x position of the cell</param>
         /// <param name="y">The y position of the cell</param>
-        public void InsertCell(int x, int y, int value)
+        /// <param name="value">The value to be placed</param>
+        /// <returns>The FungeNode that was placed or altered</returns>
+        public FungeNode InsertCell(int x, int y, int value)
         {
-            InsertCell(new FungeCell(x, y, value));
+            return InsertCell(new FungeCell(x, y, value));
         }
 
         /// <summary>
@@ -322,16 +341,18 @@ namespace BefungeSharp.FungeSpace
         /// </summary>
         /// <param name="cell">A position vector of where to insert a cell</param>
         /// <param name="value">The value to be placed in that location</param>
-        public void InsertCell(Vector2 cell, int value)
+        /// <returns>The FungeNode that was placed or altered</returns>
+        public FungeNode InsertCell(Vector2 cell, int value)
         {
-            InsertCell(new FungeCell(cell.x, cell.y, value));
+            return InsertCell(new FungeCell(cell.x, cell.y, value));
         }
 
         /// <summary>
         /// Inserts a cell into the matrix
         /// </summary>
         /// <param name="cell">A funge cell to be inserted</param>
-        public void InsertCell(FungeCell cell)
+        /// <returns>The FungeNode that was placed or altered</returns>
+        public FungeNode InsertCell(FungeCell cell)
         {
             //The row node is the node where we will start searching for when we reach the column
             FungeNode row_node = GetRow(cell.y, m_Origin);
@@ -355,15 +376,17 @@ namespace BefungeSharp.FungeSpace
                 //Create our column on our row
                 column_node = InsertColumn(cell, row_node);
                 bool connectedNoS = AttemptCoupling(column_node);
+                column_node.ParentMatrix = this;
                 //Now we'll add it to the list only after we know it didn't exist before
                 m_Nodes.Add(column_node);
-                return;
+                return column_node;
             }
             else
             {
                 //The row and column exists and it's info must be updated
                 //Note: Cases like [value,0,y] are updated twice, but thats okay
                 column_node.Data = cell;
+                return column_node;
             }
         }
 

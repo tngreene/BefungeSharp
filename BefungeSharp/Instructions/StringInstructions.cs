@@ -30,7 +30,7 @@ namespace BefungeSharp.Instructions.String
         public override bool Preform(IP ip)
         {
             ip.Move();
-            ip.Stack.Push(ip.GetCurrentCell());
+            ip.Stack.Push(ip.GetCurrentCell().value);
             //The IP will be moved again when the instruction is finised calling
             return true;
         }
@@ -43,8 +43,8 @@ namespace BefungeSharp.Instructions.String
         public override bool Preform(IP ip)
         {
             ip.Move();
-            ip.Stack.Push(ip.Position.x);
-            ip.Stack.Push(ip.Position.y);
+            ip.Stack.Push(ip.Position.Data.x);
+            ip.Stack.Push(ip.Position.Data.y);
 
             base.EnsureStackSafety(ip.Stack, RequiredCells());
 

@@ -26,7 +26,10 @@ namespace BefungeSharp
 
         private static WindowUI s_window_UI;
         public static WindowUI WindowUI { get { return s_window_UI; } set { s_window_UI = value; } }
-        
+
+        private static WindowSideBar s_window_side_bar;
+        public static WindowSideBar WindowSideBar { get { return s_window_side_bar; } set { s_window_side_bar = value; } }
+
         [STAThread]
         static void Main(string[] args)
         {
@@ -126,7 +129,7 @@ namespace BefungeSharp
                 {
                     case ProgramMode.NewFile:
                         List<string> s = new List<string>();
-                        //s.Add("\"dlroW olleH\">:#,_@");
+                        s.Add(@"""dlroW olleH"">:#,_@");
                         s_board_manager = new BoardManager(25, 80, s);
 
                         s_board_manager.UpdateBoard();

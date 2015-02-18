@@ -8,7 +8,6 @@ namespace BefungeSharp
 {
     public class BoardManager
     {
-       
         /// <summary>
         /// Represents a 2 dimensional space of characters, non jagged
         /// Accessed with boardArray[row+i][column+j]
@@ -16,7 +15,6 @@ namespace BefungeSharp
         private List<List<char>> _boardArray;
         public List<List<char>> BoardArray { get { return _boardArray; } }
         
-        private BoardSideBar _bSideBar;
         private BoardInterpreter _bInterp;
 
         /// <summary>
@@ -69,7 +67,7 @@ namespace BefungeSharp
             _bInterp = new BoardInterpreter(this, initGlobalStack,mode);
            
             Program.WindowUI = new WindowUI(_bInterp);
-            _bSideBar = new BoardSideBar(this, _bInterp);
+            Program.WindowSideBar = new WindowSideBar(this, _bInterp);
           
             Console.CursorVisible = false;
          
@@ -77,8 +75,8 @@ namespace BefungeSharp
             Program.WindowUI.ClearArea(_bInterp.CurMode);
             Program.WindowUI.Draw(_bInterp.CurMode);
 
-            _bSideBar.ClearArea(_bInterp.CurMode);
-            _bSideBar.Draw(_bInterp.CurMode);
+            Program.WindowSideBar.ClearArea(_bInterp.CurMode);
+            Program.WindowSideBar.Draw(_bInterp.CurMode);
            
             ConEx.ConEx_Draw.DrawScreen();
         }
@@ -153,7 +151,7 @@ namespace BefungeSharp
                 ConsoleKeyInfo[] keysHit = ConEx.ConEx_Input.GetInput();
                 Instructions.CommandType type = _bInterp.Update(_bInterp.CurMode, keysHit);
                                    Program.WindowUI.Update(_bInterp.CurMode, keysHit);
-                                   _bSideBar.Update(_bInterp.CurMode, keysHit);
+                                   Program.WindowSideBar.Update(_bInterp.CurMode, keysHit);
 
                 //Based on what mode it is handle those keys
                 switch (_bInterp.CurMode)
@@ -213,8 +211,8 @@ namespace BefungeSharp
                 if (true)
                 {
                     //Draw the innocent sidebar
-                    _bSideBar.ClearArea(_bInterp.CurMode);
-                    _bSideBar.Draw(_bInterp.CurMode);
+                    Program.WindowSideBar.ClearArea(_bInterp.CurMode);
+                    Program.WindowSideBar.Draw(_bInterp.CurMode);
 
                     //Draw the board
                     this.ClearArea(_bInterp.CurMode);

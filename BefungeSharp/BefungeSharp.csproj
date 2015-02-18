@@ -47,7 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BoardSideBar.cs" />
+    <Compile Include="WindowSideBar.cs" />
     <Compile Include="BoardManager.cs" />
     <Compile Include="WindowUI.cs" />
     <Compile Include="BoardInterpreter.cs" />

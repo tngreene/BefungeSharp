@@ -291,7 +291,7 @@ namespace BefungeSharp
             //Generates a strings which is always five chars wide, with the number stuck to the ','
             //Like " 0,8 " , "17,5 " , "10,10", " 8,49"
             string IP_Pos = "";
-            Vector2 vec_pos = _interpRef.IPs[0].Position;
+            Vector2 vec_pos = _interpRef.IPs[0].Position.Data;
             IP_Pos += vec_pos.x.ToString().Length == 1 ? ' ' : vec_pos.x.ToString()[0];
             IP_Pos += vec_pos.x.ToString().Length == 1 ? vec_pos.x.ToString()[0] : vec_pos.x.ToString()[1];
             IP_Pos += ',';
@@ -385,7 +385,7 @@ namespace BefungeSharp
                             case ConsoleKey.Delete:
                                 if (_selection.content.Count == 0)
                                 {
-                                    bool success = Program.BoardManager.PutCharacter(_interpRef.EditIP.Position.y, _interpRef.EditIP.Position.x, ' ');
+                                    bool success = Program.BoardManager.PutCharacter(_interpRef.EditIP.Position.Data.y, _interpRef.EditIP.Position.Data.x, ' ');
                                 }
                                 else
                                 {
@@ -400,7 +400,7 @@ namespace BefungeSharp
                                     nVec.Negate();
                                     _interpRef.EditIP.Delta = nVec;
                                     _interpRef.EditIP.Move();
-                                    bool success = Program.BoardManager.PutCharacter(_interpRef.EditIP.Position.y, _interpRef.EditIP.Position.x, ' ');
+                                    bool success = Program.BoardManager.PutCharacter(_interpRef.EditIP.Position.Data.y, _interpRef.EditIP.Position.Data.x, ' ');
                                     _interpRef.EditIP.Delta = old;
                                 }
                                 break;
@@ -462,7 +462,7 @@ namespace BefungeSharp
             bool v = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_V);
             if (v && control)
             {
-                this._selection = ClipboardTools.FromWindowsClipboard(_interpRef.EditIP.Position);
+                this._selection = ClipboardTools.FromWindowsClipboard(_interpRef.EditIP.Position.Data);
                 PutSelectionContents();
                 //Emergancy sleep so we don't get a whole bunch of operations at once
                 System.Threading.Thread.Sleep(150);
@@ -539,11 +539,11 @@ BefungeSharp for the logo*/
             {
 
                 //The selection origin is set to the IP's X and Y
-                _selection.dimensions.Left = (short)_interpRef.EditIP.Position.x;
-                _selection.dimensions.Top = (short)_interpRef.EditIP.Position.y;
+                _selection.dimensions.Left = (short)_interpRef.EditIP.Position.Data.x;
+                _selection.dimensions.Top = (short)_interpRef.EditIP.Position.Data.y;
 
                 //The bottom is also set to the Y position
-                _selection.dimensions.Bottom = (short)_interpRef.EditIP.Position.y;
+                _selection.dimensions.Bottom = (short)_interpRef.EditIP.Position.Data.y;
 
                 //To counter act if we are starting off moving down
                 //we must account for the y position to be lower than normal
@@ -554,7 +554,7 @@ BefungeSharp for the logo*/
                     _selection.dimensions.Top -= 1;
                 }
 
-                _selection.dimensions.Right = (short)_interpRef.EditIP.Position.x;
+                _selection.dimensions.Right = (short)_interpRef.EditIP.Position.Data.x;
                 if (k == ConsoleKey.RightArrow)
                 {
                     _selection.dimensions.Right -= 1;
@@ -577,8 +577,8 @@ BefungeSharp for the logo*/
             bool error_creating_selection = false;
 
 
-            int x = _interpRef.EditIP.Position.x;
-            int y = _interpRef.EditIP.Position.y;
+            int x = _interpRef.EditIP.Position.Data.x;
+            int y = _interpRef.EditIP.Position.Data.y;
 
             //Test if the IP has wrapped around behind itself or
             //Has walked behind itself

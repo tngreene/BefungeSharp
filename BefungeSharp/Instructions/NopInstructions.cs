@@ -24,13 +24,13 @@ namespace BefungeSharp.Instructions.Nop
             do
             {
                 ip.Move();
-                int current = ip.GetCurrentCell();
+                int current = ip.GetCurrentCell().value;
                 if (current == ';')
                 {
                     InstructionManager.InstructionSet[';'].Preform(ip);
                 }
             }
-            while (ip.GetCurrentCell() == ' ');
+            while (ip.GetCurrentCell().value == ' ');
             
             return true;
         }

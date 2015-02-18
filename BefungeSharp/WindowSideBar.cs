@@ -6,11 +6,8 @@ using System.Threading.Tasks;
 
 namespace BefungeSharp
 {
-    public class BoardSideBar
+    public class WindowSideBar
     {
-        private BoardManager _boardRef;
-        private BoardInterpreter _interpRef;
-        
         /* The side bar extends from the right side of the board to a location W
          * | [0,82]                 [0,C_Width]
          * |
@@ -28,10 +25,8 @@ namespace BefungeSharp
 
         private List<string> _content;
         
-        public BoardSideBar(BoardManager mgr, BoardInterpreter interp)
+        public WindowSideBar(BoardManager mgr, BoardInterpreter interp)
         {
-            _boardRef = mgr;
-            _interpRef = interp;
             BAR_RIGHT = ConEx.ConEx_Draw.Dimensions.width - 1;
             BAR_BOTTOM = ConEx.ConEx_Draw.Dimensions.height - 1;
             _content = new List<string>();
@@ -77,11 +72,13 @@ namespace BefungeSharp
                     break;
                 case BoardMode.Edit:
                     {
+                        if(true)//_bUI.IsSelecting == false)
+                        {
                         string[] contentArr =   {
                                                     //TODO Organize these
                                                     //X indicates the feature has not been implemented
                                                 "New File - Ctrl+N",
-                                                "Save - Ctrl+S",
+                                                "Save - Alt+S",
                                                 //"Run " + GetDefaultSpeed() + " - F5");
                                                 "Run (Default Speed) - F5",
                                                 "Run (Step) - F6",
@@ -90,17 +87,20 @@ namespace BefungeSharp
                                                 "Show/Hide Sidebar - F1",
                                                 "Set IP Delta - Control + Arrow Key",
                                                 "XInsert Snippet - Insert",
-                                                "Start Selection Mode - Shift (hold)",
+                                                "Start Selection Mode - Shift (hold)"
                                                 };
                         _content.AddRange(contentArr);
-
-                        //if(_bUI.IsSelecting)
+                            }
+                        //if (_bUI.IsSelecting)
+                        {
+                        }
                         //"Adjust Selection Box - Arrow Keys",
                         //"Copy Section - Ctrl + C",
                         //"Cut Section - Ctrl + X",
                         //"Paste Section - Ctrl + V",
                         //"Clear area - Delete",
                         //"Reverse line - Alt + F4"
+                        //"Cancel Selection - Any Other Key"
                     }
                     break;
                 default:
@@ -119,7 +119,6 @@ namespace BefungeSharp
             ConEx.ConEx_Draw.FillArea(' ', BAR_TOP, BAR_LEFT, ConEx.ConEx_Draw.Dimensions.width, ConEx.ConEx_Draw.Dimensions.height);
         }  
         
-
         public void Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
             switch(mode)

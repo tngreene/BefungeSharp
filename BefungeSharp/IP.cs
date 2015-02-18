@@ -3,18 +3,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using BefungeSharp.FungeSpace;
 
 namespace BefungeSharp
 {
     public class IP
     {
         //The position of the IP in funge space
-        private Vector2 _position;
+        private FungeNode _position;
 
         /// <summary>
         /// The position of the IP in funge space
         /// </summary>
-        public Vector2 Position { get { return _position; } set { _position = value; } }
+        public FungeNode Position { get { return _position; } set { _position = value; } }
 
         /// <summary>
         /// The velocity vector d of the IP
@@ -26,8 +27,8 @@ namespace BefungeSharp
         /// </summary>
         public Vector2 Delta { get { return _delta; } set { _delta = value; } }
 
-        private Vector2 _storageOffset;
-        public Vector2 StorageOffset { get { return _storageOffset; } set { _storageOffset = value; } }
+        private FungeNode _storageOffset;
+        public FungeNode StorageOffset { get { return _storageOffset; } set { _storageOffset = value; } }
 
         //Needed for concurrent-98, TODO - Implement the stack stack system
         private Stack<int> _stack;
@@ -60,9 +61,9 @@ namespace BefungeSharp
 
         public IP()
         {
-            _position = Vector2.Zero;
+            _position = null;
             _delta = Vector2.East;
-            _storageOffset = Vector2.Zero;
+            _storageOffset = null;
 
             _stack = new Stack<int>();
             _active = false;
@@ -73,7 +74,7 @@ namespace BefungeSharp
             StringMode = false;
         }
 
-        public IP(Vector2 position, Vector2 delta, Vector2 storageOffset, Stack<int> stack, int parent_id, bool willIncrementCounter)
+        public IP(FungeNode position, Vector2 delta, FungeNode storageOffset, Stack<int> stack, int parent_id, bool willIncrementCounter)
         {
             _position = position;
             _delta = delta;
@@ -117,9 +118,7 @@ namespace BefungeSharp
 
         public void Move()
         {
-            //TODO - Fix the j command and inputting negative values!
-            //Based on the direction move or wrap the pointer around
-            _position += _delta;
+            FungeSpaceUtils.MoveBy(this._position, this._delta);
         }
 
         public void Move(int repeat)
@@ -138,9 +137,12 @@ namespace BefungeSharp
 
         public void Reset()
         {
-            _position.Clear();
+            _position = _position.ParentMatrix.Origin;
             _delta = Vector2.East;
             _stack.Clear();
+
+            _active = false;
+            StringMode = false;
         }
 
         public void Stop()
@@ -152,9 +154,9 @@ namespace BefungeSharp
         /// Get's the cell currently under the IP and returns it's value
         /// </summary>
         /// <returns></returns>
-        public int GetCurrentCell()
+        public FungeCell GetCurrentCell()
         {
-            return Program.BoardManager.GetCharacter(this.Position.y, this.Position.x);
+            return _position.Data;
         }
         public override string ToString()
         {

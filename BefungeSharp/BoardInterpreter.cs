@@ -44,14 +44,6 @@ namespace BefungeSharp
         /// </summary>
         public IP EditIP { get { return _IPs.Last(); } }
 
-        private Vector2 _Last_IP;
-
-        private int _IPFollowID;
-        public int IPFollowID { get { return _IPFollowID; } set { _IPFollowID = value; } }
-
-
-        
-
         /// <summary>
         /// Controls the intepretation and execution of commands
         /// </summary>
@@ -67,7 +59,6 @@ namespace BefungeSharp
             EditIP.Active = true;
 
             _curMode = mode;
-            _IPFollowID = 0;
 
             Instructions.InstructionManager.BuildInstructionSet();
         }
@@ -89,8 +80,6 @@ namespace BefungeSharp
 
         public Instructions.CommandType Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
-            //Save the last position because we're about to take a step
-            _Last_IP = _IPs[0].Position;
             Instructions.CommandType type = Instructions.CommandType.NotImplemented;
 
             bool shift = ConEx.ConEx_Input.ShiftDown;
@@ -214,7 +203,7 @@ namespace BefungeSharp
                             case ConsoleKey.Enter:
                                 {
                                     //Move down a line                                    
-                                    _IPs[0].Position = new Vector2(0, _IPs[0].Position.y + 1);
+                                    FungeSpace.FungeSpaceUtils.MoveTo(_IPs[0].Position, 0, _IPs[0].Position.Data.y + 1);
                                     _IPs[0].Delta = Vector2.East;
                                 }
                                 break;
@@ -236,7 +225,7 @@ namespace BefungeSharp
                                 if (keysHit[i].KeyChar >= 32 && keysHit[i].KeyChar <= 126 
                                     && (ConEx.ConEx_Input.AltDown || ConEx.ConEx_Input.CtrlDown) == false)
                                 {
-                                    bool success = _boardRef.PutCharacter(_IPs[0].Position.y, _IPs[0].Position.x, keysHit[0].KeyChar);
+                                    bool success = _boardRef.PutCharacter(_IPs[0].Position.Data.y, _IPs[0].Position.Data.x, keysHit[0].KeyChar);
                                     if (success)
                                     {
                                         needsMove = true;
@@ -253,8 +242,7 @@ namespace BefungeSharp
                     #endregion HandleInput-------------
                     break;
             }//switch(currentMode)
-            _IPs[0].Position = Wrap(_IPs[0].Position);
-            
+           
             
             return type;
         }
@@ -275,7 +263,7 @@ namespace BefungeSharp
 
                 char prevChar = '\0';
 
-                prevChar = _boardRef.GetCharacter(_Last_IP.y, _Last_IP.x);
+                //prevChar = _boardRef.GetCharacter(_Last_IP.y, _Last_IP.x);
 
                 if (prevChar != '\0')
                 {
@@ -283,7 +271,7 @@ namespace BefungeSharp
                 }
 
                 //Get the current ip's
-                char characterUnder = _boardRef.GetCharacter(_IPs[n].Position.y, _IPs[n].Position.x);
+                char characterUnder = _boardRef.GetCharacter(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x);
 
                 ConsoleColor color = ConsoleColor.White;
                 try
@@ -294,7 +282,7 @@ namespace BefungeSharp
                 {
                 }
 
-                ConEx.ConEx_Draw.SetAttributes(_IPs[n].Position.y, _IPs[n].Position.x, color, (ConsoleColor)ConsoleColor.Gray + (n % 3));
+                ConEx.ConEx_Draw.SetAttributes(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x, color, (ConsoleColor)ConsoleColor.Gray + (n % 3));
             }
         }
 
@@ -354,7 +342,7 @@ namespace BefungeSharp
                  * Otherwise, move and wrap all IPs
                  */
 
-                char cmd = _boardRef.GetCharacter(_IPs[n].Position.y, _IPs[n].Position.x);
+                char cmd = _boardRef.GetCharacter(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x);
                 //If we are currently in string mode
                 //And its not a space and not a " (so we can leave string mode)
                 if (_IPs[n].StringMode == true && cmd != '"')
@@ -369,7 +357,7 @@ namespace BefungeSharp
                 if (cmd == ';' || cmd == ' ')
                 {
                     Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
-                    cmd = _boardRef.GetCharacter(_IPs[n].Position.y, _IPs[n].Position.x);
+                    cmd = _boardRef.GetCharacter(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x);
                 }             
 
                 bool success = false;
@@ -391,6 +379,7 @@ namespace BefungeSharp
                             return Instructions.CommandType.StopExecution;
                         //IO
                         case '&'://Read int
+                            Console.SetCursorPosition(_IPs[n].Position.Data.x, _IPs[n].Position.Data.y);
                             string input = Console.ReadLine();
                             int outResult = 0;
                             bool succeded = int.TryParse(input, out outResult);
@@ -508,13 +497,8 @@ namespace BefungeSharp
             for (int i = 0; i < IPs.Count; i++)
             {
                 _IPs[i].Move();
-                _IPs[i].Position = Wrap(_IPs[i].Position);
             }
             
-            //Although we are switched to the ConEx drawing library this is still important
-            //TODO - for what though
-            Console.SetCursorPosition(_IPs[_IPFollowID].Position.x, _IPs[_IPFollowID].Position.y);
-
 
             return Instructions.CommandType.NotImplemented;//TODO - Needs a better idea
         }
