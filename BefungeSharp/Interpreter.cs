@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using BefungeSharp.FungeSpace;
 namespace BefungeSharp
 {
-    
-
     /// <summary>
     /// An enum of how the board should behave while running
     /// </summary>
@@ -83,8 +81,6 @@ namespace BefungeSharp
             _IPs[0].Position = _fungeSpace.Origin;
             _IPs[0].Reset();
             _IPs[0].Active = true;
-
-            
         }
 
         public Instructions.CommandType Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
@@ -163,10 +159,7 @@ namespace BefungeSharp
                             /*Arrow Keys
                              * Shift + Arrow Key changes IP direction
                              * Arrow Key press:
-                             * Save the old direction
-                             * Temporarily set the movement for how it should be
-                             * Move
-                             * Set it back to how it was
+                             * MoveBy(position, direction)
                              * Ignore future movement
                              * 
                              * This system makes sure we still use our generalizations and
@@ -177,8 +170,7 @@ namespace BefungeSharp
                             case ConsoleKey.DownArrow:
                             case ConsoleKey.LeftArrow:
                                 {
-                                    
-                                    Vector2 direction = new Vector2();
+                                    Vector2 direction = Vector2.Zero;
 
                                     switch (keysHit[i].Key)
                                     {
@@ -202,17 +194,15 @@ namespace BefungeSharp
                                         break;
                                     }
 
-                                    Vector2 old = _IPs[0].Delta;
-                                    _IPs[0].Delta = direction;
-                                    _IPs[0].Move();
-                                    _IPs[0].Delta = old;
+                                    _IPs[0].Position = FungeSpaceUtils.MoveBy(_IPs[0].Position, direction);
+                                    
                                     needsMove = false;
                                 }
                                 break;
                             case ConsoleKey.Enter:
                                 {
                                     //Move down a line                                    
-                                    FungeSpace.FungeSpaceUtils.MoveTo(_IPs[0].Position, 0, _IPs[0].Position.Data.y + 1);
+                                    _IPs[0].Position = FungeSpaceUtils.MoveBy(_IPs[0].Position, new Vector2(0,1));
                                     _IPs[0].Delta = Vector2.East;
                                 }
                                 break;
@@ -224,9 +214,6 @@ namespace BefungeSharp
                                 Reset();
                                 _curMode = BoardMode.Run_STEP;
                                 break;
-                            case ConsoleKey.F12:
-                                _curMode = BoardMode.Edit;
-                                break;
                             case ConsoleKey.Escape:
                                 IP.ResetCounter();
                                 return type = Instructions.CommandType.StopExecution;//Go back to the main menu
@@ -234,8 +221,8 @@ namespace BefungeSharp
                                 if (keysHit[i].KeyChar >= 32 && keysHit[i].KeyChar <= 126 
                                     && (ConEx.ConEx_Input.AltDown || ConEx.ConEx_Input.CtrlDown) == false)
                                 {
-                                    bool success = _boardRef.PutCharacter(_IPs[0].Position.Data.y, _IPs[0].Position.Data.x, keysHit[0].KeyChar);
-                                    if (success)
+                                    FungeNode success = _fungeSpace.InsertCell(_IPs[0].Position.Data.x, _IPs[0].Position.Data.y, keysHit[0].KeyChar);
+                                    if (success != null)
                                     {
                                         needsMove = true;
                                     }
@@ -246,17 +233,26 @@ namespace BefungeSharp
                     if (needsMove)
                     {
                         _IPs[0].Move();//Move now that we've done some kind of moving input
-                        
                     }
                     #endregion HandleInput-------------
                     break;
             }//switch(currentMode)
-           
-            
+
             return type;
         }
 
-        public void DrawIP()
+        public void Draw()
+        {
+            DrawFungeSpace();
+            DrawIP();
+        }
+
+        private void DrawFungeSpace()
+        {
+            FungeSpaceUtils.DrawFungeSpace(_fungeSpace.Origin);
+        }
+
+        private void DrawIP()
         {
             //For every IP in the list
             for (int n = 0; n < _IPs.Count(); n++)
@@ -265,27 +261,11 @@ namespace BefungeSharp
                 {
                     continue;
                 }
-                Vector2 direct = _IPs[n].Delta;
-
-                //Get the last place we were, reset it's color
-                //Get our current place, set it's color
-
-                char prevChar = '\0';
-
-                //prevChar = _boardRef.GetCharacter(_Last_IP.y, _Last_IP.x);
-
-                if (prevChar != '\0')
-                {
-                   // ConEx.ConEx_Draw.SetAttributes(_Last_IP.y, _Last_IP.x, BoardManager.LookupInfo(prevChar).color, ConsoleColor.Black);
-                }
-
-                //Get the current ip's
-                char characterUnder = _boardRef.GetCharacter(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x);
-
+                
                 ConsoleColor color = ConsoleColor.White;
                 try
                 {
-                    color = Instructions.InstructionManager.InstructionSet[characterUnder].Color;
+                    color = Instructions.InstructionManager.InstructionSet[_IPs[n].Position.Data.value].Color;
                 }
                 catch (Exception e)
                 {
@@ -293,40 +273,6 @@ namespace BefungeSharp
 
                 ConEx.ConEx_Draw.SetAttributes(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x, color, (ConsoleColor)ConsoleColor.Gray + (n % 3));
             }
-        }
-
-        public static Vector2 Wrap(Vector2 _position)
-        {
-            Vector2 newVector = _position;
-
-            //int[] bounds = GetWorldBounds() bounds of world
-
-            //Bounds of Befunge93
-            //TODO - if(language == "93")
-            //Bounds are Left, Top, Right, Bottom, in their size (not real co-ordinants)
-            int[] bounds = { 0, 0, 80, 25};
-            
-            //Going in the negative x direction
-            if (newVector.x < bounds[0])
-            {
-                newVector.x = bounds[2] + newVector.x;
-            }
-            else if (newVector.x >= bounds[2])//X is positive
-            {
-                newVector.x = newVector.x - bounds[2];
-            }
-
-            //Going in the negative y direction
-            if (newVector.y < bounds[1])
-            {
-                newVector.y = bounds[3] + newVector.y;
-            }
-            else if (newVector.y >= bounds[3])//Y is positive
-            {
-                newVector.y = newVector.y - bounds[3];
-            }
-
-            return newVector;
         }
 
         private Instructions.CommandType TakeStep()

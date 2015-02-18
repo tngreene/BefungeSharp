@@ -118,7 +118,7 @@ namespace BefungeSharp
 
         public void Move()
         {
-            FungeSpaceUtils.MoveBy(ref this._position, this._delta);
+            this._position = FungeSpaceUtils.MoveBy(this._position, this._delta);
         }
 
         public void Move(int repeat)
@@ -150,6 +150,11 @@ namespace BefungeSharp
             _delta.Clear();
         }
 
+        //For when you need 
+        public FungeNode GetPosition()
+        {
+            return _position;
+        }
         /// <summary>
         /// Get's the cell currently under the IP and returns it's value
         /// </summary>

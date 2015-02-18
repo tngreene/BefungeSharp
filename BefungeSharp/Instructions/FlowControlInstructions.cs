@@ -55,7 +55,7 @@ namespace BefungeSharp.Instructions.FlowControl
                 int nextX = ip.Position.Data.x + moveDelta.x;
                 int nextY = ip.Position.Data.y + moveDelta.y;
                 //Move using our special move delta
-                FungeSpace.FungeSpaceUtils.MoveTo(ip.Position, nextY, nextX);
+                ip.Position = FungeSpace.FungeSpaceUtils.MoveTo(ip.Position, nextY, nextX);
             }
             return true;
         }

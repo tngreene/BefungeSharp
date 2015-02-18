@@ -213,16 +213,13 @@ namespace BefungeSharp
                     Program.WindowSideBar.ClearArea(_bInterp.CurMode);
                     Program.WindowSideBar.Draw(_bInterp.CurMode);
 
-                    //Draw the board
-                    this.ClearArea(_bInterp.CurMode);
-                    this.Draw(_bInterp.CurMode);
+                    //Draw the board and draw the IP ontop of the board
+                    _bInterp.Draw();
 
                     //Draw the UI and selection to override the black
                     Program.WindowUI.ClearArea(_bInterp.CurMode);
                     Program.WindowUI.Draw(_bInterp.CurMode);
 
-                    //Draw the IP ontop of the board
-                    _bInterp.DrawIP();
                     ConEx.ConEx_Draw.DrawScreen();
                 }
                 double mm = watch.ElapsedMilliseconds;
@@ -286,24 +283,7 @@ namespace BefungeSharp
 
         public void Draw(BoardMode mode)
         {
-            for (int row = 0; row < _boardArray.Count; row++)
-            {
-                for (int column = 0; column < _boardArray[0].Count; column++)
-                {
-                    char character = GetCharacter(row,column);
-                    ConsoleColor color = ConsoleColor.White;
-
-                    try
-                    {
-                        color = Instructions.InstructionManager.InstructionSet[character].Color;
-                    }
-                    catch(Exception e)
-                    {
-                    }
-
-                    ConEx.ConEx_Draw.InsertCharacter(character, row, column, color, ConsoleColor.Black);
-                }
-            }
+            
         }
       
         /// <summary>

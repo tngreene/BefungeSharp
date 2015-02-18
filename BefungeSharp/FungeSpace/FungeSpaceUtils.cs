@@ -89,19 +89,21 @@ namespace BefungeSharp.FungeSpace
         /// <param name="matrix">The matrix in which the FungeNode lives</param>
         /// <param name="row">The intented row to go to</param>
         /// <param name="column">The intended column to go to</param>
-        public static void MoveTo(FungeNode position, int row, int column)
+        /// <return>The new position of the FungeNode</return>
+        public static FungeNode MoveTo(FungeNode position, int row, int column)
         {
             FungeNode traverse = position;
             
             FungeNode lookup = position.ParentMatrix.GetNode(row,column);
             if(lookup == null)
             {
-                position = position.ParentMatrix.InsertCell(row, column, ' ');
+                position = position.ParentMatrix.InsertCell(column, row, ' ');
             }
             else
             {
                 position = lookup;
             }
+            return position;
         }
 
         /// <summary>
@@ -109,7 +111,8 @@ namespace BefungeSharp.FungeSpace
         /// </summary>
         /// <param name="position">The start position of the object</param>
         /// <param name="delta">The delta with which to move it</param>
-        public static void MoveBy(ref FungeNode position, Vector2 delta)
+        /// <return>The new position of the FungeNode</return>
+        public static FungeNode MoveBy(FungeNode position, Vector2 delta)
         {
             //If we are traveling one of the "easy" directions
             if (delta.x == 0 || delta.y == 0)
@@ -189,8 +192,41 @@ namespace BefungeSharp.FungeSpace
                 }
                 while (traverse != origin);
             }
+            return position;
         }
-            
+
+        public static void DrawFungeSpace(FungeNode draw_origin)
+        {
+            FungeNode traverse = draw_origin;
+
+            //For every row
+            do
+            {
+                FungeNode columnsStart = traverse;
+                //For ever column
+                do
+                {
+                    ConsoleColor color = ConsoleColor.White;
+                    try
+                    {
+                        color = Instructions.InstructionManager.InstructionSet[traverse.Data.value].Color;
+                    }
+                    catch (Exception e)
+                    {
+                    }
+
+                    char character = (char)traverse.Data.value;
+                    ConEx.ConEx_Draw.InsertCharacter(character, traverse.Data.y, traverse.Data.x, color, ConsoleColor.Black);
+
+                    traverse = traverse.East;
+                }
+                while(traverse != columnsStart);
+
+                //Go to the next row down
+                traverse = traverse.South;
+            }
+            while(traverse != draw_origin);
+        }
 
         public static void TestMatrix()
         {
