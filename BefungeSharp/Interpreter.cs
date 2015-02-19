@@ -20,10 +20,12 @@ namespace BefungeSharp
         Edit = 0//Program is running in edit mode
     }
 
-    public class BoardInterpreter
+    /// <summary>
+    /// A Funge Interpreter, containing a FungeSpace, a list of instruction pointers,
+    /// and capabilities for editing FungeSpace
+    /// </summary>
+    public class Interpreter
     {
-        private BoardManager _boardRef;
-
         /// <summary>
         /// Our Representation of FungeSpace
         /// </summary>
@@ -52,12 +54,13 @@ namespace BefungeSharp
         /// Controls the intepretation and execution of commands
         /// </summary>
         /// <param name="mgr">A reference to the manager</param>
-        public BoardInterpreter(BoardManager mgr, Stack<int> stack = null, BoardMode mode = BoardMode.Edit)
+        public Interpreter(List<List<char>> initial_chars = null, Stack<int> stack = null, BoardMode mode = BoardMode.Edit)
         {
-            _boardRef = mgr;
-
             _fungeSpace = new FungeSparseMatrix();
-            FungeSpaceUtils.DynamicArrayToMatrix(_fungeSpace, _boardRef.BoardArray);
+            if (initial_chars != null)
+            {
+                FungeSpaceUtils.DynamicArrayToMatrix(_fungeSpace, initial_chars);
+            }
             _IPs = new List<IP>();
 
             //Add the EDIT IP

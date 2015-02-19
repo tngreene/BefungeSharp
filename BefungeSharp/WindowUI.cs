@@ -9,7 +9,7 @@ namespace BefungeSharp
 {
     public class WindowUI
     {
-        private BoardInterpreter _interpRef;
+        private Interpreter _interpRef;
         /* The board UI area extends from a (currently arbitray/hardcoded area) from row 26 to row 31 and columns 0 through 80
          * except for the space [31,80] which makes it go to a new line
          * 
@@ -48,7 +48,7 @@ namespace BefungeSharp
 
         private Selection _selection;
         
-        public WindowUI(BoardInterpreter interp)
+        public WindowUI(Interpreter interp)
         {
             _interpRef = interp;
 

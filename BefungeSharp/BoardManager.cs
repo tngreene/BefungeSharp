@@ -14,7 +14,7 @@ namespace BefungeSharp
         private List<List<char>> _boardArray;
         public List<List<char>> BoardArray { get { return _boardArray; } }
         
-        private BoardInterpreter _bInterp;
+        private Interpreter _bInterp;
 
         /// <summary>
         /// Creates a new BoardManager with the options to set up its entire intial state and run type
@@ -63,7 +63,7 @@ namespace BefungeSharp
                 }
             }
                         
-            _bInterp = new BoardInterpreter(this, initGlobalStack, mode);
+            _bInterp = new Interpreter(this._boardArray, initGlobalStack, mode);
            
             Program.WindowUI = new WindowUI(_bInterp);
             Program.WindowSideBar = new WindowSideBar(this, _bInterp);

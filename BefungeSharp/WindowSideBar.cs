@@ -25,7 +25,7 @@ namespace BefungeSharp
 
         private List<string> _content;
         
-        public WindowSideBar(BoardManager mgr, BoardInterpreter interp)
+        public WindowSideBar(BoardManager mgr, Interpreter interp)
         {
             BAR_RIGHT = ConEx.ConEx_Draw.Dimensions.width - 1;
             BAR_BOTTOM = ConEx.ConEx_Draw.Dimensions.height - 1;
