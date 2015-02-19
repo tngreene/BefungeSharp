@@ -50,7 +50,8 @@ namespace BefungeSharp.Instructions.FlowControl
                 moveDelta.Negate();
             }
 
-            for (int i = 0; i < cellsToMove; i++)
+            int toMove = Math.Abs(cellsToMove);
+            for (int i = 0; i < toMove; i++)
             {
                 int nextX = ip.Position.Data.x + moveDelta.x;
                 int nextY = ip.Position.Data.y + moveDelta.y;
