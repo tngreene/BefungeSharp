@@ -21,6 +21,7 @@ namespace BefungeSharp.FungeSpace
                 }
             }
         }
+
         /// <summary>
         /// Get's a matrix upper and lower bounds
         /// </summary>
@@ -82,6 +83,10 @@ namespace BefungeSharp.FungeSpace
             return bounds;
         }
 
+        public static void ChangeData(FungeNode node, int new_value)
+        {
+            node.Data = new FungeCell(node.Data.x, node.Data.y, new_value);
+        }
         /// <summary>
         /// Move's an object's position node to a specific place, creating a node there if need be
         /// </summary>

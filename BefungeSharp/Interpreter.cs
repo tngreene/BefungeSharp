@@ -253,6 +253,19 @@ namespace BefungeSharp
                                     _IPs[0].Delta = Vector2.East;
                                 }
                                 break;
+                            case ConsoleKey.Delete:
+                                {
+                                    FungeSpaceUtils.ChangeData(EditIP.Position, ' ');
+                                }
+                                break;
+                            case ConsoleKey.Backspace:
+                                {
+                                    Vector2 nVec = EditIP.Delta;
+                                    nVec.Negate();
+                                    EditIP.Position = FungeSpaceUtils.MoveBy(EditIP.Position, nVec);
+                                    FungeSpaceUtils.ChangeData(EditIP.Position, ' ');
+                                }
+                                break;
                             case ConsoleKey.F5:
                                 BeginExecution();
                                 _curMode = BoardMode.Run_MEDIUM;
@@ -268,8 +281,16 @@ namespace BefungeSharp
                                 if (keysHit[i].KeyChar >= 32 && keysHit[i].KeyChar <= 126 
                                     && (ConEx.ConEx_Input.AltDown || ConEx.ConEx_Input.CtrlDown) == false)
                                 {
-                                    FungeNode success = _fungeSpace.InsertCell(_IPs[0].Position.Data.x, _IPs[0].Position.Data.y, keysHit[0].KeyChar);
-                                    if (success != null)
+                                    EditIP.Position = _fungeSpace.InsertCell(_IPs[0].Position.Data.x, _IPs[0].Position.Data.y, keysHit[0].KeyChar);
+
+                                    int nextX = EditIP.Position.Data.x + EditIP.Delta.x;
+                                    int nextY = EditIP.Position.Data.y + EditIP.Delta.y;
+
+                                    if ((nextX >= 0 && nextX <= 79) && (nextY >= 0 && nextY <= 24))
+                                    {
+                                        EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, nextY, nextX);
+                                    }
+                                    else
                                     {
                                         needsMove = true;
                                     }

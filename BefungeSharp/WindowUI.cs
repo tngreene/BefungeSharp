@@ -285,9 +285,6 @@ namespace BefungeSharp
                     break;
             }
 
-            
-            
-             
             //Generates a strings which is always five chars wide, with the number stuck to the ','
             //Like " 0,8 " , "17,5 " , "10,10", " 8,49"
             string IP_Pos = "";
@@ -298,7 +295,6 @@ namespace BefungeSharp
             IP_Pos += vec_pos.y.ToString().Length == 1 ? vec_pos.y.ToString()[0] : vec_pos.y.ToString()[0];
             IP_Pos += vec_pos.y.ToString().Length == 1 ? ' ' : vec_pos.y.ToString()[1];
 
-            
             ConEx.ConEx_Draw.InsertCharacter(deltaRep, UI_BOTTOM, (UI_RIGHT - 1) - IP_Pos.Length - 1, ConsoleColor.Cyan);
             ConEx.ConEx_Draw.InsertString(IP_Pos, UI_BOTTOM, (UI_RIGHT - 1) - IP_Pos.Length, false);
             ConEx.ConEx_Draw.InsertString(modeStr, UI_BOTTOM, (UI_RIGHT - 1) - (IP_Pos.Length) - (1) - (12/*Maximum Possible Length for modeStr*/), false);
@@ -350,8 +346,6 @@ namespace BefungeSharp
         
         public void Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
-            
-
             //Based on what mode it is handle those keys
             switch (mode)
             {
@@ -363,7 +357,7 @@ namespace BefungeSharp
                     break;
                 case BoardMode.Edit:
                     HandleModifiers(mode, keysHit);
-
+                    bool keep_selection_active = false;
                     for (int i = 0; i < keysHit.Length; i++)
                     {
                         //--Debugging key presses
@@ -381,39 +375,27 @@ namespace BefungeSharp
                                 if (ConEx.ConEx_Input.ShiftDown == true)
                                 {
                                     UpdateSelection(k);
-                                }
-                                else
-                                {
+                                
                                     //Clear if we used an arrow key without shift
-                                    ClearSelection();
+                                    keep_selection_active = true;
                                 }
                                 break;
                             case ConsoleKey.Delete:
-                                if (_selection.content.Count == 0)
-                                {
-                                    bool success = Program.BoardManager.PutCharacter(_interpRef.EditIP.Position.Data.y, _interpRef.EditIP.Position.Data.x, ' ');
-                                }
-                                else
+                                if (_selection.content.Count != 0)
                                 {
                                     DeleteSelection();
-                                    ClearSelection();
-                                }
+                                    keep_selection_active = true;
+                                }                                
                                 break;
-                            case ConsoleKey.Backspace:
-                                {
-                                    Vector2 old = _interpRef.EditIP.Delta;
-                                    Vector2 nVec = _interpRef.EditIP.Delta;
-                                    nVec.Negate();
-                                    _interpRef.EditIP.Delta = nVec;
-                                    _interpRef.EditIP.Move();
-                                    bool success = Program.BoardManager.PutCharacter(_interpRef.EditIP.Position.Data.y, _interpRef.EditIP.Position.Data.x, ' ');
-                                    _interpRef.EditIP.Delta = old;
-                                }
-                                break;
+                           
                             default:
-                                //Clear if we pressed any other key possible
-                                ClearSelection();
+                                //Explicityly say that any other keystroke will clear the selection
+                                keep_selection_active = false;
                                 break;
+                        }
+                        if (keep_selection_active == false)
+                        {
+                            ClearSelection();
                         }
                     }
                     break;
@@ -497,10 +479,7 @@ namespace BefungeSharp
             return outlines;
         }
 
-        /*Record an insert
-        F1-F4 is changes sidebar content
-Super awesome text intro that is a befunge program
-BefungeSharp for the logo*/
+        
         private void PutSelectionContents()
         {
             int top = _selection.dimensions.Top;
