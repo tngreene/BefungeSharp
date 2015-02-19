@@ -30,23 +30,22 @@ namespace BefungeSharp
         public BoardManager(int rows, int columns, List<string> initChars = null,
                             Stack<int> initGlobalStack = null, BoardMode mode = BoardMode.Edit)
         {
-            //Intialize the board array to be the size of the board
-            _boardArray = new List<List<char>>(rows);
-
-            //Fill up the whole rectangle with spaces
-            for (int y = 0; y < rows; y++)
-            {
-                _boardArray.Add(new List<char>());
-                for (int x = 0; x < columns; x++)
-                {
-                    _boardArray[y].Add(' ');
-                }
-            }
-
-           
             //TODO: Array size checking to make sure it will not be out of bounds?
             if (initChars != null)
             {
+                //Intialize the board array to be the size of the board
+                _boardArray = new List<List<char>>(rows);
+
+                //Fill up the whole rectangle with spaces
+                for (int y = 0; y < rows; y++)
+                {
+                    _boardArray.Add(new List<char>());
+                    for (int x = 0; x < columns; x++)
+                    {
+                        _boardArray[y].Add(' ');
+                    }
+                }
+
                 //Fill board it initial strings, if initChars is null this will skip
                 //For the number of rows
                 for (int y = 0; y < initChars.Count; y++)

@@ -106,10 +106,10 @@ namespace BefungeSharp.FungeSpace
         /// Creates new Node with data
         /// </summary>
         /// <param name="data">A funge cell to store in node</param>
-        public FungeNode(FungeCell data)
+        public FungeNode(FungeCell data, FungeSparseMatrix parent)
         {
             this.data = data;
-            this.parentMatrix = null;
+            this.parentMatrix = parent;
             //All sides wrap around to themselfs unless otherwise set
             north = this;
             east = this;
@@ -150,7 +150,7 @@ namespace BefungeSharp.FungeSpace
             data.y = 0;
             data.value = ' ';
 
-            m_Origin = new FungeNode(data);
+            m_Origin = new FungeNode(data,this);
             m_Origin.ParentMatrix = this;
             m_Nodes.Add(m_Origin);
         }
@@ -168,8 +168,8 @@ namespace BefungeSharp.FungeSpace
             data.y = 0;
             data.value = ' ';
 
-            m_Origin = new FungeNode(data);
-            m_Origin.ParentMatrix = this;
+            m_Origin = new FungeNode(data,this);
+            
             m_Nodes.Add(m_Origin);
 
             for (int y = 0; y < rows; y++)
@@ -393,7 +393,7 @@ namespace BefungeSharp.FungeSpace
         private FungeNode InsertRow(FungeCell cell, FungeNode operation_origin)
         {
             FungeNode traverse = operation_origin;
-            FungeNode newRow = new FungeNode(cell);
+            FungeNode newRow = new FungeNode(cell,this);
 
             if (cell.y == traverse.Data.y)
             {
@@ -456,7 +456,7 @@ namespace BefungeSharp.FungeSpace
         {
             //Start at the place we're starting from
             FungeNode traverse = operation_origin;
-            FungeNode newColumn = new FungeNode(cell);
+            FungeNode newColumn = new FungeNode(cell,this);
 
             if (cell.y == traverse.Data.y)
             {

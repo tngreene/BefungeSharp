@@ -129,7 +129,8 @@ namespace BefungeSharp
                 {
                     case ProgramMode.NewFile:
                         List<string> s = new List<string>();
-                        s.Add(@"""dlroW olleH"">:#,_@");
+                        s = null;
+                        //s.Add(@"""dlroW olleH"">:#,_@");
                         s_board_manager = new BoardManager(25, 80, s);
 
                         s_board_manager.UpdateBoard();
@@ -155,7 +156,7 @@ namespace BefungeSharp
                         FileUtils.WriteFile(Directory.GetCurrentDirectory() + "\\options.txt", outOptions);
                         break;
                     case ProgramMode.Help:
-                        //Set up the options menu
+                        //Set up the help menu
                         //Run its loop
                         break;
                 }//Program mode initalization and running

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using BefungeSharp.FungeSpace;
 namespace BefungeSharp
 {
+    
     /// <summary>
     /// An enum of how the board should behave while running
     /// </summary>
@@ -17,7 +18,8 @@ namespace BefungeSharp
         Run_MEDIUM = 100,//Program delayed by 100ms. IP and stack changes are more easy to follow
         Run_SLOW = 200,//Program delayed by 200ms. IP and stack changes are slow enough to follow on paper
         Run_STEP = 101,//Program delayed until user presses the "Next Step" Key
-        Edit = 0//Program is running in edit mode
+        Edit = 0,//Program is running in edit mode
+        Debug = 2
     }
 
     /// <summary>
@@ -30,7 +32,8 @@ namespace BefungeSharp
         /// Our Representation of FungeSpace
         /// </summary>
         private FungeSpace.FungeSparseMatrix _fungeSpace;
-        
+        public FungeSparseMatrix FungeSpace { get { return _fungeSpace; } }
+
         //The current mode of the board
         private BoardMode _curMode;
         public BoardMode CurMode { get { return _curMode; } set { _curMode = value; } }
@@ -62,28 +65,61 @@ namespace BefungeSharp
                 FungeSpaceUtils.DynamicArrayToMatrix(_fungeSpace, initial_chars);
             }
             _IPs = new List<IP>();
-
-            //Add the EDIT IP
-            _IPs.Add(new IP());
-            _IPs[0].Position = _fungeSpace.Origin;
-            EditIP.Active = true;
-
+            
             _curMode = mode;
 
             Instructions.InstructionManager.BuildInstructionSet();
+            
+            if (mode == BoardMode.Edit || mode == BoardMode.Debug)
+            {
+                PauseExecution();
+            }
         }
-        
-        public void Reset()
+
+        /// <summary>
+        /// Sets up the interpreter to begin executing a program
+        /// </summary>
+        private void BeginExecution()
         {
-            //Remove everything
+            //Reset the IP system
             _IPs.Clear();
             IP.ResetCounter();
 
             //Add the main thread IP/standard IP
-            _IPs.Add(new IP());
-            _IPs[0].Position = _fungeSpace.Origin;
-            _IPs[0].Reset();
+            _IPs.Add(new IP(_fungeSpace.Origin, Vector2.East, _fungeSpace.Origin, new Stack<int>(), 0, false));
             _IPs[0].Active = true;
+
+            //Rebuild the instruction set
+            Instructions.InstructionManager.BuildInstructionSet();
+        }
+
+        /// <summary>
+        /// Pauses the execution of a program to enter edit or debug mode
+        /// </summary>
+        private void PauseExecution()
+        {
+            //Create and add the edit IP
+            _IPs.Add(new IP(_fungeSpace.Origin, Vector2.East, _fungeSpace.Origin, new Stack<int>(), -1, false));
+            //Activate it
+            EditIP.Active = true;
+        }
+
+        /// <summary>
+        /// Prepares the interpreter to continue executing the program 
+        /// after being in edit or debug mode
+        /// </summary>
+        private void UnpauseExecution()
+        {
+            //Remove the edit IP
+            _IPs.Remove(_IPs.Last());
+        }
+
+        /// <summary>
+        /// Finishes the execution and cleans up after itself
+        /// </summary>
+        private void EndExecution()
+        {
+
         }
 
         public Instructions.CommandType Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
@@ -102,7 +138,6 @@ namespace BefungeSharp
                 case BoardMode.Run_MEDIUM:
                 case BoardMode.Run_SLOW:
                 case BoardMode.Run_STEP:
-
                     //If we're not in stepping mode take a step
                     if (_curMode != BoardMode.Run_STEP)
                     {
@@ -112,7 +147,6 @@ namespace BefungeSharp
                     #region --HandleInput-------------
                     for (int i = 0; i < keysHit.Length; i++)
                     {
-                        
                         switch (keysHit[i].Key)
                         {
                             //1-5 adjusts execution speed
@@ -197,7 +231,17 @@ namespace BefungeSharp
                                         break;
                                     }
 
-                                    _IPs[0].Position = FungeSpaceUtils.MoveBy(_IPs[0].Position, direction);
+                                    int nextX = EditIP.Position.Data.x + direction.x;
+                                    int nextY = EditIP.Position.Data.y + direction.y;
+
+                                    if ((nextX >= 0 && nextX <= 79) && (nextY >= 0 && nextY <= 24))
+                                    {
+                                        EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, nextY, nextX);
+                                    }
+                                    else
+                                    {
+                                        EditIP.Position = FungeSpaceUtils.MoveBy(EditIP.Position, direction);
+                                    }
                                     
                                     needsMove = false;
                                 }
@@ -210,15 +254,15 @@ namespace BefungeSharp
                                 }
                                 break;
                             case ConsoleKey.F5:
-                                Reset();
+                                BeginExecution();
                                 _curMode = BoardMode.Run_MEDIUM;
                                 break;
                             case ConsoleKey.F6:
-                                Reset();
+                                BeginExecution();
                                 _curMode = BoardMode.Run_STEP;
                                 break;
                             case ConsoleKey.Escape:
-                                IP.ResetCounter();
+                                EndExecution();
                                 return type = Instructions.CommandType.StopExecution;//Go back to the main menu
                             default:
                                 if (keysHit[i].KeyChar >= 32 && keysHit[i].KeyChar <= 126 

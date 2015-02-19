@@ -92,16 +92,14 @@ namespace BefungeSharp.FungeSpace
         /// <return>The new position of the FungeNode</return>
         public static FungeNode MoveTo(FungeNode position, int row, int column)
         {
-            FungeNode traverse = position;
-            
-            FungeNode lookup = position.ParentMatrix.GetNode(row,column);
-            if(lookup == null)
+            FungeNode traverse = position.ParentMatrix.GetNode(row, column);
+            if (traverse == null)
             {
                 position = position.ParentMatrix.InsertCell(column, row, ' ');
             }
             else
             {
-                position = lookup;
+                position = traverse;
             }
             return position;
         }
@@ -162,33 +160,41 @@ namespace BefungeSharp.FungeSpace
                     int nextY = traverse.y + (delta.y);
 
                     //If the next X is less than the least X OR greater than the most X
-                    if(nextX < bounds[0].x)
+                    if(nextX <= bounds[0].x)
                     {
                         nextX = bounds[1].x + (nextX);   
                     }
-                    else if(nextX > bounds[1].x)
+                    else if(nextX >= bounds[1].x)
                     {
                         nextX = nextX - bounds[1].x;
                     }
 
                      //If the next Y is less than the least Y OR greater than the most Y
-                    if(nextY < bounds[0].y)
+                    if(nextY <= bounds[0].y)
                     {
                         nextY = bounds[1].y + (nextY);   
                     }
-                    else if(nextY > bounds[1].y)
+                    else if(nextY >= bounds[1].y)
                     {
                         nextY = nextY - bounds[1].y;
                     }
 
                     //Attempt to get the next node at the next delta
-                    FungeNode lookup = position.ParentMatrix.GetNode(nextX, nextY);
+                    FungeNode lookup = position.ParentMatrix.GetNode(nextY, nextX);
 
                     //If we finally found something
                     if (lookup != null)
                     {
-                        position = lookup;
+                        if (lookup.Data.value != ' ')
+                        {
+                            position = lookup;
+                            return position;
+                        }
                     }
+
+                    //Insert and travel to it
+                    position = position.ParentMatrix.InsertCell(new FungeCell(nextX, nextY, ' '));
+                    traverse = position.Data;
                 }
                 while (traverse != origin);
             }
@@ -216,7 +222,7 @@ namespace BefungeSharp.FungeSpace
                     }
 
                     char character = (char)traverse.Data.value;
-                    ConEx.ConEx_Draw.InsertCharacter(character, traverse.Data.y, traverse.Data.x, color, ConsoleColor.Black);
+                    ConEx.ConEx_Draw.InsertCharacter(character, traverse.Data.y, traverse.Data.x, color, ConsoleColor.DarkGray);
 
                     traverse = traverse.East;
                 }
