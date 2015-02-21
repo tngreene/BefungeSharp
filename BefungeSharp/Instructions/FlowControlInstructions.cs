@@ -40,7 +40,7 @@ namespace BefungeSharp.Instructions.FlowControl
 
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack, RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, RequiredCells());
             int cellsToMove = ip.Stack.Pop();
 
             //We copy the delta because we only want to move along it, not change to it
@@ -73,7 +73,7 @@ namespace BefungeSharp.Instructions.FlowControl
 
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack,RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack,RequiredCells());
 
             //For now, we only have returning false or true
             return ip.Stack.Pop() == 0 ? false : true;
@@ -91,7 +91,7 @@ namespace BefungeSharp.Instructions.FlowControl
 
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack, RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, RequiredCells());
 
             int iterations = ip.Stack.Pop();
 

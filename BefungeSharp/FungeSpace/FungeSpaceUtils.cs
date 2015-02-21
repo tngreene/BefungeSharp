@@ -7,10 +7,15 @@ using System.Threading.Tasks;
 namespace BefungeSharp.FungeSpace
 {
     /// <summary>
-    /// FungeSpace is a utility class for finding out information about and changing the SparseMatrix
+    /// FungeSpace is a utility class for finding out information about and changing the SparseMatrix and/or FungeNodes
     /// </summary>
     public static class FungeSpaceUtils
     {
+        /// <summary>
+        /// Converts a DynamicArray, such as a List of Lists of chars
+        /// </summary>
+        /// <param name="matrix">The matrix to affect</param>
+        /// <param name="dynamic_array_representation">The dynamic array source</param>
         public static void DynamicArrayToMatrix(FungeSparseMatrix matrix, List<List<char>> dynamic_array_representation)
         {
             for (int r = 0; r < dynamic_array_representation.Count; r++)

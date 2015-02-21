@@ -14,7 +14,7 @@ namespace BefungeSharp.Instructions.Storage
         /// </summary>
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
-        public StorageInstruction(char inName, int minimum_flags) : base(inName, CommandType.IO, ConsoleColor.Green, minimum_flags) { }
+        public StorageInstruction(char inName, int minimum_flags) : base(inName, CommandType.DataStorage, ConsoleColor.Green, minimum_flags) { }
     }
 
     public class GetInstruction : StorageInstruction, IRequiresPush, IRequiresPop
@@ -23,7 +23,7 @@ namespace BefungeSharp.Instructions.Storage
         
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack, RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, RequiredCells());
             Vector2 v = StackUtils.VectorPop(ip.Stack);
             char foundChar = Program.BoardManager.GetCharacter(v.y, v.x);
 
@@ -55,7 +55,7 @@ namespace BefungeSharp.Instructions.Storage
         
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack, RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, RequiredCells());
 
             Vector2 v = StackUtils.VectorPop(ip.Stack);
             

@@ -37,7 +37,7 @@ namespace BefungeSharp.Instructions.Arithmetic
 
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, this.RequiredCells());
             ip.Stack.Push(ip.Stack.Pop() + ip.Stack.Pop());
             return true;
         }
@@ -52,7 +52,7 @@ namespace BefungeSharp.Instructions.Arithmetic
 
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, this.RequiredCells());
             int b = ip.Stack.Pop();
             int a = ip.Stack.Pop();
             ip.Stack.Push(a - b);
@@ -69,7 +69,7 @@ namespace BefungeSharp.Instructions.Arithmetic
 
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, this.RequiredCells());
             ip.Stack.Push(ip.Stack.Pop() * ip.Stack.Pop());
             return true;
         }
@@ -84,7 +84,7 @@ namespace BefungeSharp.Instructions.Arithmetic
 
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, this.RequiredCells());
             int b = ip.Stack.Pop();
             int a = ip.Stack.Pop();
             //TODO - does this follow this "the / "Divide" instruction, which pops two values, divides the second by the first using integer division, and pushes the result (note that division by zero produces a result of zero in Funge-98, but Befunge-93 instead is supposed to ask the user what they want the result of the division to be); and"
@@ -110,7 +110,7 @@ namespace BefungeSharp.Instructions.Arithmetic
 
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, this.RequiredCells());
 
             int b = ip.Stack.Pop();
             int a = ip.Stack.Pop();

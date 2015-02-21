@@ -66,7 +66,7 @@ namespace BefungeSharp.Instructions.Stack
 
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack,RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack,RequiredCells());
             ip.Stack.Pop();
             return true;
         }
@@ -81,7 +81,7 @@ namespace BefungeSharp.Instructions.Stack
 
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, this.RequiredCells());
             int a = ip.Stack.Pop();
             int b = ip.Stack.Pop();
 
@@ -126,7 +126,7 @@ namespace BefungeSharp.Instructions.Stack
             //.NET's Clear() takes care of it for you but it is included to
             //keep the code inline with the rest of it all
             stackSize = ip.Stack.Count;
-            base.EnsureStackSafety(ip.Stack,RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack,RequiredCells());
             
             ip.Stack.Clear();
             stackSize = 0;

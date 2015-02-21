@@ -46,7 +46,7 @@ namespace BefungeSharp.Instructions.String
             ip.Stack.Push(ip.Position.Data.x);
             ip.Stack.Push(ip.Position.Data.y);
 
-            base.EnsureStackSafety(ip.Stack, RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, RequiredCells());
 
             int y = ip.Stack.Pop();
             int x = ip.Stack.Pop();

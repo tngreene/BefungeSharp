@@ -18,7 +18,7 @@ namespace BefungeSharp.Instructions
         Numbers,//0-9,a-f that will be pushed onto the stack
         StackManipulation,//:$u{}
         DataStorage,//gp
-        IO,//&~,.
+        StdIO,//&~,.
         FileIO,//io
         System,//=y
         StopExecution,//@
@@ -64,33 +64,7 @@ namespace BefungeSharp.Instructions
             this.flags = minimum_flags;
         }
 
-        protected void EnsureStackSafety(Stack<int> stack, int required)
-        {
-            if (required > stack.Count)
-            {
-                int toAdd = required - stack.Count;
-                int toStore = stack.Count;
-
-                Stack<int> holder = new Stack<int>();
-                for (int i = 0; i < toStore; i++)
-                {
-                    holder.Push(stack.Pop());
-                }
-
-                //Ensure that there will always be enough in the stack
-                while (stack.Count < toAdd)
-                {
-                    //TODO - find out if we are at max stack capacity
-                    //Insert behind the top of the stack
-                    stack.Push(0);
-                }
-
-                for (int i = holder.Count; i > 0; i--)
-                {
-                    stack.Push(holder.Pop());
-                }
-            }
-        }
+      
 
         public abstract bool Preform(IP ip);
     }

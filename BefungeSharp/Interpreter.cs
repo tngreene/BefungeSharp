@@ -432,7 +432,6 @@ namespace BefungeSharp
                             }
                             break;
                         case '.'://Output as number
-                            Program.WindowUI.AddText(_IPs[n].Stack.Pop().ToString(), WindowUI.Categories.OUT);
                             break;
                         //Funge 98 stack manipulation
                         //TODO - implement

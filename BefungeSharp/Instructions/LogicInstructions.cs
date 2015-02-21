@@ -32,7 +32,7 @@ namespace BefungeSharp.Instructions.Logic
 
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, this.RequiredCells());
             if (ip.Stack.Pop() != 0)
             {
                 ip.Stack.Push(0);
@@ -51,7 +51,7 @@ namespace BefungeSharp.Instructions.Logic
 
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, this.RequiredCells());
             if (ip.Stack.Pop() == 0)
             {
                 ip.Delta = Vector2.East;
@@ -70,7 +70,7 @@ namespace BefungeSharp.Instructions.Logic
 
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, this.RequiredCells());
             if (ip.Stack.Pop() == 0)
             {
                 ip.Delta = Vector2.South;
@@ -89,7 +89,7 @@ namespace BefungeSharp.Instructions.Logic
 
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, this.RequiredCells());
             
             int a = ip.Stack.Pop();
             int b = ip.Stack.Pop();
@@ -113,7 +113,7 @@ namespace BefungeSharp.Instructions.Logic
 
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, this.RequiredCells());
             //Pop a and b off the stack
             int a = ip.Stack.Pop();
             int b = ip.Stack.Pop();

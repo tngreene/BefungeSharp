@@ -9,7 +9,7 @@ namespace BefungeSharp.Instructions.SystemCalls
 {
     public abstract class SystemInstruction : Instruction
     {
-        public SystemInstruction(char inName, int minimum_flags) : base(inName, CommandType.IO, ConsoleColor.DarkMagenta, minimum_flags) { }
+        public SystemInstruction(char inName, int minimum_flags) : base(inName, CommandType.System, ConsoleColor.DarkMagenta, minimum_flags) { }
     }
 
     public class ExecuteInstruction : SystemInstruction, IRequiresPop
@@ -18,7 +18,7 @@ namespace BefungeSharp.Instructions.SystemCalls
 
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack, RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, RequiredCells());
             
             //Pop a command that will be fed into cmd, /k forces the window to stay open
             string command = StackUtils.StringPop(ip.Stack,true);
@@ -68,7 +68,7 @@ namespace BefungeSharp.Instructions.SystemCalls
             //imitate the end result and move on. If someone can tell me why the spec should be followed to the
             //letter please e-mail the author. They would greatly appreciate it.
             
-            base.EnsureStackSafety(ip.Stack, RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, RequiredCells());
             int initialTOSS_Size = ip.Stack.Count;
 
             //Which option we will start examining
@@ -269,7 +269,7 @@ namespace BefungeSharp.Instructions.SystemCalls
                         {
                             //Since it is impossible to get stack[20-20]
                             //We must ensure we can atleast access stack[1]
-                            base.EnsureStackSafety(ip.Stack, (toExamine - 20) + 1);
+                            StackUtils.EnsureStackSafety(ip.Stack, (toExamine - 20) + 1);
                             //If it is greater than 20 we will be "picking" off the stack
                             int result = ip.Stack.ElementAtOrDefault(toExamine - 20);
                             ip.Stack.Push(result);

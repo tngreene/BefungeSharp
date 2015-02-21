@@ -80,7 +80,7 @@ namespace BefungeSharp.Instructions.Delta
 
         public override bool Preform(IP ip)
         {
-            base.EnsureStackSafety(ip.Stack, this.RequiredCells());
+            StackUtils.EnsureStackSafety(ip.Stack, this.RequiredCells());
 
             //Set the new delta to the a vector popped off the stack
             newDelta.x = ip.Stack.Pop();

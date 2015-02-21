@@ -97,5 +97,33 @@ namespace BefungeSharp
             }
             return new Vector2(vector[1], vector[0]);
         }
+
+        public static void EnsureStackSafety(Stack<int> stack, int required)
+        {
+            if (required > stack.Count)
+            {
+                int toAdd = required - stack.Count;
+                int toStore = stack.Count;
+
+                Stack<int> holder = new Stack<int>();
+                for (int i = 0; i < toStore; i++)
+                {
+                    holder.Push(stack.Pop());
+                }
+
+                //Ensure that there will always be enough in the stack
+                while (stack.Count < toAdd)
+                {
+                    //TODO - find out if we are at max stack capacity
+                    //Insert behind the top of the stack
+                    stack.Push(0);
+                }
+
+                for (int i = holder.Count; i > 0; i--)
+                {
+                    stack.Push(holder.Pop());
+                }
+            }
+        }
     }
 }
