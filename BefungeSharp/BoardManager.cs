@@ -11,10 +11,9 @@ namespace BefungeSharp
         /// <summary>
         /// A two dimensional grid of the original file input, if there was any
         /// </summary>
-        private List<List<char>> _boardArray;
-        public List<List<char>> BoardArray { get { return _boardArray; } }
+        private List<List<int>> _boardArray;
+        public List<List<int>> BoardArray { get { return _boardArray; } }
         
-        private Interpreter _bInterp;
 
         /// <summary>
         /// Creates a new BoardManager with the options to set up its entire intial state and run type
@@ -34,12 +33,12 @@ namespace BefungeSharp
             if (initChars != null)
             {
                 //Intialize the board array to be the size of the board
-                _boardArray = new List<List<char>>(rows);
+                _boardArray = new List<List<int>>(rows);
 
                 //Fill up the whole rectangle with spaces
                 for (int y = 0; y < rows; y++)
                 {
-                    _boardArray.Add(new List<char>());
+                    _boardArray.Add(new List<int>());
                     for (int x = 0; x < columns; x++)
                     {
                         _boardArray[y].Add(' ');
@@ -61,20 +60,20 @@ namespace BefungeSharp
                     }
                 }
             }
-                        
-            _bInterp = new Interpreter(this._boardArray, initGlobalStack, mode);
-           
-            Program.WindowUI = new WindowUI(_bInterp);
-            Program.WindowSideBar = new WindowSideBar(this, _bInterp);
+
+            Program.Interpreter = new Interpreter(this._boardArray, initGlobalStack, mode);
+
+            Program.WindowUI = new WindowUI(Program.Interpreter);
+            Program.WindowSideBar = new WindowSideBar(this, Program.Interpreter);
           
             Console.CursorVisible = false;
          
             //Draw the field and ui and reset the position
-            Program.WindowUI.ClearArea(_bInterp.CurMode);
-            Program.WindowUI.Draw(_bInterp.CurMode);
+            Program.WindowUI.ClearArea(Program.Interpreter.CurMode);
+            Program.WindowUI.Draw(Program.Interpreter.CurMode);
 
-            Program.WindowSideBar.ClearArea(_bInterp.CurMode);
-            Program.WindowSideBar.Draw(_bInterp.CurMode);
+            Program.WindowSideBar.ClearArea(Program.Interpreter.CurMode);
+            Program.WindowSideBar.Draw(Program.Interpreter.CurMode);
            
             ConEx.ConEx_Draw.DrawScreen();
         }
@@ -98,7 +97,7 @@ namespace BefungeSharp
             }
 
             //If it is, return the character
-            return _boardArray[row][column];
+            return (char)_boardArray[row][column];
         }
 
         /// <summary>
@@ -147,12 +146,12 @@ namespace BefungeSharp
 
                 //Get the current keys
                 ConsoleKeyInfo[] keysHit = ConEx.ConEx_Input.GetInput();
-                Instructions.CommandType type = _bInterp.Update(_bInterp.CurMode, keysHit);
-                                   Program.WindowUI.Update(_bInterp.CurMode, keysHit);
-                                   Program.WindowSideBar.Update(_bInterp.CurMode, keysHit);
+                Instructions.CommandType type =  Program.Interpreter.Update( Program.Interpreter.CurMode, keysHit);
+                                   Program.WindowUI.Update( Program.Interpreter.CurMode, keysHit);
+                                   Program.WindowSideBar.Update( Program.Interpreter.CurMode, keysHit);
 
                 //Based on what mode it is handle those keys
-                switch (_bInterp.CurMode)
+                switch ( Program.Interpreter.CurMode)
                 {
                     case BoardMode.Run_MAX:
                     case BoardMode.Run_FAST:
@@ -161,7 +160,7 @@ namespace BefungeSharp
                     case BoardMode.Run_STEP:
                         break;
                     case BoardMode.Edit:
-                        HandleModifiers(_bInterp.CurMode, keysHit);
+                        HandleModifiers( Program.Interpreter.CurMode, keysHit);
 
                         #region --HandleInput-------------
                         for (int i = 0; i < keysHit.Length; i++)
@@ -209,21 +208,21 @@ namespace BefungeSharp
                 if (true)
                 {
                     //Draw the innocent sidebar
-                    Program.WindowSideBar.ClearArea(_bInterp.CurMode);
-                    Program.WindowSideBar.Draw(_bInterp.CurMode);
+                    Program.WindowSideBar.ClearArea( Program.Interpreter.CurMode);
+                    Program.WindowSideBar.Draw( Program.Interpreter.CurMode);
 
                     //Draw the board and draw the IP ontop of the board
-                    _bInterp.Draw();
+                     Program.Interpreter.Draw();
 
                     //Draw the UI and selection to override the black
-                    Program.WindowUI.ClearArea(_bInterp.CurMode);
-                    Program.WindowUI.Draw(_bInterp.CurMode);
+                    Program.WindowUI.ClearArea( Program.Interpreter.CurMode);
+                    Program.WindowUI.Draw( Program.Interpreter.CurMode);
 
                     ConEx.ConEx_Draw.DrawScreen();
                 }
                 double mm = watch.ElapsedMilliseconds;
                 //Based on the mode sleep the program so it does not scream by
-                System.Threading.Thread.Sleep((int)_bInterp.CurMode);
+                System.Threading.Thread.Sleep((int) Program.Interpreter.CurMode);
             }//while(true)
         }//Update()
 /// <summary>

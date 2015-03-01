@@ -24,16 +24,23 @@ namespace BefungeSharp
         private static BoardManager s_board_manager;
         public static BoardManager BoardManager { get { return s_board_manager; } }
 
+        //TODO - remove the setters from these things!
         private static WindowUI s_window_UI;
         public static WindowUI WindowUI { get { return s_window_UI; } set { s_window_UI = value; } }
 
         private static WindowSideBar s_window_side_bar;
         public static WindowSideBar WindowSideBar { get { return s_window_side_bar; } set { s_window_side_bar = value; } }
 
+        private static Interpreter s_interpreter;
+        public static Interpreter Interpreter 
+        { 
+            get { return s_interpreter; }
+            set { s_interpreter = value; }
+        }
+
         [STAThread]
         static void Main(string[] args)
         {
-            //FungeSpaceUtils.TestMatrix();
             /* 1.) Attempt to read program options, if none create defaults
              * 2.) Ask user to select program mode
              * 3.) Run that mode's update method

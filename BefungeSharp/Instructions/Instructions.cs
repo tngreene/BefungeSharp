@@ -64,8 +64,6 @@ namespace BefungeSharp.Instructions
             this.flags = minimum_flags;
         }
 
-      
-
         public abstract bool Preform(IP ip);
     }
 
@@ -217,12 +215,16 @@ namespace BefungeSharp.Instructions
                     case '}':
                         break;
                     //-----------------
-                    //IO
+                    //--StdIO----------
                     case '&':
                     case '~':
-                        //return new CommandInfo(c, CommandType.IO, ConsoleColor.Gray, -1);
+                        
+                        
                     case ',':
+                        break;
                     case '.':
+                        instruction_set.Add(c, new StdIO.OutputDecimalInstruction(c, 0));
+                        break;
                        // return new CommandInfo(c, CommandType.IO, ConsoleColor.Gray, 1);
 
                     //Funge-98

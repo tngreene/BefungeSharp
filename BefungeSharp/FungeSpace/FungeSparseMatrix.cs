@@ -129,7 +129,7 @@ namespace BefungeSharp.FungeSpace
         /// The big heap of nodes
         /// </summary>
         private List<FungeNode> m_Nodes;
-
+        
         //Our m_Origin, cached
         private FungeNode m_Origin;
 
@@ -181,6 +181,22 @@ namespace BefungeSharp.FungeSpace
                     data.value = ' ';
                     InsertCell(data);
                 }
+            }
+        }
+
+        /// <summary>
+        /// The copy constructor for FungeSparseMatrix, preforms a deep copy of the matrix
+        /// </summary>
+        /// <param name="copy">The matrix to copy from</param>
+        public FungeSparseMatrix(FungeSparseMatrix copy)
+        {
+            m_Nodes = new List<FungeNode>(copy.m_Nodes.Count);
+            m_Origin = new FungeNode(new FungeCell(0, 0, copy.m_Origin.Data.value), this);
+            m_Nodes.Add(m_Origin);
+
+            for (int i = 1; i < copy.m_Nodes.Count; i++)
+            {
+                this.InsertCell(copy.m_Nodes[i].Data);
             }
         }
 
@@ -346,7 +362,7 @@ namespace BefungeSharp.FungeSpace
         {
             return InsertCell(new FungeCell(cell.x, cell.y, value));
         }
-
+        static int count = 0;
         /// <summary>
         /// Inserts a cell into the matrix
         /// </summary>
@@ -356,7 +372,7 @@ namespace BefungeSharp.FungeSpace
         {
             //The row node is the node where we will start searching for when we reach the column
             FungeNode row_node = GetRow(cell.y, m_Origin);
-
+            bool needsToAddAnchor = false;
             //If a row at cell.y doesn't exist
             if (row_node == null)
             {
@@ -365,6 +381,7 @@ namespace BefungeSharp.FungeSpace
 
                 //We must start back at the m_Origin becase the row_node is not connected to anything
                 row_node = InsertRow(anchor_cell, m_Origin);
+                needsToAddAnchor = true;
             }
 
             //Now that we have our row node, we'll try to find our column
@@ -381,10 +398,14 @@ namespace BefungeSharp.FungeSpace
                 m_Nodes.Add(column_node);
                 return column_node;
             }
+            else if(needsToAddAnchor == true)
+            {
+                m_Nodes.Add(column_node);
+                return column_node;
+            }
             else
             {
                 //The row and column exists and it's info must be updated
-                //Note: Cases like [value,0,y] are updated twice, but thats okay
                 column_node.Data = cell;
                 return column_node;
             }

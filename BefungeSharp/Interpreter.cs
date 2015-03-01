@@ -36,7 +36,7 @@ namespace BefungeSharp
 
         //The current mode of the board
         private BoardMode _curMode;
-        public BoardMode CurMode { get { return _curMode; } set { _curMode = value; } }
+        public BoardMode CurMode { get { return _curMode; } }
 
         private List<IP> _IPs;
 
@@ -57,7 +57,7 @@ namespace BefungeSharp
         /// Controls the intepretation and execution of commands
         /// </summary>
         /// <param name="mgr">A reference to the manager</param>
-        public Interpreter(List<List<char>> initial_chars = null, Stack<int> stack = null, BoardMode mode = BoardMode.Edit)
+        public Interpreter(List<List<int>> initial_chars = null, Stack<int> stack = null, BoardMode mode = BoardMode.Edit)
         {
             _fungeSpace = new FungeSparseMatrix();
             if (initial_chars != null)
@@ -431,8 +431,6 @@ namespace BefungeSharp
                                 Program.WindowUI.AddText(outVal, WindowUI.Categories.OUT);
                             }
                             break;
-                        case '.'://Output as number
-                            break;
                         //Funge 98 stack manipulation
                         //TODO - implement
                         case 'u':
@@ -512,7 +510,7 @@ namespace BefungeSharp
             //If ther are no more active IP's left then set us back to edit mode
             if (IPs.Exists(item => item.Active == true) == false)
             {
-                CurMode = BoardMode.Edit;
+                _curMode = BoardMode.Edit;
             }
 
             //Move and wrap every delta

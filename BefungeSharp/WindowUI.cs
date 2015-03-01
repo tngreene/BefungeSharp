@@ -320,25 +320,30 @@ namespace BefungeSharp
             {
                 for (int r = _selection.dimensions.Top; r <= _selection.dimensions.Bottom; r++)
                 {
-                    char prevChar = '\0';
-                    prevChar = Program.BoardManager.GetCharacter(r,c);
+                    int value = 0;
 
-                    if (prevChar != '\0')
+                    FungeSpace.FungeNode lookup = Program.Interpreter.FungeSpace.GetNode(r,c);
+                    if (lookup == null)
                     {
-                        ConsoleColor color = ConsoleColor.White;
-                        try 
-	                    {	        
-		                    color = Instructions.InstructionManager.InstructionSet[prevChar].Color;
-	                    }
-	                    catch (Exception)
-	                    {
-		
-	                    }
-                            
-                        
-
-                        ConEx.ConEx_Draw.SetAttributes(r, c, color, ConsoleColor.DarkGreen);
+                        value = ' ';
                     }
+                    else
+                    {
+                        value = lookup.Data.value;
+                    }
+
+                    ConsoleColor color = ConsoleColor.White;
+                    try 
+	                {	        
+		                color = Instructions.InstructionManager.InstructionSet[value].Color;
+	                }
+	                catch (Exception)
+	                {
+		
+	                }
+                            
+                    ConEx.ConEx_Draw.SetAttributes(r, c, color, ConsoleColor.DarkGreen);
+                    
                 }
             }
         }
@@ -465,6 +470,14 @@ namespace BefungeSharp
         /// <returns>A list of strings, one for each row of the selection</returns>
         public List<string> GetSelectionContents()
         {
+            Vector2[] cropping_bounds = new Vector2[2];
+            //cropping_bounds[0] = new Vector2 (0,0);
+            //cropping_bounds[1] = new Vector2 (9,9);
+
+            cropping_bounds[0] = new Vector2(_selection.dimensions.Left, _selection.dimensions.Top);
+            cropping_bounds[1] = new Vector2(_selection.dimensions.Right, _selection.dimensions.Bottom);
+            List<List<int>> dynm_arr = FungeSpace.FungeSpaceUtils.MatrixToDynamicArray(Program.Interpreter.FungeSpace, cropping_bounds);
+                
             List<string> outlines = new List<string>();
 
             for (int row = _selection.dimensions.Top; row <= _selection.dimensions.Bottom; row++)
@@ -472,7 +485,7 @@ namespace BefungeSharp
                 string line = "";
                 for (int column = _selection.dimensions.Left; column <= _selection.dimensions.Right; column++)
                 {
-                    line += Program.BoardManager.GetCharacter(row, column);
+                    line += (char)dynm_arr[row][column];
                 }
                 outlines.Add(line);
             }
@@ -492,7 +505,7 @@ namespace BefungeSharp
                 for (int s_column = 0; s_column < _selection.content[s_row].Length; s_column++)
                 {
                     //Put the character in the "real" location + the selection offset
-                    Program.BoardManager.PutCharacter(top + s_row, left + s_column, _selection.content[s_row][s_column]);
+                    Program.Interpreter.FungeSpace.InsertCell(new FungeSpace.FungeCell(left + s_column, top + s_row, _selection.content[s_row][s_column]));
                 }
             }
 
@@ -594,7 +607,7 @@ namespace BefungeSharp
                 for (int s_column = 0; s_column < _selection.content[s_row].Length; s_column++)
                 {
                     //Put the character in the "real" location + the selection offset
-                    Program.BoardManager.PutCharacter(top + s_row, left + s_column, ' ');
+                    Program.Interpreter.FungeSpace.InsertCell(new FungeSpace.FungeCell(left + s_column, top + s_row, ' '));
                 }
             }
         }

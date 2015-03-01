@@ -16,7 +16,7 @@ namespace BefungeSharp.FungeSpace
         /// </summary>
         /// <param name="matrix">The matrix to affect</param>
         /// <param name="dynamic_array_representation">The dynamic array source</param>
-        public static void DynamicArrayToMatrix(FungeSparseMatrix matrix, List<List<char>> dynamic_array_representation)
+        public static void DynamicArrayToMatrix(FungeSparseMatrix matrix, List<List<int>> dynamic_array_representation)
         {
             for (int r = 0; r < dynamic_array_representation.Count; r++)
             {
@@ -27,6 +27,71 @@ namespace BefungeSharp.FungeSpace
             }
         }
 
+        /// <summary>
+        /// Gets the dynamic array version of a funge sparse matrix, where the holes are "filled in" with ' ''s
+        /// </summary>
+        /// <param name="matrix">The matrix to copy from</param>
+        /// <param name="cropping_bounds">The bounds to copy, where cropping_bounds[0] is the top left and [1] is the bottom right.
+        /// Warning: Negative nodes will cause the whole dynamic array representation to lose 1:1 translation from matrix form</param>
+        /// <returns>The DynamicArray containing the matrix data</returns>
+        public static List<List<int>> MatrixToDynamicArray(FungeSparseMatrix matrix, Vector2 [] cropping_bounds)
+        {
+            //Create a filled subsection of our matrix
+            FungeSparseMatrix filled_matrix = FungeSpaceUtils.FillMatrix(matrix, cropping_bounds[0], cropping_bounds[1]);
+            List<List<int>> outArray = new List<List<int>>();
+            
+            //Starting at the top
+            int row = cropping_bounds[0].y;
+            int column = cropping_bounds[0].x;
+            
+            //Find out if the place we want to start exists
+            FungeNode traverse = matrix.GetNode(row, column);
+
+            FungeNode f = filled_matrix.Origin;
+
+            FungeNode rowsStart = f;
+            do
+            {
+                FungeNode columnsStart = f;
+                outArray.Add(new List<int>());
+                do
+                {
+                    outArray.Last().Add(f.Data.value);
+                    f = f.East;
+                }
+                while (f != columnsStart);
+                
+                f = f.South;
+            }
+            while (f != rowsStart);
+
+            return outArray;
+        }
+        
+        /// <summary>
+        /// Fills the matrix's empty spaces with a certain value
+        /// </summary>
+        /// <param name="original_matrix">The original_matrix, it will not be altered</param>
+        /// <param name="value">The value to be inserted into every cell, by default ' '</param>
+        /// <returns>The filled matrix</returns>
+        public static FungeSparseMatrix FillMatrix(FungeSparseMatrix original_matrix, Vector2 top_left, Vector2 bottom_right, int value = ' ')
+        {
+            //Copy the matrix over
+            FungeSparseMatrix outMatrix = new FungeSparseMatrix(original_matrix);
+
+            for (int y = top_left.y; y != bottom_right.y + 1; y++)
+            {
+                for ( int x = top_left.x; x != bottom_right.x + 1; x++)
+                {
+                    FungeNode lookup = outMatrix.GetNode(y, x);
+                    if (lookup == null)
+                    {
+                        outMatrix.InsertCell(x, y, ' ');
+                    }
+                }
+            }
+            return outMatrix;
+        }
         /// <summary>
         /// Get's a matrix upper and lower bounds
         /// </summary>
@@ -92,6 +157,7 @@ namespace BefungeSharp.FungeSpace
         {
             node.Data = new FungeCell(node.Data.x, node.Data.y, new_value);
         }
+
         /// <summary>
         /// Move's an object's position node to a specific place, creating a node there if need be
         /// </summary>
@@ -247,10 +313,11 @@ namespace BefungeSharp.FungeSpace
         public static void TestMatrix()
         {
             FungeNode traverse = null;
-            if (false)
+            if (true)
             {
                 //Many columns, 1 row
-                FungeSparseMatrix matrix1 = new FungeSparseMatrix(4, 4);
+                FungeSparseMatrix matrix1 = new FungeSparseMatrix(10, 10);
+                while (true) { }
                 matrix1.InsertCell(-1, 0, ' ');
                 matrix1.InsertCell(-2, 0, ' ');
                 matrix1.InsertCell(-5, 0, ' ');
