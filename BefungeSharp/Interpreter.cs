@@ -399,38 +399,7 @@ namespace BefungeSharp
                     {
                         case 'q'://Not fully implimented
                             _curMode = BoardMode.Edit;
-                            return Instructions.CommandType.StopExecution;
-                        //IO
-                        case '&'://Read int
-                            Console.SetCursorPosition(_IPs[n].Position.Data.x, _IPs[n].Position.Data.y);
-                            string input = Console.ReadLine();
-                            int outResult = 0;
-                            bool succeded = int.TryParse(input, out outResult);
-                            if (succeded == true)
-                            {
-                                _IPs[n].Stack.Push(outResult);
-                                Program.WindowUI.AddText(input, WindowUI.Categories.IN);
-                            }
-                            else
-                            {
-                                _IPs[n].Stack.Push(0);
-                                Program.WindowUI.AddText("0", WindowUI.Categories.IN);
-                            }
-                            break;
-                        case '~'://Read char
-                            //TODO - allow for mass input
-                            char charInput = Console.ReadKey(true).KeyChar;
-                            _IPs[n].Stack.Push((int)charInput);
-                            Program.WindowUI.AddText(charInput.ToString(), WindowUI.Categories.IN);
-                            break;
-                        case ','://Output character
-                            {
-                                char outChar = (char)_IPs[n].Stack.Pop();
-                                string outVal = outChar.ToString();
-
-                                Program.WindowUI.AddText(outVal, WindowUI.Categories.OUT);
-                            }
-                            break;
+                            return Instructions.CommandType.StopExecution;                     
                         //Funge 98 stack manipulation
                         //TODO - implement
                         case 'u':

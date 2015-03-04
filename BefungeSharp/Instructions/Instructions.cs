@@ -217,32 +217,32 @@ namespace BefungeSharp.Instructions
                     //-----------------
                     //--StdIO----------
                     case '&':
+                        instruction_set.Add(c, new StdIO.InputCharacterInstruction(c, 0));
+                        break;
                     case '~':
-                        
-                        
+                        instruction_set.Add(c, new StdIO.InputDecimalInstruction(c, 0));
+                        break;
                     case ',':
+                        instruction_set.Add(c, new StdIO.OutputCharacterInstruction(c, 0));
                         break;
                     case '.':
                         instruction_set.Add(c, new StdIO.OutputDecimalInstruction(c, 0));
                         break;
-                       // return new CommandInfo(c, CommandType.IO, ConsoleColor.Gray, 1);
-
-                    //Funge-98
+                    //-----------------
+                    //--FileIO---------
                     case 'i':
                     case 'o':
-                        //return new CommandInfo(c,
-                                            //   CommandType.FileIO,
-
+                       
                         break;
-
-                    //--Data Storage-------
+                    //-----------------
+                    //--Data Storage---
                     case 'g':
                         instruction_set.Add(c, new Storage.GetInstruction(c, 0));
                         break;
                     case 'p':
                         instruction_set.Add(c, new Storage.PutInstruction(c, 0));
                         break;
-                    //---------------------
+                    //-----------------
                     case 't'://Split IP, for concurrent Funge
                         //return new CommandInfo(c, CommandType.Concurrent, ConsoleColor.DarkBlue, 0);
                     
