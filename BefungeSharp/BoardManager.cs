@@ -78,27 +78,6 @@ namespace BefungeSharp
             ConEx.ConEx_Draw.DrawScreen();
         }
 
-        /// <summary>
-        /// Gets a character at a certain row and column
-        /// </summary>
-        /// <param name="row">What row to look in</param>
-        /// <param name="column">What column to look in</param>
-        /// <returns>The given character, or '\0' if it is out of bounds or had an error</returns>
-        public char GetCharacter(int row, int column)
-        {
-            //Make sure the row and column are in range
-            if (row > _boardArray.Count - 1 || row < 0)
-            {
-                return '\0';
-            }
-            if (column > _boardArray[row].Count - 1 || column < 0)
-            {
-                return '\0';
-            }
-
-            //If it is, return the character
-            return (char)_boardArray[row][column];
-        }
 
         /// <summary>
         /// Inserts a character into the board, 

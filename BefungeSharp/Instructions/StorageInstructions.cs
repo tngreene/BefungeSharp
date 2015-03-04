@@ -25,11 +25,12 @@ namespace BefungeSharp.Instructions.Storage
         {
             StackUtils.EnsureStackSafety(ip.Stack, RequiredCells());
             Vector2 v = StackUtils.VectorPop(ip.Stack);
-            char foundChar = Program.BoardManager.GetCharacter(v.y, v.x);
-
-            if (CanPushCells() == true)
+            
+            FungeSpace.FungeNode lookup = ip.Position.ParentMatrix.GetNode(v.y, v.x);
+            
+            if (lookup != null)
             {
-                ip.Stack.Push((int)foundChar);
+                ip.Stack.Push(lookup.Data.value);
                 return true;
             }
             else

@@ -112,7 +112,7 @@ namespace BefungeSharp.Instructions.FlowControl
             }
             else
             {
-                Instruction executable = InstructionManager.InstructionSet[Program.BoardManager.GetCharacter(temporaryIP.Position.Data.y, temporaryIP.Position.Data.x)];
+                Instruction executable = InstructionManager.InstructionSet[temporaryIP.Position.Data.value];
                 for (int i = 0; i < iterations; i++)
                 {
                     executable.Preform(temporaryIP);
