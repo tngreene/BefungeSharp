@@ -262,7 +262,9 @@ namespace BefungeSharp.Instructions.SystemCalls
                         //1. A cell containing various flags relating to which instructions
                         //Are implemented
                         {
-                            ip.Stack.Push((int)flags);
+                            //ip.Stack.Push((int)flags);
+                            //t,= implemented, StdIO acts like getch()
+                            ip.Stack.Push(0x01 | 0x08 | 0x10);
                         }
                         break;
                     default:

@@ -60,10 +60,10 @@ namespace BefungeSharp.Instructions.Storage
 
             Vector2 v = StackUtils.VectorPop(ip.Stack);
             
-            int charToPlace = ip.Stack.Pop();
-            bool couldPlace = Program.BoardManager.PutCharacter(v.y, v.x, (char)charToPlace);
+            int value = ip.Stack.Pop();
+            ip.Position.ParentMatrix.InsertCell(v.x, v.y, value);
 
-            return couldPlace;
+            return true;
         }
 
         public int RequiredCells()

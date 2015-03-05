@@ -242,10 +242,11 @@ namespace BefungeSharp.Instructions
                     case 'p':
                         instruction_set.Add(c, new Storage.PutInstruction(c, 0));
                         break;
+                    //--Concurrent-----
+                    case 't':
+                        instruction_set.Add(c, new Concurrent.SplitInstruction(c, 0));
+                        break;
                     //-----------------
-                    case 't'://Split IP, for concurrent Funge
-                        //return new CommandInfo(c, CommandType.Concurrent, ConsoleColor.DarkBlue, 0);
-                    
                     //--System---------
                     case '=':
                         instruction_set.Add(c, new SystemCalls.ExecuteInstruction(c, 0));

@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Instructions\ConcurrentInstructions.cs" />
     <Compile Include="Instructions\StandardIOInstructions.cs" />
     <Compile Include="WindowSideBar.cs" />
     <Compile Include="BoardManager.cs" />
