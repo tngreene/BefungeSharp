@@ -460,10 +460,8 @@ namespace BefungeSharp
                 //Emergancy sleep so we don't get a whole bunch of operations at once
                 System.Threading.Thread.Sleep(150);
             }
-
-
-            
         }
+
         /// <summary>
         /// Gets the contents of the selection box
         /// </summary>
@@ -480,10 +478,10 @@ namespace BefungeSharp
                 
             List<string> outlines = new List<string>();
 
-            for (int row = _selection.dimensions.Top; row <= _selection.dimensions.Bottom; row++)
+            for (int row = 0; row < dynm_arr.Count; row++)
             {
                 string line = "";
-                for (int column = _selection.dimensions.Left; column <= _selection.dimensions.Right; column++)
+                for (int column = 0; column < dynm_arr[row].Count; column++)
                 {
                     line += (char)dynm_arr[row][column];
                 }
@@ -492,7 +490,9 @@ namespace BefungeSharp
             return outlines;
         }
 
-        
+        /// <summary>
+        /// Puts the contents of the selection box into the world
+        /// </summary>
         private void PutSelectionContents()
         {
             int top = _selection.dimensions.Top;
@@ -620,8 +620,6 @@ namespace BefungeSharp
             _selection.dimensions.Right = -1;
             _selection.dimensions.Top = -1;
             _selection.active = false;
-        }
-
-       
+        } 
     }
 }

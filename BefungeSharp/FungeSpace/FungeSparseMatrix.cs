@@ -372,7 +372,7 @@ namespace BefungeSharp.FungeSpace
         {
             //The row node is the node where we will start searching for when we reach the column
             FungeNode row_node = GetRow(cell.y, m_Origin);
-            bool needsToAddAnchor = false;
+
             //If a row at cell.y doesn't exist
             if (row_node == null)
             {
@@ -381,7 +381,7 @@ namespace BefungeSharp.FungeSpace
 
                 //We must start back at the m_Origin becase the row_node is not connected to anything
                 row_node = InsertRow(anchor_cell, m_Origin);
-                needsToAddAnchor = true;
+                m_Nodes.Add(row_node);
             }
 
             //Now that we have our row node, we'll try to find our column
@@ -395,11 +395,6 @@ namespace BefungeSharp.FungeSpace
                 bool connectedNoS = AttemptCoupling(column_node);
                 column_node.ParentMatrix = this;
                 //Now we'll add it to the list only after we know it didn't exist before
-                m_Nodes.Add(column_node);
-                return column_node;
-            }
-            else if(needsToAddAnchor == true)
-            {
                 m_Nodes.Add(column_node);
                 return column_node;
             }

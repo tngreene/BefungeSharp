@@ -68,6 +68,7 @@ namespace BefungeSharp.UI
                 }
                 else
                 {
+                    //TODO - This is only for Befunge-93
                     //If it is not a valid charecter
                     if (c < '\0' || c > (char)255)
                     {
