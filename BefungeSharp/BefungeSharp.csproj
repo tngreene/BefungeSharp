@@ -79,6 +79,12 @@
     <None Include="examples\calculator.bf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="examples\itoroman.bf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="examples\itoroman_min.bf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="examples\lessismore.bf">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
