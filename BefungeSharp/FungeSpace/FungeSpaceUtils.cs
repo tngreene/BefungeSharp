@@ -92,6 +92,7 @@ namespace BefungeSharp.FungeSpace
             }
             return outMatrix;
         }
+        
         /// <summary>
         /// Get's a matrix upper and lower bounds
         /// </summary>
