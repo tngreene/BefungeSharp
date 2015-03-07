@@ -168,23 +168,10 @@ namespace BefungeSharp
                     input += ".bf";//OptionsManager.OptionsDictionary["Default extension"]
                     break;
             }
-            List<string> outStrings = new List<string>();
-
+            
             Vector2 [] bounds = FungeSpace.FungeSpaceUtils.GetMatrixBounds(Program.Interpreter.FungeSpace);
+            List<string> outStrings = FungeSpace.FungeSpaceUtils.MatrixToStringList(Program.Interpreter.FungeSpace, bounds);
 
-            List<List<int>> dynm_arr = FungeSpace.FungeSpaceUtils.MatrixToDynamicArray(Program.Interpreter.FungeSpace, bounds);
-
-            List<string> outlines = new List<string>();
-
-            for (int row = 0; row < dynm_arr.Count; row++)
-            {
-                string line = "";
-                for (int column = 0; column < dynm_arr[row].Count; column++)
-                {
-                    line += (char)dynm_arr[row][column];
-                }
-                outlines.Add(line);
-            }
             Console.WriteLine("Writing file to " + System.IO.Path.GetFullPath(input));
             Console.WriteLine();
 

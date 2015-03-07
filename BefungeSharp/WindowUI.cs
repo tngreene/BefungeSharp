@@ -466,19 +466,9 @@ namespace BefungeSharp
 
             cropping_bounds[0] = new Vector2(_selection.dimensions.Left, _selection.dimensions.Top);
             cropping_bounds[1] = new Vector2(_selection.dimensions.Right, _selection.dimensions.Bottom);
-            List<List<int>> dynm_arr = FungeSpace.FungeSpaceUtils.MatrixToDynamicArray(Program.Interpreter.FungeSpace, cropping_bounds);
-                
-            List<string> outlines = new List<string>();
-
-            for (int row = 0; row < dynm_arr.Count; row++)
-            {
-                string line = "";
-                for (int column = 0; column < dynm_arr[row].Count; column++)
-                {
-                    line += (char)dynm_arr[row][column];
-                }
-                outlines.Add(line);
-            }
+ 
+            List<string> outlines = FungeSpace.FungeSpaceUtils.MatrixToStringList(Program.Interpreter.FungeSpace, cropping_bounds);
+         
             return outlines;
         }
 

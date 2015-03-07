@@ -27,6 +27,23 @@ namespace BefungeSharp.FungeSpace
             }
         }
 
+        public static List<string> MatrixToStringList(FungeSparseMatrix matrix, Vector2[] cropping_bounds)
+        {
+            List<List<int>> dynm_arr = FungeSpace.FungeSpaceUtils.MatrixToDynamicArray(matrix, cropping_bounds);
+
+            List<string> outlines = new List<string>();
+
+            for (int row = 0; row < dynm_arr.Count; row++)
+            {
+                string line = "";
+                for (int column = 0; column < dynm_arr[row].Count; column++)
+                {
+                    line += (char)dynm_arr[row][column];
+                }
+                outlines.Add(line);
+            }
+            return outlines;
+        }
         /// <summary>
         /// Gets the dynamic array version of a funge sparse matrix, where the holes are "filled in" with ' ''s
         /// </summary>
