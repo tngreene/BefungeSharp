@@ -67,22 +67,34 @@ namespace BefungeSharp.Instructions.FlowControl
         }
     }
 
-    public class QuitInstruction : FlowControlInstruction, IRequiresPop
+    public class QuitInstruction : FlowControlInstruction, IRequiresPop, IAffectsRunningMode
     {
+        
         public QuitInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public BoardMode NewMode
+        {
+            get { return BoardMode.Edit; }
+        }
 
         public override bool Preform(IP ip)
         {
             StackUtils.EnsureStackSafety(ip.Stack,RequiredCells());
-
-            //For now, we only have returning false or true
-            return ip.Stack.Pop() == 0 ? false : true;
+            Program.Interpreter.ChangeMode(this);
+            
+            //One day this will be useful
+            //int return_value = ip.Stack.Pop();
+            
+            //For now, we only have returning true
+            return true;
         }
 
         public int RequiredCells()
         {
             return 1;
         }
+
+
+        
     }
 
     public class IterateInstruction : FlowControlInstruction, IRequiresPop

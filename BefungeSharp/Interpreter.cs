@@ -122,6 +122,11 @@ namespace BefungeSharp
 
         }
 
+        public void ChangeMode(Instructions.IAffectsRunningMode affecter)
+        {
+            _curMode = affecter.NewMode;
+        }
+
         public Instructions.CommandType Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
             Instructions.CommandType type = Instructions.CommandType.NotImplemented;

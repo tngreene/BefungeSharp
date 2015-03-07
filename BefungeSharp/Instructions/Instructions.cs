@@ -349,7 +349,7 @@ namespace BefungeSharp.Instructions
         /// Set the interpreter's current mode to something else
         /// </summary>
         /// <param name="mode">The new mode</param>
-        void SetNewMode(BoardMode mode);
+        BoardMode NewMode { get; }
     }
 
     public interface INeedsCheckForTimeout
