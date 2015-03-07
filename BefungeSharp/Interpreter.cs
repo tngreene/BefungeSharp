@@ -330,14 +330,7 @@ namespace BefungeSharp
                     continue;
                 }
                 
-                ConsoleColor color = ConsoleColor.White;
-                try
-                {
-                    color = Instructions.InstructionManager.InstructionSet[_IPs[n].Position.Data.value].Color;
-                }
-                catch (Exception e)
-                {
-                }
+                ConsoleColor color = Instructions.InstructionManager.InstructionSet[_IPs[n].Position.Data.value].Color;
 
                 ConEx.ConEx_Draw.SetAttributes(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x, color, (ConsoleColor)ConsoleColor.Gray + (n % 3));
             }
@@ -383,18 +376,9 @@ namespace BefungeSharp
                     cmd = _fungeSpace.GetNode(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x).Data.value;
                 }             
 
-                bool success = false;
-                try
-                {
-                    success = Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
-                }
-                catch (Exception e)
-                {
+                bool success = Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
 
-                    int x = 1;
-                }
-                
-                if (success == false)
+                /*if (success == false)
                     switch (cmd)
                     {
                         case 'q'://Not fully implimented
@@ -470,7 +454,7 @@ namespace BefungeSharp
                         case 'm':
 
                             break;
-                    }
+                    }*/
 
                 //Increment n
                 n--;

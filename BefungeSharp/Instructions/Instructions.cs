@@ -213,14 +213,15 @@ namespace BefungeSharp.Instructions
                     case 'u':
                     case '{':
                     case '}':
+                        instruction_set.Add(c, new SystemCalls.NotImplemented(c, 0));   
                         break;
                     //-----------------
                     //--StdIO----------
                     case '&':
-                        instruction_set.Add(c, new StdIO.InputCharacterInstruction(c, 0));
+                        instruction_set.Add(c, new StdIO.InputDecimalInstruction(c, 0));
                         break;
                     case '~':
-                        instruction_set.Add(c, new StdIO.InputDecimalInstruction(c, 0));
+                        instruction_set.Add(c, new StdIO.InputCharacterInstruction(c, 0));
                         break;
                     case ',':
                         instruction_set.Add(c, new StdIO.OutputCharacterInstruction(c, 0));
@@ -232,7 +233,7 @@ namespace BefungeSharp.Instructions
                     //--FileIO---------
                     case 'i':
                     case 'o':
-                       
+                        instruction_set.Add(c, new SystemCalls.NotImplemented(c, 0));                        
                         break;
                     //-----------------
                     //--Data Storage---
@@ -242,6 +243,7 @@ namespace BefungeSharp.Instructions
                     case 'p':
                         instruction_set.Add(c, new Storage.PutInstruction(c, 0));
                         break;
+                    //-----------------
                     //--Concurrent-----
                     case 't':
                         instruction_set.Add(c, new Concurrent.SplitInstruction(c, 0));
@@ -255,8 +257,7 @@ namespace BefungeSharp.Instructions
                         instruction_set.Add(c, new SystemCalls.GetSysInfo(c, 0));
                         break;
                     //-----------------
-
-                    //Footprint stuff
+                    //--Footprint------
                     case '(':
                     case ')':
                     case 'A':
@@ -285,13 +286,15 @@ namespace BefungeSharp.Instructions
                     case 'X':
                     case 'Y':
                     case 'Z':
-
-                    //Trefunge
+                    //-----------------
+                    //--Trefunge-------
                     case 'h'://Go high, 3D movement
                     case 'l'://Go low, 3D movement
                     case 'm'://3D if statment
-                        instruction_set.Add(c, new Delta.ReverseDeltaInstruction(c, 0));
+                        //For now Footprint and Trefunge all get "Not Implemented", which acts like 'r'
+                        instruction_set.Add(c, new SystemCalls.NotImplemented(c, 0));
                         break;
+                    //----------------
                     //--Nop-----------
                     case ' ':
                         instruction_set.Add(c, new Nop.SpaceInstruction(c, 0));

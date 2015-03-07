@@ -296,4 +296,18 @@ namespace BefungeSharp.Instructions.SystemCalls
             return 1;
         }
     }
+
+    public class NotImplemented : SystemInstruction
+    {
+        public NotImplemented(char inName, int minimum_flags) : base(inName, minimum_flags) { color = ConsoleColor.DarkRed; }
+
+        public override bool Preform(IP ip)
+        {
+            Vector2 newDelta = ip.Delta;
+            newDelta.Negate();
+            ip.Delta = newDelta;
+
+            return true;
+        }
+    }
 }

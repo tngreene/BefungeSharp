@@ -332,16 +332,8 @@ namespace BefungeSharp
                         value = lookup.Data.value;
                     }
 
-                    ConsoleColor color = ConsoleColor.White;
-                    try 
-	                {	        
-		                color = Instructions.InstructionManager.InstructionSet[value].Color;
-	                }
-	                catch (Exception)
-	                {
-		
-	                }
-                            
+                    ConsoleColor color = Instructions.InstructionManager.InstructionSet[value].Color;
+	                        
                     ConEx.ConEx_Draw.SetAttributes(r, c, color, ConsoleColor.DarkGreen);
                     
                 }

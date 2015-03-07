@@ -280,7 +280,7 @@ namespace BefungeSharp.FungeSpace
         public static void DrawFungeSpace(FungeNode draw_origin)
         {
             FungeNode traverse = draw_origin;
-
+            
             //For every row
             do
             {
@@ -288,17 +288,10 @@ namespace BefungeSharp.FungeSpace
                 //For ever column
                 do
                 {
-                    ConsoleColor color = ConsoleColor.White;
-                    try
-                    {
-                        color = Instructions.InstructionManager.InstructionSet[traverse.Data.value].Color;
-                    }
-                    catch (Exception e)
-                    {
-                    }
-
+                    ConsoleColor color = Instructions.InstructionManager.InstructionSet[traverse.Data.value].Color;
+                   
                     char character = (char)traverse.Data.value;
-                    ConEx.ConEx_Draw.InsertCharacter(character, traverse.Data.y, traverse.Data.x, color, ConsoleColor.DarkGray);
+                    ConEx.ConEx_Draw.InsertCharacter(character, traverse.Data.y, traverse.Data.x, color, ConsoleColor.Black);
 
                     traverse = traverse.East;
                 }
