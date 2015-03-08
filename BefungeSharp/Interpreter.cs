@@ -334,9 +334,14 @@ namespace BefungeSharp
                 {
                     continue;
                 }
-                
-                ConsoleColor color = Instructions.InstructionManager.InstructionSet[_IPs[n].Position.Data.value].Color;
+                ConsoleColor color = ConsoleColor.White;
 
+                int value = _IPs[n].Position.Data.value;
+                if(value >= ' ' && value <= '~')
+                {
+                    color = Instructions.InstructionManager.InstructionSet[value].Color;
+                }
+                
                 ConEx.ConEx_Draw.SetAttributes(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x, color, (ConsoleColor)ConsoleColor.Gray + (n % 3));
             }
         }

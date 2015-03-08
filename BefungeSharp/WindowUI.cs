@@ -332,7 +332,12 @@ namespace BefungeSharp
                         value = lookup.Data.value;
                     }
 
-                    ConsoleColor color = Instructions.InstructionManager.InstructionSet[value].Color;
+                    ConsoleColor color = ConsoleColor.White;
+                    
+                    if(value >= ' ' && value <= '~')
+                    {
+                        color = Instructions.InstructionManager.InstructionSet[value].Color;
+                    }
 	                        
                     ConEx.ConEx_Draw.SetAttributes(r, c, color, ConsoleColor.DarkGreen);
                     

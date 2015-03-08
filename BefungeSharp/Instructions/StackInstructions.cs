@@ -19,7 +19,7 @@ namespace BefungeSharp.Instructions.Stack
     /// <summary>
     /// The duplication instruction, duplicates the top value on the stack
     /// </summary>
-    public class DuplicateInstruction : StackInstruction, IRequiresPush
+    public class DuplicateInstruction : StackInstruction, IRequiresPush, IRequiresPeek
     {
         /// <summary>
         /// The duplication instruction, duplicates the top value on the stack
@@ -35,15 +35,21 @@ namespace BefungeSharp.Instructions.Stack
 
         public override bool Preform(IP ip)
         {
-            if (CanPushCells())
+            if (CanPeek(ip.Stack))
             {
                 ip.Stack.Push(ip.Stack.Peek());
                 return true;
             }
             else
             {
+                ip.Stack.Push(0);
                 return false;
             }
+        }
+
+        public bool CanPeek(Stack<int> stack)
+        {
+            return stack.Count > 0 ? true : false;
         }
     }
 

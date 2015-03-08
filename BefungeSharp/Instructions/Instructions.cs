@@ -343,6 +343,11 @@ namespace BefungeSharp.Instructions
         bool CanPushCells();
     }
 
+    public interface IRequiresPeek
+    {
+        bool CanPeek(Stack<int> stack);
+    }
+
     public interface IAffectsRunningMode
     {
         /// <summary>

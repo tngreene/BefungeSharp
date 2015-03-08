@@ -306,7 +306,13 @@ namespace BefungeSharp.FungeSpace
                 //For ever column
                 do
                 {
-                    ConsoleColor color = Instructions.InstructionManager.InstructionSet[traverse.Data.value].Color;
+                    ConsoleColor color = ConsoleColor.White;
+
+                    int value = traverse.Data.value;
+                    if(value >= ' ' && value <= '~')
+                    {
+                        color = Instructions.InstructionManager.InstructionSet[value].Color;
+                    }
                    
                     char character = (char)traverse.Data.value;
                     ConEx.ConEx_Draw.InsertCharacter(character, traverse.Data.y, traverse.Data.x, color, ConsoleColor.Black);
