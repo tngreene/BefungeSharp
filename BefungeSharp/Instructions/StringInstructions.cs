@@ -50,9 +50,9 @@ namespace BefungeSharp.Instructions.String
 
             int y = ip.Stack.Pop();
             int x = ip.Stack.Pop();
-
-            int charToPlace = ip.Stack.Pop();
-            bool couldPlace = Program.BoardManager.PutCharacter(y, x, (char)charToPlace);
+            int value = ip.Stack.Pop();
+            
+            ip.Position.ParentMatrix.InsertCell(new FungeSpace.FungeCell(x, y, value));
             //The IP will be moved again when the instruction is finised calling
             return true;
         }
