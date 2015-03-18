@@ -136,7 +136,7 @@ namespace BefungeSharp.FungeSpace
         /// <summary>
         /// The Origin, at 0,0 in the matrix. Is always ensured to exist.
         /// </summary>
-        public FungeNode Origin { get { return m_Origin; } private set { m_Origin = value; } }
+        public FungeNode Origin { get { return m_Origin; } internal set { m_Origin = value; } }
 
         /// <summary>
         /// Instantiates a new blank FungeSparseMatrix

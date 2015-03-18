@@ -395,7 +395,7 @@ namespace BefungeSharp
                                 keep_selection_active = false;
                                 break;
                         }
-                        if (keep_selection_active == false)
+                        if (keep_selection_active == false)// && _selection.active == false)
                         {
                             ClearSelection();
                         }
@@ -411,6 +411,7 @@ namespace BefungeSharp
         /// <param name="keysHit">an array of keys hit</param>
         private void HandleModifiers(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
+            bool created_selection = false;
             //Ensures that the user cannot paste when they out of the window
             if (ConEx.ConEx_Window.IsActive() == false)
             {
@@ -420,17 +421,16 @@ namespace BefungeSharp
             bool shift = ConEx.ConEx_Input.ShiftDown;
             bool alt = ConEx.ConEx_Input.AltDown;
             bool control = ConEx.ConEx_Input.CtrlDown;
-            
+
             /* X indicates not fully implimented
-             * Ctrl + C - Copy
-            *  Ctrl + X - Cut 
+            *  Ctrl + X - Cut
+            *  Ctrl + C - Copy
             *  Ctrl + V - Paste
             *  XCtrl + A - Select the whole board?
             *  XCtrl + Z - Undo, a planned feature
             *  XCtrl + Y - Redo, also a planned feature
             *  Ctrl + S - Save
-            *  
-            * */
+            */
             bool x = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_X);
             if (x && control)
             {
@@ -457,6 +457,18 @@ namespace BefungeSharp
                 //Emergancy sleep so we don't get a whole bunch of operations at once
                 System.Threading.Thread.Sleep(150);
             }
+
+            bool a = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_A);
+            if (a && control)
+            {
+                Vector2 [] bounds = FungeSpace.FungeSpaceUtils.GetMatrixBounds(Program.Interpreter.FungeSpace);
+                this._selection.dimensions.Top = (short)bounds[0].y;
+                this._selection.dimensions.Left = (short)bounds[0].x;
+                this._selection.dimensions.Bottom = (short)bounds[1].y;
+                this._selection.dimensions.Right = (short)bounds[1].x;
+                created_selection = true;
+            }
+            return ;
         }
 
         /// <summary>

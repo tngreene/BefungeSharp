@@ -305,9 +305,6 @@ namespace BefungeSharp.Instructions
                     //-----------------
                 }
             }
-           // return new CommandInfo(inChar, CommandType.NotImplemented, ConsoleColor.White, 0);//For all other non instructions
-
-            
         }
     }
 

@@ -9,59 +9,48 @@ namespace BefungeSharp
     public class BoardManager
     {
         /// <summary>
-        /// A two dimensional grid of the original file input, if there was any
-        /// </summary>
-        private List<List<int>> _boardArray;
-        public List<List<int>> BoardArray { get { return _boardArray; } }
-        
-
-        /// <summary>
         /// Creates a new BoardManager with the options to set up its entire intial state and run type
         /// </summary>
         /// <param name="rows">Number of rows</param>
         /// <param name="columns">Number of columns</param>
-        /// <param name="initChars">
+        /// <param name="initStrings">
         /// Each element in the array represents a row of text.
         /// If you wish a blank board pass in an empty array
         /// </param>
         /// <param name="initGlobalStack">Initialize the input stack with preset numbers</param>
         /// <param name="mode">Chooses what mode you would like to start the board in</param>
-        public BoardManager(int rows, int columns, List<string> initChars = null,
+        public BoardManager(int rows, int columns, List<string> initStrings = null,
                             Stack<int> initGlobalStack = null, BoardMode mode = BoardMode.Edit)
         {
-            //TODO: Array size checking to make sure it will not be out of bounds?
-            if (initChars != null)
+            List<List<int>> int_array = null;
+            if (initStrings == null)
             {
-                //Intialize the board array to be the size of the board
-                _boardArray = new List<List<int>>(rows);
-
+                int_array = new List<List<int>>();
                 //Fill up the whole rectangle with spaces
                 for (int y = 0; y < rows; y++)
                 {
-                    _boardArray.Add(new List<int>());
-                    for (int x = 0; x < columns; x++)
+                    int_array.Add(new List<int>());
+                    for (int x = 1; x < columns; x++)
                     {
-                        _boardArray[y].Add(' ');
+                        int_array[y].Add(' ');
                     }
                 }
-
-                //Fill board it initial strings, if initChars is null this will skip
-                //For the number of rows
-                for (int y = 0; y < initChars.Count; y++)
+            }
+            else
+            {
+                int_array = new List<List<int>>();
+                //Fill up the whole rectangle with the intial load
+                for (int y = 0; y < initStrings.Count; y++)
                 {
-                    //Get the current line
-                    string currentLine = initChars[y];
-
-                    //For all the characters in the line
-                    for (int x = 0; x < currentLine.Length; x++)
+                    int_array.Add(new List<int>());
+                    for (int x = 0; x < initStrings[y].Length; x++)
                     {
-                        //Insert them into the array
-                        PutCharacter(y, x, currentLine[x]);
+                        int_array[y].Add(initStrings[y][x]);
                     }
                 }
             }
 
-            Program.Interpreter = new Interpreter(this._boardArray, initGlobalStack, mode);
+            Program.Interpreter = new Interpreter(int_array, initGlobalStack, mode);
 
             Program.WindowUI = new WindowUI(Program.Interpreter);
             Program.WindowSideBar = new WindowSideBar(this, Program.Interpreter);
@@ -78,36 +67,6 @@ namespace BefungeSharp
             ConEx.ConEx_Draw.DrawScreen();
         }
 
-
-        /// <summary>
-        /// Inserts a character into the board, 
-        /// </summary>
-        /// <param name="row">row to insert at</param>
-        /// <param name="column">column to insert at</param>
-        /// <param name="character">character to put in</param>
-        /// <return>If it was able to insert the character</return>
-        public bool PutCharacter(int row, int column, char character)
-        {
-            if (row > _boardArray.Count-1 || row < 0)
-            {
-                return false;
-            }
-            if (column > _boardArray[row].Count - 1 || column < 0)
-            {
-                return false;
-            }
-            else
-            {
-                _boardArray[row][column] = character;
-                return true;
-            }
-        }
-
-        public void ClearArea(BoardMode mode)
-        {
-
-        }
-
         /// <summary>
         /// Updates the board based on the mode
         /// </summary>     
@@ -116,7 +75,6 @@ namespace BefungeSharp
             //Keep going until we return something
             while (true)
             {
-
                 var watch = System.Diagnostics.Stopwatch.StartNew();
                 //Find out what modifier keys are being held down
                 bool shift = ConEx.ConEx_Input.ShiftDown;
@@ -204,7 +162,8 @@ namespace BefungeSharp
                 System.Threading.Thread.Sleep((int) Program.Interpreter.CurMode);
             }//while(true)
         }//Update()
-/// <summary>
+        
+        /// <summary>
         /// Handles all keyboard input which involes Shift, Alt, or Control
         /// </summary>
         /// <param name="mode">The mode of the program you wish to conisder</param>
@@ -226,16 +185,11 @@ namespace BefungeSharp
             * Ctrl + S - Save
             * */
 
-            bool n = false;// ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_N);
-            if (n && false)
+            bool n = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_N);
+            if (n && control)
             {
-                for (int y = 0; y < _boardArray.Count; y++)
-                {
-                    for (int x = 0; x < _boardArray[0].Count; x++)
-                    {
-                        PutCharacter(y, x, ' ');
-                    }
-                }
+                //Tell the interpreter to reset
+                //Program.Interpreter.Reset()
                 //Emergancy sleep so we don't get a whole bunch of operations at once
                 System.Threading.Thread.Sleep(150);
             }

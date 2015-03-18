@@ -11,6 +11,9 @@ namespace BefungeSharp.FungeSpace
     /// </summary>
     public static class FungeSpaceUtils
     {
+        //We'll probably need this one day
+        //public static void StringListToMatrix(FungeSparseMatrix matrix, List<string> string_list_representation)
+        
         /// <summary>
         /// Converts a DynamicArray, such as a List of Lists of chars
         /// </summary>
@@ -64,7 +67,7 @@ namespace BefungeSharp.FungeSpace
             //Find out if the place we want to start exists
             FungeNode traverse = matrix.GetNode(row, column);
 
-            FungeNode f = filled_matrix.Origin;
+            FungeNode f = traverse;
 
             FungeNode rowsStart = f;
             do
@@ -94,16 +97,20 @@ namespace BefungeSharp.FungeSpace
         public static FungeSparseMatrix FillMatrix(FungeSparseMatrix original_matrix, Vector2 top_left, Vector2 bottom_right, int value = ' ')
         {
             //Copy the matrix over
-            FungeSparseMatrix outMatrix = new FungeSparseMatrix(original_matrix);
+            FungeSparseMatrix outMatrix = new FungeSparseMatrix();
 
             for (int y = top_left.y; y != bottom_right.y + 1; y++)
             {
                 for ( int x = top_left.x; x != bottom_right.x + 1; x++)
                 {
-                    FungeNode lookup = outMatrix.GetNode(y, x);
+                    FungeNode lookup = original_matrix.GetNode(y, x);
                     if (lookup == null)
                     {
                         outMatrix.InsertCell(x, y, ' ');
+                    }
+                    else
+                    {
+                        outMatrix.InsertCell(lookup.Data.x, lookup.Data.y, lookup.Data.value);
                     }
                 }
             }
@@ -315,7 +322,7 @@ namespace BefungeSharp.FungeSpace
                     }
                    
                     char character = (char)traverse.Data.value;
-                    ConEx.ConEx_Draw.InsertCharacter(character, traverse.Data.y, traverse.Data.x, color, ConsoleColor.Black);
+                    ConEx.ConEx_Draw.InsertCharacter(character, traverse.Data.y, traverse.Data.x, color, ConsoleColor.DarkGray);
 
                     traverse = traverse.East;
                 }

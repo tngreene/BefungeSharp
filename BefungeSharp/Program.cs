@@ -137,8 +137,9 @@ namespace BefungeSharp
                     case ProgramMode.NewFile:
                         List<string> s = new List<string>();
                         s = null;
+                        s_board_manager = new BoardManager(0,0, s);
                         //s.Add(@"""dlroW olleH"">:#,_@");
-                        s_board_manager = new BoardManager(25, 80, s);
+                        //s_board_manager = new BoardManager(25, 80, s);
 
                         s_board_manager.UpdateBoard();
                         break;

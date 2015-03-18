@@ -481,7 +481,6 @@ namespace BefungeSharp
             {
                 _IPs[i].Move();
             }
-            
 
             return Instructions.CommandType.NotImplemented;//TODO - Needs a better idea
         }
