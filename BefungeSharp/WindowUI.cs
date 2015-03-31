@@ -288,7 +288,7 @@ namespace BefungeSharp
             //Generates a strings which is always five chars wide, with the number stuck to the ','
             //Like " 0,8 " , "17,5 " , "10,10", " 8,49"
             string IP_Pos = "";
-            Vector2 vec_pos = _interpRef.IPs[0].Position.Data;
+            Vector2 vec_pos = _interpRef.EditIP.Position.Data;
             IP_Pos += vec_pos.x.ToString().Length == 1 ? ' ' : vec_pos.x.ToString()[0];
             IP_Pos += vec_pos.x.ToString().Length == 1 ? vec_pos.x.ToString()[0] : vec_pos.x.ToString()[1];
             IP_Pos += ',';

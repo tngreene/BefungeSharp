@@ -7,10 +7,51 @@ using System.Threading.Tasks;
 namespace BefungeSharp.FungeSpace
 {
     /// <summary>
+    /// The area of a FungeSpace, real, inuse, or simply conceptually
+    /// </summary>
+    public struct FungeSpaceArea
+    {
+        public int left;
+        public int top;
+        public int right;
+        public int bottom;
+        
+
+        public FungeSpaceArea(Vector2 top_left, Vector2 bottom_right)
+        {
+            this.left = top_left.x;
+            this.top = top_left.y;
+            this.right = bottom_right.x;
+            this.bottom = bottom_right.y;
+        }
+
+        public FungeSpaceArea(int top, int left, int bottom, int right)
+        {
+           this.left = left;
+           this.top = top;
+
+           this.bottom = bottom;
+           this.right = right;
+        }
+
+        public bool Contains(int x, int y)
+        {
+            if (x >= left && x <= right)
+            {
+                if (y >= top && y <= bottom)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+    /// <summary>
     /// FungeSpace is a utility class for finding out information about and changing the SparseMatrix and/or FungeNodes
     /// </summary>
     public static class FungeSpaceUtils
     {
+        
         //We'll probably need this one day
         //public static void StringListToMatrix(FungeSparseMatrix matrix, List<string> string_list_representation)
         
@@ -322,7 +363,7 @@ namespace BefungeSharp.FungeSpace
                     }
                    
                     char character = (char)traverse.Data.value;
-                    ConEx.ConEx_Draw.InsertCharacter(character, traverse.Data.y, traverse.Data.x, color, ConsoleColor.DarkGray);
+                    ConEx.ConEx_Draw.InsertCharacter(character, traverse.Data.y, traverse.Data.x, color, ConsoleColor.Black);//.DarkGray);
 
                     traverse = traverse.East;
                 }

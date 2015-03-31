@@ -96,9 +96,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ConEx.dll">
+    <Content Include="ConEx.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

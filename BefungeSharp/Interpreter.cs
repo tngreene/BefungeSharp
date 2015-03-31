@@ -34,6 +34,41 @@ namespace BefungeSharp
         private FungeSpace.FungeSparseMatrix _fungeSpace;
         public FungeSparseMatrix FungeSpace { get { return _fungeSpace; } }
 
+        /// <summary>
+        /// The size of FungeSpace when in Befunge-93 mode
+        /// </summary>
+        private readonly FungeSpaceArea FS_93;
+
+        /// <summary>
+        /// The size of FungeSpace that is automatically created, and filled, at the start of the program
+        /// It is only in quadrant 1.
+        /// </summary>
+        private readonly FungeSpaceArea FS_DEFAULT;
+
+        /// <summary>
+        /// A subset of FS_DEFAULT which the program uses for deciding what to draw and what to cull.
+        /// Where selection, copy, and paste are allowed to occur are also determined by this.
+        /// It will be moveable eventually.
+        /// </summary>
+        private FungeSpaceArea fs_view_screen;
+
+        /// <summary>
+        /// A subset of FS_DEFAULT which the program uses for deciding what portion of FungeSpace is
+        /// savable/loadable and what is beyond the ability to. Saving one row of Theoretical FungeSpace results in a 4.3 GB file
+        /// Thus we must put a limit at some point. We set it to the default, but it can be changed
+        /// </summary>
+        private readonly FungeSpaceArea FS_SAVEABLE;
+        
+        /// <summary>
+        /// Extended FungeSpace, the space the interpreter uses. It is sparse, fully addressable, and fully travelable.
+        /// </summary>
+        private FungeSpaceArea FS_EXTENDED;
+
+        /// <summary>
+        /// Theoretical FungeSpace is the FungeSpace described in the language specification
+        /// </summary>
+        private readonly FungeSpaceArea FS_THEORETICAL;
+
         //The current mode of the board
         private BoardMode _curMode;
         public BoardMode CurMode { get { return _curMode; } }
@@ -48,10 +83,12 @@ namespace BefungeSharp
         /// </summary>
         public List<IP> IPs { get { return _IPs; } }
 
+        private IP _editIP;
+
         /// <summary>
         /// The Instruction Pointer representing the editor cursor
         /// </summary>
-        public IP EditIP { get { return _IPs.Last(); } }
+        public IP EditIP { get { return _editIP; } }
 
         /// <summary>
         /// Controls the intepretation and execution of commands
@@ -59,12 +96,30 @@ namespace BefungeSharp
         /// <param name="mgr">A reference to the manager</param>
         public Interpreter(List<List<int>> initial_chars = null, Stack<int> stack = null, BoardMode mode = BoardMode.Edit)
         {
-            _fungeSpace = new FungeSparseMatrix();
+            //Set up the area's the program will refer to
+            FS_93= new FungeSpaceArea(0, 0, 24, 79);
+            FS_DEFAULT= new FungeSpaceArea(0, 0, 24, 79);
+            fs_view_screen= FS_93;
+            FS_SAVEABLE= FS_DEFAULT;
+            FS_EXTENDED= FS_DEFAULT;
+            FS_THEORETICAL= new FungeSpaceArea(int.MinValue, int.MinValue, int.MaxValue, int.MaxValue);
+
+            //Create FungeSpace, prefilled with ' '
+            Console.WriteLine("Creating FungeSpace with a width of {0} and a height of {1}, ",FS_DEFAULT.right,FS_DEFAULT.bottom);
+            Console.WriteLine("Please wait");
+            
+            System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            _fungeSpace = new FungeSparseMatrix(FS_DEFAULT.bottom, FS_DEFAULT.right);
+            stopwatch.Stop();
+            Console.WriteLine(stopwatch.Elapsed);
             if (initial_chars != null)
             {
+                //if there is a file to be loaded in, put those into fungespace
                 FungeSpaceUtils.DynamicArrayToMatrix(_fungeSpace, initial_chars);
             }
+
             _IPs = new List<IP>();
+            _editIP = new IP(_fungeSpace.Origin, Vector2.East, _fungeSpace.Origin, new Stack<int>(), -1, false);
             
             _curMode = mode;
 
@@ -98,10 +153,7 @@ namespace BefungeSharp
         /// </summary>
         private void PauseExecution()
         {
-            //Create and add the edit IP
-            _IPs.Add(new IP(_fungeSpace.Origin, Vector2.East, _fungeSpace.Origin, new Stack<int>(), -1, false));
-            //Activate it
-            EditIP.Active = true;
+            _editIP.Active = true;
         }
 
         /// <summary>
@@ -111,7 +163,7 @@ namespace BefungeSharp
         private void UnpauseExecution()
         {
             //Remove the edit IP
-            _IPs.Remove(_IPs.Last());
+            _editIP.Active = false;
         }
 
         /// <summary>
@@ -230,24 +282,43 @@ namespace BefungeSharp
                                             break;
                                     }
 
-                                    if(control == true)
+                                    if (control == true)
                                     {
-                                        _IPs[0].Delta = direction;
+                                        EditIP.Delta = direction;
                                         break;
                                     }
 
+
+                                    //Get where we'll be going next
                                     int nextX = EditIP.Position.Data.x + direction.x;
                                     int nextY = EditIP.Position.Data.y + direction.y;
 
-                                    if ((nextX >= 0 && nextX <= 79) && (nextY >= 0 && nextY <= 24))
+                                    //Since the EditIP wraps around the viewing screen we need to use the old
+                                    //Wrapping function
                                     {
+                                        //Going in the negative x direction
+                                        if (nextX < fs_view_screen.left)
+                                        {
+                                            nextX = fs_view_screen.right;// +nextX;
+                                        }
+                                        else if (nextX > fs_view_screen.right)
+                                        {
+                                            nextX = fs_view_screen.left;
+                                        }
+
+                                        //Going in the negative y direction
+                                        if (nextY < fs_view_screen.top)
+                                        {
+                                            nextY = fs_view_screen.bottom;// +nextY;
+                                        }
+                                        else if (nextY > fs_view_screen.bottom)
+                                        {
+                                            nextY = fs_view_screen.top;
+                                        }
+
                                         EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, nextY, nextX);
                                     }
-                                    else
-                                    {
-                                        EditIP.Position = FungeSpaceUtils.MoveBy(EditIP.Position, direction);
-                                    }
-                                    
+
                                     needsMove = false;
                                 }
                                 break;
@@ -286,7 +357,7 @@ namespace BefungeSharp
                                 if (keysHit[i].KeyChar >= 32 && keysHit[i].KeyChar <= 126 
                                     && (ConEx.ConEx_Input.AltDown || ConEx.ConEx_Input.CtrlDown) == false)
                                 {
-                                    EditIP.Position = _fungeSpace.InsertCell(_IPs[0].Position.Data.x, _IPs[0].Position.Data.y, keysHit[0].KeyChar);
+                                    EditIP.Position = _fungeSpace.InsertCell(EditIP.Position.Data.x, EditIP.Position.Data.y, keysHit[0].KeyChar);
 
                                     int nextX = EditIP.Position.Data.x + EditIP.Delta.x;
                                     int nextY = EditIP.Position.Data.y + EditIP.Delta.y;
@@ -305,7 +376,7 @@ namespace BefungeSharp
                     }
                     if (needsMove)
                     {
-                        _IPs[0].Move();//Move now that we've done some kind of moving input
+                        EditIP.Move();//Move now that we've done some kind of moving input
                     }
                     #endregion HandleInput-------------
                     break;
@@ -317,7 +388,14 @@ namespace BefungeSharp
         public void Draw()
         {
             DrawFungeSpace();
-            DrawIP();
+            if (_curMode != BoardMode.Edit && _curMode != BoardMode.Debug)
+            {
+                DrawIP();
+            }
+            else
+            {
+                DrawEditIP();
+            }
         }
 
         private void DrawFungeSpace()
@@ -344,6 +422,19 @@ namespace BefungeSharp
                 
                 ConEx.ConEx_Draw.SetAttributes(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x, color, (ConsoleColor)ConsoleColor.Gray + (n % 3));
             }
+        }
+        
+        private void DrawEditIP()
+        {
+            ConsoleColor color = ConsoleColor.White;
+
+            int value = EditIP.Position.Data.value;
+            if (value >= ' ' && value <= '~')
+            {
+                color = Instructions.InstructionManager.InstructionSet[value].Color;
+            }
+
+            ConEx.ConEx_Draw.SetAttributes(EditIP.Position.Data.y, EditIP.Position.Data.x, color, ConsoleColor.Gray);
         }
 
         private Instructions.CommandType TakeStep()
