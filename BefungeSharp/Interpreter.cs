@@ -97,12 +97,12 @@ namespace BefungeSharp
         public Interpreter(List<List<int>> initial_chars = null, Stack<int> stack = null, BoardMode mode = BoardMode.Edit)
         {
             //Set up the area's the program will refer to
-            FS_93= new FungeSpaceArea(0, 0, 24, 79);
-            FS_DEFAULT= new FungeSpaceArea(0, 0, 24, 79);
-            fs_view_screen= FS_93;
-            FS_SAVEABLE= FS_DEFAULT;
-            FS_EXTENDED= FS_DEFAULT;
-            FS_THEORETICAL= new FungeSpaceArea(int.MinValue, int.MinValue, int.MaxValue, int.MaxValue);
+            FS_93 = new FungeSpaceArea(0, 0, 24, 79);
+            FS_DEFAULT = new FungeSpaceArea(0, 0, 24, 79);
+            fs_view_screen = FS_93;
+            FS_SAVEABLE = FS_DEFAULT;
+            FS_EXTENDED = FS_DEFAULT;
+            FS_THEORETICAL = new FungeSpaceArea(int.MinValue, int.MinValue, int.MaxValue, int.MaxValue);
 
             //Create FungeSpace, prefilled with ' '
             Console.WriteLine("Creating FungeSpace with a width of {0} and a height of {1}, ",FS_DEFAULT.right,FS_DEFAULT.bottom);
@@ -112,6 +112,7 @@ namespace BefungeSharp
             _fungeSpace = new FungeSparseMatrix(FS_DEFAULT.bottom, FS_DEFAULT.right);
             stopwatch.Stop();
             Console.WriteLine(stopwatch.Elapsed);
+            Console.ReadKey(true);
             if (initial_chars != null)
             {
                 //if there is a file to be loaded in, put those into fungespace
@@ -400,7 +401,7 @@ namespace BefungeSharp
 
         private void DrawFungeSpace()
         {
-            FungeSpaceUtils.DrawFungeSpace(_fungeSpace.Origin);
+            FungeSpaceUtils.DrawFungeSpace(_fungeSpace.Origin, fs_view_screen);
         }
 
         private void DrawIP()
@@ -481,10 +482,7 @@ namespace BefungeSharp
 
                 /*if (success == false)
                     switch (cmd)
-                    {
-                        case 'q'://Not fully implimented
-                            _curMode = BoardMode.Edit;
-                            return Instructions.CommandType.StopExecution;                     
+                    {                  
                         //Funge 98 stack manipulation
                         //TODO - implement
                         case 'u':
@@ -507,18 +505,7 @@ namespace BefungeSharp
 
                             }
                             break;
-                        case 't'://Split IP Concurrent
-                            {
-                                //A temporary reference to the new IP
-                                IP childIP = new IP(_IPs[n]);
-
-                                //Insert after this one
-                                _IPs.Insert(n + 1, childIP);
-                                
-                                childIP.Active = true;
-                                childIP.Negate();
-                            }
-                            break;
+                        
                         //Footprint stuff
                         case '(':
                         case ')':

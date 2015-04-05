@@ -343,7 +343,7 @@ namespace BefungeSharp.FungeSpace
             return position;
         }
 
-        public static void DrawFungeSpace(FungeNode draw_origin)
+        public static void DrawFungeSpace(FungeNode draw_origin, FungeSpaceArea drawable_bounds)
         {
             FungeNode traverse = draw_origin;
             
@@ -354,25 +354,28 @@ namespace BefungeSharp.FungeSpace
                 //For ever column
                 do
                 {
-                    ConsoleColor color = ConsoleColor.White;
-
-                    int value = traverse.Data.value;
-                    if(value >= ' ' && value <= '~')
+                    if (drawable_bounds.Contains(traverse.Data.x, traverse.Data.y))
                     {
-                        color = Instructions.InstructionManager.InstructionSet[value].Color;
-                    }
-                   
-                    char character = (char)traverse.Data.value;
-                    ConEx.ConEx_Draw.InsertCharacter(character, traverse.Data.y, traverse.Data.x, color, ConsoleColor.Black);//.DarkGray);
+                        ConsoleColor color = ConsoleColor.White;
 
+                        int value = traverse.Data.value;
+                        if (value >= ' ' && value <= '~')
+                        {
+                            color = Instructions.InstructionManager.InstructionSet[value].Color;
+                        }
+
+                        char character = (char)traverse.Data.value;
+
+                        ConEx.ConEx_Draw.InsertCharacter(character, traverse.Data.y, traverse.Data.x, color, ConsoleColor.Black);//.DarkGray);
+                    }
                     traverse = traverse.East;
                 }
-                while(traverse != columnsStart);
+                while (traverse != columnsStart);
 
                 //Go to the next row down
                 traverse = traverse.South;
             }
-            while(traverse != draw_origin);
+            while (traverse != draw_origin);
         }
 
         public static void TestMatrix()
