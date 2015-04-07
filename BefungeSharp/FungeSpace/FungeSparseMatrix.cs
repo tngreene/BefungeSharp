@@ -6,124 +6,231 @@ using System.Threading.Tasks;
 
 namespace BefungeSharp.FungeSpace
 {
-    public struct FungeCell
+    /// <summary>
+    /// A FungeSparseMatrix enumerator to enumerate just over a single row of a matrix,
+    /// a range of [x,y] where x is unchanging and y is between int.Min and int.Max
+    /// </summary>
+    public class FungeSparseMatrixRowEnumerator : IEnumerator<FungeNode>
     {
-        public int x;
-        public int y;
-        public int value;
+        private FungeNode _traverse;
+        private FungeNode _search_origin;
 
-        public FungeCell(int x, int y, int value)
+        private int _lower_bound;
+        private int _higher_bound;
+
+        /// <summary>
+        /// Enumerates over a row of the FungeSparseMatrix ranging from rows int.Min to int.Max
+        /// </summary>
+        /// <param name="node">The node to start at</param>
+        public FungeSparseMatrixRowEnumerator(FungeNode node)
         {
-            this.x = x;
-            this.y = y;
-            this.value = value;
+            _search_origin = node;
+            _traverse = null;
+
+            _lower_bound = int.MinValue;
+            _higher_bound = int.MaxValue;
         }
 
-        public static implicit operator Vector2(FungeCell cell)
+        /// <summary>
+        /// Enumerates over a row of the FungeSparseMatrix ranging from rows int.Min to int.Max
+        /// </summary>
+        /// <param name="node">The node to start at</param>
+        /// <param name="lower_bound">The lowest row to examine</param>
+        /// <param name="higher_bound">The highest row to examine</param>
+        public FungeSparseMatrixRowEnumerator(FungeNode node, int lower_bound, int higher_bound)
         {
-            return new Vector2(cell.x, cell.y);
+            _search_origin = node;
+            _traverse = null;
+
+            _lower_bound = lower_bound;
+            _higher_bound = higher_bound;
         }
 
-        public override string ToString()
+        public FungeNode Current
         {
-            return "X: " + x + " Y: " + y + " Value: " + value;
+            get { return _traverse; }
+        }
+
+        object System.Collections.IEnumerator.Current
+        {
+            get { return _traverse; }
+        }
+
+        public void Dispose()
+        {
+            //Nothing needed
+        }
+
+        public bool MoveNext()
+        {
+            bool moved = false;
+
+            //Cases
+            //0.) We are starting the enumeration
+            //1.) If we find the "next one" is m_Origin for any reason, we are done
+            //2.) If you are are 0,0 and the bounds are 0,0+y immediantly jump to next inside 0+y
+            //3.) If the next one is smaller than our lower bounds, search for the next one inside our lower bound (and not m_Origin)
+                //4.) if(_traverse.South >= higher_bound) = false
+            //5.) We have finished the enumeration
+
+            //Case 0.)
+            if (_traverse == null)
+            {
+                _traverse = _search_origin;
+                moved = true;
+                return moved;
+            }
+
+            //Takes care of cases 1.) (implicitly), 2.), 3.), 4.) results cleaned up and used next
+            while (_traverse.South != _search_origin &&
+                  (_traverse.South.Data.y < _lower_bound || _traverse.South.Data.y > _higher_bound))
+            {
+                //Go to the next one
+                _traverse = _traverse.South;
+            }
+  
+            //If you won't be back at the origin
+            if (_traverse.South != _search_origin)
+            {
+                _traverse = _traverse.South;
+                //When we move past 
+                moved = true;
+            }
+            else
+            {
+                //Case 5.)
+                _traverse = null;
+                moved = false;
+            }
+            return moved;
+        }
+
+        public void Reset()
+        {
+            _traverse = null;
+        }
+
+        /// <summary>
+        /// This prepares MoveNext to make its descision, it also makes sure that _traverse.South is always >= _lower_bound
+        /// if it can be
+        /// </summary>
+        private void SearchForNextSouthernInsideBounds()
+        {
+            //While we the next isn't search_origin or the next isn't out of (lower) bounds
+            while (_traverse.South != _search_origin &&
+                  _traverse.South.Data.y < _lower_bound)
+            {
+                //Go to the next one
+                _traverse = _traverse.South;
+            }
         }
     }
 
-    public class FungeNode
+    /// <summary>
+    /// A FungeSparseMatrix enumerator to enumerate just over a column of a matrix,
+    /// a range of [x,y] where x is between int.Min and int.Max and y is unchanging
+    /// </summary>
+    public class FungeSparseMatrixColumnEnumerator : IEnumerator<FungeNode>
     {
-        //Attributes
-        private FungeCell data;
+        private FungeNode _traverse;
+        private FungeNode _search_origin;
 
-        private FungeNode north;
-        private FungeNode east;
-        private FungeNode south;
-        private FungeNode west;
+        private int _lower_bound;
+        private int _higher_bound;
 
-        //One day, for when we create our Three-Torus
-        //private FungeNode up;
-        //private FungeNode down;
-
-        private FungeSparseMatrix parentMatrix;
-        public FungeSparseMatrix ParentMatrix
+        /// <summary>
+        /// Enumerates over a column of the FungeSparseMatrix ranging from rows int.Min to int.Max
+        /// </summary>
+        /// <param name="node">The node to start at</param>
+        public FungeSparseMatrixColumnEnumerator(FungeNode node)
         {
-            get
+            _search_origin = node;
+            _traverse = null;
+
+            _lower_bound = int.MinValue;
+            _higher_bound = int.MaxValue;
+        }
+
+        /// <summary>
+        /// Enumerates over a column of the FungeSparseMatrix ranging from rows int.Min to int.Max
+        /// </summary>
+        /// <param name="node">The node to start at</param>
+        /// <param name="lower_bound">The lowest row to examine</param>
+        /// <param name="higher_bound">The highest row to examine</param>
+        public FungeSparseMatrixColumnEnumerator(FungeNode node, int lower_bound, int higher_bound)
+        {
+            _search_origin = _traverse = node;
+            _traverse = null;
+
+            _lower_bound = lower_bound;
+            _higher_bound = higher_bound;
+        }
+
+        public FungeNode Current
+        {
+            get { return _traverse; }
+        }
+
+        object System.Collections.IEnumerator.Current
+        {
+            get { return _traverse; }
+        }
+
+        public void Dispose()
+        {
+            //Nothing needed
+        }
+
+        public bool MoveNext()
+        {
+            bool moved = false;
+
+            //Cases
+            //0.) We are starting the enumeration
+            //1.) If we find the "next one" is search_origin for any reason, we are done
+            //2.) If you are are 0,0 and the bounds are 0,0+x immediantly jump to next inside 0+x
+            //3.) If the next one is smaller than our lower bounds, search for the next one inside our lower bound (and not m_Origin)
+                //4.) if(_traverse.South >= higher_bound) = false
+            //5.) We have finished the enumeration
+            if (_traverse == null)
             {
-                return parentMatrix;
+                _traverse = _search_origin;
+                moved = true;
+                return moved;
             }
-            internal set 
+            
+            //Takes care of cases 1.) (implicitly), 2.), 3.), results cleaned up and used next
+            //While we the next isn't _seach_origin or the next isn't out of (lower or higher) bounds
+            while (_traverse.East != _search_origin &&
+                  (_traverse.East.Data.x < _lower_bound || _traverse.East.Data.x > _higher_bound))
             {
-                parentMatrix = value; 
+                //Go to the next one
+                _traverse = _traverse.East;
             }
-        }
-        /// <summary>
-        /// Gets and sets the data of this node
-        /// </summary>
-        public FungeCell Data
-        {
-            get { return data; }
-            set { data = value; }
+
+            //If you won't be back at the origin
+            if (_traverse.East != _search_origin)
+            {    
+                _traverse = _traverse.East;
+                //When we move past 
+                moved = true;
+            }
+            else
+            {
+                //Case 5.)
+                _traverse = null;
+                moved = false;
+            }
+            return moved;
         }
 
-        /// <summary>
-        /// Gets and sets the north Node,
-        /// set is internal so the matrix cannot be pulled apart
-        /// </summary>
-        public FungeNode North
+        public void Reset()
         {
-            get { return north; }
-            internal set { north = value; }
-        }
-        /// <summary>
-        /// Gets and sets the east Node,
-        /// set is internal so the matrix cannot be pulled apart
-        /// </summary>
-        public FungeNode East
-        {
-            get { return east; }
-            internal set { east = value; }
-        }
-        /// <summary>
-        /// Gets and sets the south Node
-        /// set is internal so the matrix cannot be pulled apart
-        /// </summary>
-        public FungeNode South
-        {
-            get { return south; }
-            internal set { south = value; }
-        }
-        /// <summary>
-        /// Gets and sets the west Node,
-        /// set is internal so the matrix cannot be pulled apart
-        /// </summary>
-        public FungeNode West
-        {
-            get { return west; }
-            internal set { west = value; }
-        }
-
-        /// <summary>
-        /// Creates new Node with data
-        /// </summary>
-        /// <param name="data">A funge cell to store in node</param>
-        public FungeNode(FungeCell data, FungeSparseMatrix parent)
-        {
-            this.data = data;
-            this.parentMatrix = parent;
-            //All sides wrap around to themselfs unless otherwise set
-            north = this;
-            east = this;
-            south = this;
-            west = this;
-        }
-
-        public override string ToString()
-        {
-            return data.ToString();
+            _traverse = null;
         }
     }
 
-    public class FungeSparseMatrix
+    public class FungeSparseMatrix : IEnumerable<FungeNode>
     {
         /// <summary>
         /// The big heap of nodes
@@ -136,7 +243,23 @@ namespace BefungeSharp.FungeSpace
         /// <summary>
         /// The Origin, at 0,0 in the matrix. Is always ensured to exist.
         /// </summary>
-        public FungeNode Origin { get { return m_Origin; } internal set { m_Origin = value; } }
+        public FungeNode Origin { get { return m_Origin; } set { m_Origin = value; } }
+
+        /// <summary>
+        /// The area to enumerate over, defaults every time to FS_THEORETICAL
+        /// </summary>
+        private FungeSpaceArea _area;
+
+        /// <summary>
+        /// The area to enumerate over, if bounds are desired they must be set per enumeration and are
+        /// reset to FS_THEORETICAL every time afterward
+        /// </summary>
+        public FungeSpaceArea EnumerationArea { get { return _area; } internal set { _area = value; } }
+
+        /// <summary>
+        /// Theoretical FungeSpace is the FungeSpace described in the language specification
+        /// </summary>
+        public static readonly FungeSpaceArea FS_THEORETICAL = new FungeSpaceArea(int.MinValue, int.MinValue, int.MaxValue, int.MaxValue);
 
         /// <summary>
         /// Instantiates a new blank FungeSparseMatrix
@@ -145,7 +268,7 @@ namespace BefungeSharp.FungeSpace
         {
             m_Nodes = new List<FungeNode>();
 
-            FungeCell data = new FungeCell();
+            FungeCell data = new FungeCell(0, 0, ' ');
             data.x = 0;
             data.y = 0;
             data.value = ' ';
@@ -153,6 +276,8 @@ namespace BefungeSharp.FungeSpace
             m_Origin = new FungeNode(data,this);
             m_Origin.ParentMatrix = this;
             m_Nodes.Add(m_Origin);
+
+            _area = FS_THEORETICAL;
         }
 
         /// <summary>
@@ -174,6 +299,7 @@ namespace BefungeSharp.FungeSpace
 
             for (int y = 0; y < rows; y++)
             {
+                Console.Write(y + " ");
                 for (int x = 0; x < columns; x++)
                 {
                     data.x = x;
@@ -362,7 +488,7 @@ namespace BefungeSharp.FungeSpace
         {
             return InsertCell(new FungeCell(cell.x, cell.y, value));
         }
-        static int count = 0;
+        
         /// <summary>
         /// Inserts a cell into the matrix
         /// </summary>
@@ -631,30 +757,57 @@ namespace BefungeSharp.FungeSpace
             return true;
         }
 
+        public IEnumerator<FungeNode> GetEnumerator()
+        {
+            FungeSparseMatrixRowEnumerator _row_enumerator = new FungeSparseMatrixRowEnumerator(m_Origin, _area.top, _area.bottom);
+            
+            while(_row_enumerator.MoveNext() == true)
+            {
+                var _column_enumerator = new FungeSparseMatrixColumnEnumerator(_row_enumerator.Current, _area.left, _area.right);
+                while (_column_enumerator.MoveNext() == true)
+                {
+                    yield return _column_enumerator.Current;
+                }
+            }
+
+            _area = FS_THEORETICAL;
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            FungeSparseMatrixRowEnumerator _row_enumerator = new FungeSparseMatrixRowEnumerator(m_Origin, _area.top, _area.bottom);
+            
+            while(_row_enumerator.MoveNext() == true)
+            {
+                var _column_enumerator = new FungeSparseMatrixColumnEnumerator(_row_enumerator.Current, _area.left, _area.right);
+                while (_column_enumerator.MoveNext() == true)
+                {
+                    yield return _column_enumerator.Current;
+                }
+            }
+
+            _area = FS_THEORETICAL;
+        }
+
         /// <summary>
         /// Attempts to print all the cells in funge space,
         /// it is not aligned or made extra pretty.
         /// </summary>
         public void PrintFungeSpace()
         {
+            Console.WriteLine();
             FungeNode f = m_Nodes[0];
-
-            FungeNode rowsStart = f;
-            do
+            //m_Origin.ParentMatrix.EnumerationArea = new FungeSpaceArea(2, 2, 4, 4);
+            //FungeSparseMatrixEnumerator enumerator = new FungeSparseMatrixEnumerator(m_Origin);
+            //Console.Write("[" + (char)enumerator.Current.Data.value + "," + enumerator.Current.Data.x + "," + enumerator.Current.Data.y + "]");
+            foreach (var i in m_Origin.ParentMatrix)
             {
-                FungeNode columnsStart = f;
-                do
+                if (i.Data.x == 0)
                 {
-                    Console.Write("[" + (char)f.Data.value + "," + f.Data.x + "," + f.Data.y + "]");
-                    f = f.East;
+                    Console.WriteLine();
                 }
-                while (f != columnsStart);
-                Console.WriteLine();
-                f = f.South;
-            }
-            while (f != rowsStart);
+                Console.Write("[" + (char)i.Data.value + "," + i.Data.x + "," + i.Data.y + "]");
+            }            
         }
     }
-
-
 }

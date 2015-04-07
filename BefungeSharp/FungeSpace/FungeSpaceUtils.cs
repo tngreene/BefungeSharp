@@ -385,15 +385,15 @@ namespace BefungeSharp.FungeSpace
             {
                 //Many columns, 1 row
                 FungeSparseMatrix matrix1 = new FungeSparseMatrix(10, 10);
-                while (true) { }
-                matrix1.InsertCell(-1, 0, ' ');
-                matrix1.InsertCell(-2, 0, ' ');
-                matrix1.InsertCell(-5, 0, ' ');
-                matrix1.InsertCell(-4, 0, ' ');
-                matrix1.InsertCell(0, -1, ' ');
-                matrix1.InsertCell(0, -2, ' ');
-                matrix1.InsertCell(0, -5, ' ');
-                matrix1.InsertCell(0, -4, ' ');
+                
+                matrix1.InsertCell(-1, 0, 'a');
+                matrix1.InsertCell(-2, 0, 'b');
+                matrix1.InsertCell(-5, 0, 'c');
+                matrix1.InsertCell(-4, 0, 'd');
+                matrix1.InsertCell(0, -1, 'e');
+                matrix1.InsertCell(0, -2, 'f');
+                matrix1.InsertCell(0, -5, 'g');
+                matrix1.InsertCell(0, -4, 'h');
                 matrix1.PrintFungeSpace();
 
                 Vector2[] bounds = FungeSpaceUtils.GetMatrixBounds(matrix1);

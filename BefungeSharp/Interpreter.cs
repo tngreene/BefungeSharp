@@ -64,11 +64,6 @@ namespace BefungeSharp
         /// </summary>
         private FungeSpaceArea FS_EXTENDED;
 
-        /// <summary>
-        /// Theoretical FungeSpace is the FungeSpace described in the language specification
-        /// </summary>
-        private readonly FungeSpaceArea FS_THEORETICAL;
-
         //The current mode of the board
         private BoardMode _curMode;
         public BoardMode CurMode { get { return _curMode; } }
@@ -102,8 +97,7 @@ namespace BefungeSharp
             fs_view_screen = FS_93;
             FS_SAVEABLE = FS_DEFAULT;
             FS_EXTENDED = FS_DEFAULT;
-            FS_THEORETICAL = new FungeSpaceArea(int.MinValue, int.MinValue, int.MaxValue, int.MaxValue);
-
+            
             //Create FungeSpace, prefilled with ' '
             Console.WriteLine("Creating FungeSpace with a width of {0} and a height of {1}, ",FS_DEFAULT.right,FS_DEFAULT.bottom);
             Console.WriteLine("Please wait");
@@ -355,7 +349,7 @@ namespace BefungeSharp
                                 EndExecution();
                                 return type = Instructions.CommandType.StopExecution;//Go back to the main menu
                             default:
-                                if (keysHit[i].KeyChar >= 32 && keysHit[i].KeyChar <= 126 
+                                if (keysHit[i].KeyChar >= ' ' && keysHit[i].KeyChar <= '~' 
                                     && (ConEx.ConEx_Input.AltDown || ConEx.ConEx_Input.CtrlDown) == false)
                                 {
                                     EditIP.Position = _fungeSpace.InsertCell(EditIP.Position.Data.x, EditIP.Position.Data.y, keysHit[0].KeyChar);
