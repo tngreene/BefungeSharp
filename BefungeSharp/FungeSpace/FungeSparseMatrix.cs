@@ -334,136 +334,14 @@ namespace BefungeSharp.FungeSpace
         /// <returns>The FungeNode if found or null if not found</returns>
         public FungeNode GetNode(int row, int column)
         {
-            //Attemp to get the row
-            FungeNode row_node = GetRow(row, m_Origin);
-
-            //If it was not found in a row it cannot exist
-            if (row_node == null)
+            foreach (var node in this)
             {
-                return null;
-            }
-
-            //Now that we have our row node, we'll try to find our column
-            FungeNode final_node = GetColumn(column, row_node);
-
-            //If that space in its row and column does not exist at all
-            if (final_node == null)
-            {
-                //Return null
-                return null;
-            }
-            //We found it!
-            return final_node;
-        }
-
-        /// <summary>
-        /// Gets the FungeNode where the row is, if it exists
-        /// </summary>
-        /// <param name="row">The row to search for</param>
-        /// <param name="search_origin">The row to start searching for the row we intend</param>
-        /// <returns>The existing node at that row or null for if no row exists at that row</returns>
-        private FungeNode GetRow(int row, FungeNode search_origin)
-        {
-            //Start at the place we're starting from
-            FungeNode traverse = search_origin;
-
-            if (row > 0)
-            {
-                //Keep moving while cell.y > traverse.y and we haven't reached the end of the list yet
-                while (row > traverse.Data.y)
+                if (node.Data.y == row && node.Data.x == column)
                 {
-                    //If we searched through the whole row and didn't find that row
-                    if (traverse.South == search_origin)
-                    {
-                        //return null
-                        return null;
-                    }
-                    else if (row < traverse.South.Data.y)
-                    {
-                        //For the cases when we are between rows
-                        return null;
-                    }
-                    //Otherwise lets check the next place
-                    traverse = traverse.South;
+                    return node;
                 }
             }
-            else if (row < 0)
-            {
-                //Keep moving while cell.y > traverse.y and we haven't reached the end of the list yet
-                while (row < traverse.Data.y)
-                {
-                    if (traverse.North == m_Origin)
-                    {
-                        return null;
-                    }
-                    else if (row > traverse.North.Data.y)
-                    {
-                        //For the cases when we are between rows
-                        return null;
-                    }
-                    //Otherwise lets check the next place
-                    traverse = traverse.North;
-                }
-            }
-            else if (row == 0)
-            {
-                return traverse;
-            }
-            return traverse;
-        }
-
-        /// <summary>
-        /// Gets the FungeNode where the column is, if it exists
-        /// </summary>
-        /// <param name="column">The column to search for</param>
-        /// <param name="row_to_search">The row to search through</param>
-        /// <returns>The existing node at that column or null for if no column exists at that column</returns>
-        private FungeNode GetColumn(int column, FungeNode row_to_search)
-        {
-            //Start at the place we're starting from
-            FungeNode traverse = row_to_search;
-
-            if (column > 0)
-            {
-                //Keep moving while cell.x > traverse.x and we haven't reached the end of the list yet
-                while (column > traverse.Data.x)
-                {
-                    if (traverse.East == row_to_search)
-                    {
-                        return null;
-                    }
-                    else if (column < traverse.East.Data.x)
-                    {
-                        //For the cases when we are between columns
-                        return null;
-                    }
-                    //Otherwise lets check the next place
-                    traverse = traverse.East;
-                }
-            }
-            else if (column < 0)
-            {
-                //Keep moving while cell.x < traverse.x and we haven't reached the end of the list yet
-                while (column < traverse.Data.x)
-                {
-                    if (traverse.West == row_to_search)
-                    {
-                        return null;
-                    }
-                    else if (column > traverse.West.Data.x)
-                    {
-                        //For the cases when we are between columns
-                        return null;
-                    }
-                    //Otherwise lets check the next place
-                    traverse = traverse.West;
-                }
-            }
-            else if (column == 0)
-            {
-                return traverse;
-            }
-            return traverse;
+            return null;   
         }
 
         /// <summary>
@@ -497,27 +375,27 @@ namespace BefungeSharp.FungeSpace
         public FungeNode InsertCell(FungeCell cell)
         {
             //The row node is the node where we will start searching for when we reach the column
-            FungeNode row_node = GetRow(cell.y, m_Origin);
-
+            FungeNode spine_node = GetNode(cell.y, 0);
+            
             //If a row at cell.y doesn't exist
-            if (row_node == null)
+            if (spine_node == null)
             {
                 //We create a row at cell.y with a space as it's value because it technically shouldn't exist
                 FungeCell anchor_cell = new FungeCell(0, cell.y, ' ');
 
                 //We must start back at the m_Origin becase the row_node is not connected to anything
-                row_node = InsertRow(anchor_cell, m_Origin);
-                m_Nodes.Add(row_node);
+                spine_node = InsertRow(anchor_cell, m_Origin);
+                m_Nodes.Add(spine_node);
             }
 
             //Now that we have our row node, we'll try to find our column
-            FungeNode column_node = GetColumn(cell.x, row_node);
+            FungeNode column_node = GetNode(cell.y, cell.x);
 
             //If this column turns out to be entirely new
             if (column_node == null)
             {
                 //Create our column on our row
-                column_node = InsertColumn(cell, row_node);
+                column_node = InsertColumn(cell, spine_node);
                 bool connectedNoS = AttemptCoupling(column_node);
                 column_node.ParentMatrix = this;
                 //Now we'll add it to the list only after we know it didn't exist before
