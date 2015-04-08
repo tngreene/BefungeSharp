@@ -124,21 +124,6 @@ namespace BefungeSharp.FungeSpace
         {
             _traverse = null;
         }
-
-        /// <summary>
-        /// This prepares MoveNext to make its descision, it also makes sure that _traverse.South is always >= _lower_bound
-        /// if it can be
-        /// </summary>
-        private void SearchForNextSouthernInsideBounds()
-        {
-            //While we the next isn't search_origin or the next isn't out of (lower) bounds
-            while (_traverse.South != _search_origin &&
-                  _traverse.South.Data.y < _lower_bound)
-            {
-                //Go to the next one
-                _traverse = _traverse.South;
-            }
-        }
     }
 
     /// <summary>

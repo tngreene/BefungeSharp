@@ -11,12 +11,11 @@ namespace BefungeSharp.FungeSpace
     /// </summary>
     public struct FungeSpaceArea
     {
-        public int left;
         public int top;
-        public int right;
+        public int left;
         public int bottom;
+        public int right;
         
-
         public FungeSpaceArea(Vector2 top_left, Vector2 bottom_right)
         {
             this.left = top_left.x;
@@ -313,8 +312,8 @@ namespace BefungeSharp.FungeSpace
 
                 //
                 ConEx.ConEx_Draw.InsertCharacter(character,
-                                                    traverse.Data.y,
-                                                    traverse.Data.x,
+                                                    traverse.Data.y - drawable_bounds.top,
+                                                    traverse.Data.x - drawable_bounds.left,
                                                     color, ConsoleColor.Black);//.DarkGray);
             }
         }
