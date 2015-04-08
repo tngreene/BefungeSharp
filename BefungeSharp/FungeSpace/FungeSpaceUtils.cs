@@ -74,9 +74,8 @@ namespace BefungeSharp.FungeSpace
         public static List<string> MatrixToStringList(FungeSparseMatrix matrix, Vector2[] cropping_bounds)
         {
             List<List<int>> dynm_arr = FungeSpace.FungeSpaceUtils.MatrixToDynamicArray(matrix, cropping_bounds);
-
-            List<string> outlines = new List<string>();
-
+            List<string> outlines =  new List<string>();
+            
             for (int row = 0; row < dynm_arr.Count; row++)
             {
                 string line = "";
@@ -106,9 +105,7 @@ namespace BefungeSharp.FungeSpace
             int column = cropping_bounds[0].x;
             
             //Find out if the place we want to start exists
-            FungeNode traverse = matrix.GetNode(row, column);
-
-            FungeNode f = traverse;
+            FungeNode f = filled_matrix.GetNode(row, column);
 
             FungeNode rowsStart = f;
             do
@@ -167,55 +164,11 @@ namespace BefungeSharp.FungeSpace
         {
             //Where bounds[0] is the upper left bound and bounds[1] is the bottom right
             Vector2[] bounds = new Vector2[2];
-            int left = 0;
-            int right = 0;
-            int top = 0;
-            int bottom = 0;
-            FungeNode traverse = matrix.Origin;
 
-
-            //For every row
-            do
-            {
-                FungeNode columnsStart = traverse;
-                //For ever column
-                do
-                {
-                    //If the current x is greater than our greatest score
-                    if (traverse.Data.x > right)
-                    {
-                        //Update our highest right
-                        right = traverse.Data.x;
-                    }
-                    if (traverse.Data.x < left)
-                    {
-                        left = traverse.Data.x;
-                    }
-                    traverse = traverse.East;
-                }
-                while(traverse != columnsStart);
-
-                if (traverse.Data.y > bottom)
-                {
-                    bottom = traverse.Data.y;
-                }
-                if (traverse.Data.y < top)
-                {
-                    top = traverse.Data.y;
-                }
-                
-                //Go to the next row down
-                traverse = traverse.South;
-            }
-            while(traverse != matrix.Origin);
-            
-            //Assaign the top left corner
-            bounds[0].x = left;
-            bounds[0].y = top;
-
-            bounds[1].x = right;
-            bounds[1].y = bottom;
-
+            bounds[0].x = matrix.MatrixBounds.left;
+            bounds[0].y = matrix.MatrixBounds.top;
+            bounds[1].x = matrix.MatrixBounds.right;
+            bounds[1].y = matrix.MatrixBounds.bottom;
             return bounds;
         }
 
@@ -345,39 +298,27 @@ namespace BefungeSharp.FungeSpace
 
         public static void DrawFungeSpace(FungeNode draw_origin, FungeSpaceArea drawable_bounds)
         {
-            FungeNode traverse = draw_origin;
-            
-            //For every row
-            do
+            draw_origin.ParentMatrix.EnumerationArea = drawable_bounds;
+            foreach (var traverse in draw_origin.ParentMatrix)
             {
-                FungeNode columnsStart = traverse;
-                //For ever column
-                do
+                ConsoleColor color = ConsoleColor.White;
+
+                int value = traverse.Data.value;
+                if (value >= ' ' && value <= '~')
                 {
-                    if (drawable_bounds.Contains(traverse.Data.x, traverse.Data.y))
-                    {
-                        ConsoleColor color = ConsoleColor.White;
-
-                        int value = traverse.Data.value;
-                        if (value >= ' ' && value <= '~')
-                        {
-                            color = Instructions.InstructionManager.InstructionSet[value].Color;
-                        }
-
-                        char character = (char)traverse.Data.value;
-
-                        ConEx.ConEx_Draw.InsertCharacter(character, traverse.Data.y, traverse.Data.x, color, ConsoleColor.Black);//.DarkGray);
-                    }
-                    traverse = traverse.East;
+                    color = Instructions.InstructionManager.InstructionSet[value].Color;
                 }
-                while (traverse != columnsStart);
 
-                //Go to the next row down
-                traverse = traverse.South;
+                char character = (char)traverse.Data.value;
+
+                //
+                ConEx.ConEx_Draw.InsertCharacter(character,
+                                                    traverse.Data.y,
+                                                    traverse.Data.x,
+                                                    color, ConsoleColor.Black);//.DarkGray);
             }
-            while (traverse != draw_origin);
         }
-
+        
         public static void TestMatrix()
         {
             FungeNode traverse = null;

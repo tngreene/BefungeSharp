@@ -77,6 +77,13 @@ namespace BefungeSharp.FungeSpace
             if (_traverse == null)
             {
                 _traverse = _search_origin;
+                
+                while (_traverse.Data.y < _lower_bound)
+                {
+                    _traverse = _traverse.South;
+                }
+                _search_origin = _traverse;
+
                 moved = true;
                 return moved;
             }
@@ -195,6 +202,13 @@ namespace BefungeSharp.FungeSpace
             if (_traverse == null)
             {
                 _traverse = _search_origin;
+                
+                while (_traverse.Data.x < _lower_bound)
+                {
+                    _traverse = _traverse.East;
+                }
+                _search_origin = _traverse;
+
                 moved = true;
                 return moved;
             }
@@ -249,13 +263,15 @@ namespace BefungeSharp.FungeSpace
         /// The area to enumerate over, defaults every time to FS_THEORETICAL
         /// </summary>
         private FungeSpaceArea _area;
-
+        
         /// <summary>
         /// The area to enumerate over, if bounds are desired they must be set per enumeration and are
         /// reset to FS_THEORETICAL every time afterward
         /// </summary>
         public FungeSpaceArea EnumerationArea { get { return _area; } internal set { _area = value; } }
 
+        private FungeSpaceArea _matrix_bounds;
+        public FungeSpaceArea MatrixBounds { get { return _matrix_bounds; } }
         /// <summary>
         /// Theoretical FungeSpace is the FungeSpace described in the language specification
         /// </summary>
@@ -278,6 +294,7 @@ namespace BefungeSharp.FungeSpace
             m_Nodes.Add(m_Origin);
 
             _area = FS_THEORETICAL;
+            _matrix_bounds = new FungeSpaceArea(0, 0, 0, 0);
         }
 
         /// <summary>
@@ -297,10 +314,10 @@ namespace BefungeSharp.FungeSpace
             
             m_Nodes.Add(m_Origin);
 
-            for (int y = 0; y < rows; y++)
+            for (int y = 0; y <= rows; y++)
             {
                 Console.Write(y + " ");
-                for (int x = 0; x < columns; x++)
+                for (int x = 0; x <= columns; x++)
                 {
                     data.x = x;
                     data.y = y;
@@ -386,6 +403,15 @@ namespace BefungeSharp.FungeSpace
                 //We must start back at the m_Origin becase the row_node is not connected to anything
                 spine_node = InsertRow(anchor_cell, m_Origin);
                 m_Nodes.Add(spine_node);
+
+                if (cell.y < _matrix_bounds.top)
+                {
+                    _matrix_bounds.top = cell.y;
+                }
+                if (cell.y > _matrix_bounds.bottom)
+                {
+                    _matrix_bounds.bottom = cell.y;
+                }
             }
 
             //Now that we have our row node, we'll try to find our column
@@ -400,6 +426,20 @@ namespace BefungeSharp.FungeSpace
                 column_node.ParentMatrix = this;
                 //Now we'll add it to the list only after we know it didn't exist before
                 m_Nodes.Add(column_node);
+                //Adjust bounds
+                {
+                    if (cell.x < _matrix_bounds.left)
+                    {
+                        _matrix_bounds.left = cell.x;
+                    }
+                    if (cell.x > _matrix_bounds.right)
+                    {
+                        _matrix_bounds.right = cell.x;
+                    }
+
+                    
+                    
+                }
                 return column_node;
             }
             else

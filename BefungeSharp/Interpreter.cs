@@ -177,7 +177,7 @@ namespace BefungeSharp
         public Instructions.CommandType Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
             Instructions.CommandType type = Instructions.CommandType.NotImplemented;
-
+            
             bool shift = ConEx.ConEx_Input.ShiftDown;
             bool alt = ConEx.ConEx_Input.AltDown;
             bool control = ConEx.ConEx_Input.CtrlDown;
@@ -242,10 +242,11 @@ namespace BefungeSharp
                         System.ConsoleKey k = keysHit[i].Key;
                         var m = keysHit[i].Modifiers;
                         //------------------------
-
+                        
                         switch (keysHit[i].Key)
                         {
                             /*Arrow Keys
+                             * Tab   + Arrow Key moves view screen
                              * Shift + Arrow Key changes IP direction
                              * Arrow Key press:
                              * MoveBy(position, direction)
@@ -275,6 +276,12 @@ namespace BefungeSharp
                                         case ConsoleKey.LeftArrow:
                                             direction = Vector2.West;
                                             break;
+                                    }
+
+                                    if (ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_TAB))
+                                    {
+                                        MoveViewScreen(fs_view_screen.top + direction.y, fs_view_screen.left + direction.x);
+                                        break;
                                     }
 
                                     if (control == true)
@@ -430,6 +437,26 @@ namespace BefungeSharp
             }
 
             ConEx.ConEx_Draw.SetAttributes(EditIP.Position.Data.y, EditIP.Position.Data.x, color, ConsoleColor.Gray);
+        }
+
+        public void ClearArea()
+        {
+            ConEx.ConEx_Draw.FillArea(' ', FS_93.top, FS_93.left, FS_93.left + FS_93.right, FS_93.top + FS_93.bottom);
+        }
+
+        private void MoveViewScreen(int new_top, int new_left)
+        {
+            //If it is in Q1
+            if(new_top >= FS_93.top)
+            {
+                fs_view_screen.top = new_top;
+                fs_view_screen.bottom += new_top+(FS_93.bottom-FS_93.top);
+            }
+            if(new_left >= FS_93.left)
+            {
+                fs_view_screen.left = new_left;
+                fs_view_screen.right += new_left+(FS_93.right-FS_93.left);
+            }
         }
 
         private Instructions.CommandType TakeStep()

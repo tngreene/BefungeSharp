@@ -9,7 +9,7 @@ namespace BefungeSharp.UI
 {
     public struct Selection
     {
-        public ConEx.ConEx_Draw.SmallRect dimensions;
+        public FungeSpace.FungeSpaceArea dimensions;
         public List<string> content;
         public bool active;
     }
@@ -25,8 +25,8 @@ namespace BefungeSharp.UI
             s.content = new List<string>();
             s.content.Add("");
             
-            s.dimensions.Left = s.dimensions.Right = (short)origin.x;
-            s.dimensions.Top = s.dimensions.Bottom = (short)origin.y;
+            s.dimensions.left = s.dimensions.right = (short)origin.x;
+            s.dimensions.top = s.dimensions.bottom = (short)origin.y;
             
             string input;
 
@@ -64,7 +64,7 @@ namespace BefungeSharp.UI
                     //So always add a new line
                     s.content.Add("");
                     //Increase the dimensions
-                    s.dimensions.Bottom++;
+                    s.dimensions.bottom++;
                 }
                 else
                 {
@@ -78,12 +78,12 @@ namespace BefungeSharp.UI
 
                     s.content[s.content.Count - 1] += c;
                     
-                    int width = s.dimensions.Right - s.dimensions.Left + 1;
+                    int width = s.dimensions.right - s.dimensions.left + 1;
                     //Make sure the bounds of the selection always capture
                     //The longest line
                     if (s.content[s.content.Count - 1].Length > width)
                     {
-                        s.dimensions.Right++;
+                        s.dimensions.right++;
                     }
                 }
                 

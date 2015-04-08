@@ -68,7 +68,7 @@ namespace BefungeSharp
             UI_BOTTOM = ConEx.ConEx_Draw.Dimensions.height - 1;
 
             _selection.content = new List<string>();
-            _selection.dimensions.Top = _selection.dimensions.Right = _selection.dimensions.Bottom = _selection.dimensions.Left = -1;
+            _selection.dimensions.top = _selection.dimensions.right = _selection.dimensions.bottom = _selection.dimensions.left = -1;
             _selection.active = false;
         }
 
@@ -316,9 +316,9 @@ namespace BefungeSharp
             }
 
             //Draw selection
-            for (int c = _selection.dimensions.Left; c <= _selection.dimensions.Right; c++)
+            for (int c = _selection.dimensions.left; c <= _selection.dimensions.right; c++)
             {
-                for (int r = _selection.dimensions.Top; r <= _selection.dimensions.Bottom; r++)
+                for (int r = _selection.dimensions.top; r <= _selection.dimensions.bottom; r++)
                 {
                     int value = 0;
 
@@ -462,10 +462,10 @@ namespace BefungeSharp
             if (a && control)
             {
                 Vector2 [] bounds = FungeSpace.FungeSpaceUtils.GetMatrixBounds(Program.Interpreter.FungeSpace);
-                this._selection.dimensions.Top = (short)bounds[0].y;
-                this._selection.dimensions.Left = (short)bounds[0].x;
-                this._selection.dimensions.Bottom = (short)bounds[1].y;
-                this._selection.dimensions.Right = (short)bounds[1].x;
+                this._selection.dimensions.top = (short)bounds[0].y;
+                this._selection.dimensions.left = (short)bounds[0].x;
+                this._selection.dimensions.bottom = (short)bounds[1].y;
+                this._selection.dimensions.right = (short)bounds[1].x;
                 created_selection = true;
             }
             return ;
@@ -481,8 +481,8 @@ namespace BefungeSharp
             //cropping_bounds[0] = new Vector2 (0,0);
             //cropping_bounds[1] = new Vector2 (9,9);
 
-            cropping_bounds[0] = new Vector2(_selection.dimensions.Left, _selection.dimensions.Top);
-            cropping_bounds[1] = new Vector2(_selection.dimensions.Right, _selection.dimensions.Bottom);
+            cropping_bounds[0] = new Vector2(_selection.dimensions.left, _selection.dimensions.top);
+            cropping_bounds[1] = new Vector2(_selection.dimensions.right, _selection.dimensions.bottom);
  
             List<string> outlines = FungeSpace.FungeSpaceUtils.MatrixToStringList(Program.Interpreter.FungeSpace, cropping_bounds);
          
@@ -494,8 +494,8 @@ namespace BefungeSharp
         /// </summary>
         private void PutSelectionContents()
         {
-            int top = _selection.dimensions.Top;
-            int left = _selection.dimensions.Left;
+            int top = _selection.dimensions.top;
+            int left = _selection.dimensions.left;
 
             //For the rows of the selection
             for (int s_row = 0; s_row < _selection.content.Count; s_row++)
@@ -515,11 +515,11 @@ namespace BefungeSharp
             }
             else if(_interpRef.EditIP.Delta == Vector2.East)
             {
-                _interpRef.EditIP.Move((_selection.dimensions.Right-_selection.dimensions.Left));
+                _interpRef.EditIP.Move((_selection.dimensions.right-_selection.dimensions.left));
             }
             else if(_interpRef.EditIP.Delta == Vector2.South)
             {
-                _interpRef.EditIP.Move((_selection.dimensions.Bottom-_selection.dimensions.Top));
+                _interpRef.EditIP.Move((_selection.dimensions.bottom-_selection.dimensions.top));
             }
 
         }
@@ -530,45 +530,45 @@ namespace BefungeSharp
             //Ensure that the selection is unintialized (Top is always > 0),
             //We aren't using the left or up arrow
             //and we are not currently in the middle of a selection
-            if (_selection.dimensions.Top == -1 &&
+            if (_selection.dimensions.top == -1 &&
                 (k != ConsoleKey.LeftArrow || k != ConsoleKey.UpArrow) &&
                 _selection.active == false)
             {
 
                 //The selection origin is set to the IP's X and Y
-                _selection.dimensions.Left = (short)_interpRef.EditIP.Position.Data.x;
-                _selection.dimensions.Top = (short)_interpRef.EditIP.Position.Data.y;
+                _selection.dimensions.left = (short)_interpRef.EditIP.Position.Data.x;
+                _selection.dimensions.top = (short)_interpRef.EditIP.Position.Data.y;
 
                 //The bottom is also set to the Y position
-                _selection.dimensions.Bottom = (short)_interpRef.EditIP.Position.Data.y;
+                _selection.dimensions.bottom = (short)_interpRef.EditIP.Position.Data.y;
 
                 //To counter act if we are starting off moving down
                 //we must account for the y position to be lower than normal
                 //and that we are imediantly incrementing the bottom side
                 if (k == ConsoleKey.DownArrow)
                 {
-                    _selection.dimensions.Bottom -= 1;
-                    _selection.dimensions.Top -= 1;
+                    _selection.dimensions.bottom -= 1;
+                    _selection.dimensions.top -= 1;
                 }
 
-                _selection.dimensions.Right = (short)_interpRef.EditIP.Position.Data.x;
+                _selection.dimensions.right = (short)_interpRef.EditIP.Position.Data.x;
                 if (k == ConsoleKey.RightArrow)
                 {
-                    _selection.dimensions.Right -= 1;
-                    _selection.dimensions.Left -= 1;
+                    _selection.dimensions.right -= 1;
+                    _selection.dimensions.left -= 1;
                 }
                 _selection.active = true;
             }
 
             //Finally get to the changing of the directions!
             if (k == ConsoleKey.UpArrow)
-                _selection.dimensions.Bottom--;
+                _selection.dimensions.bottom--;
             if (k == ConsoleKey.LeftArrow)
-                _selection.dimensions.Right--;
+                _selection.dimensions.right--;
             if (k == ConsoleKey.DownArrow)
-                _selection.dimensions.Bottom++;
+                _selection.dimensions.bottom++;
             if (k == ConsoleKey.RightArrow)
-                _selection.dimensions.Right++;
+                _selection.dimensions.right++;
 
             //Now we do a post check to see if we made a bad selection
             bool error_creating_selection = false;
@@ -579,10 +579,10 @@ namespace BefungeSharp
 
             //Test if the IP has wrapped around behind itself or
             //Has walked behind itself
-            error_creating_selection |= x < _selection.dimensions.Left;
-            error_creating_selection |= _selection.dimensions.Right > 79;
-            error_creating_selection |= y < _selection.dimensions.Top;
-            error_creating_selection |= _selection.dimensions.Bottom > 24;
+            error_creating_selection |= x < _selection.dimensions.left;
+            error_creating_selection |= _selection.dimensions.right > 79;
+            error_creating_selection |= y < _selection.dimensions.top;
+            error_creating_selection |= _selection.dimensions.bottom > 24;
 
             if (error_creating_selection == true)
             {
@@ -596,8 +596,8 @@ namespace BefungeSharp
 
         private void DeleteSelection()
         {
-            int top = _selection.dimensions.Top;
-            int left = _selection.dimensions.Left;
+            int top = _selection.dimensions.top;
+            int left = _selection.dimensions.left;
 
             //For the rows of the selection
             for (int s_row = 0; s_row < _selection.content.Count; s_row++)
@@ -613,11 +613,10 @@ namespace BefungeSharp
         private void ClearSelection()
         {
             _selection.content.Clear();
-            _selection.dimensions = new ConEx.ConEx_Draw.SmallRect();
-            _selection.dimensions.Bottom = -1;
-            _selection.dimensions.Left = -1;
-            _selection.dimensions.Right = -1;
-            _selection.dimensions.Top = -1;
+            _selection.dimensions.bottom = -1;
+            _selection.dimensions.left = -1;
+            _selection.dimensions.right = -1;
+            _selection.dimensions.top = -1;
             _selection.active = false;
         } 
     }
