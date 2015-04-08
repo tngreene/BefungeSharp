@@ -144,18 +144,7 @@ namespace BefungeSharp
                 //First clear it's area, then draw it
                 if (true)
                 {
-                    //Draw the innocent sidebar
-                    Program.WindowSideBar.ClearArea( Program.Interpreter.CurMode);
-                    Program.WindowSideBar.Draw( Program.Interpreter.CurMode);
-
-                    //Draw the board and draw the IP ontop of the board
-                     Program.Interpreter.Draw();
-
-                    //Draw the UI and selection to override the black
-                    Program.WindowUI.ClearArea( Program.Interpreter.CurMode);
-                    Program.WindowUI.Draw( Program.Interpreter.CurMode);
-
-                    ConEx.ConEx_Draw.DrawScreen();
+                    Draw(0);
                 }
                 double mm = watch.ElapsedMilliseconds;
                 //Based on the mode sleep the program so it does not scream by
@@ -214,7 +203,19 @@ namespace BefungeSharp
 
         public void Draw(BoardMode mode)
         {
-            
+            //Draw the innocent sidebar
+            Program.WindowSideBar.ClearArea(Program.Interpreter.CurMode);
+            Program.WindowSideBar.Draw(Program.Interpreter.CurMode);
+
+            //Draw the board and draw the IP ontop of the board
+            Program.Interpreter.ClearArea();
+            Program.Interpreter.Draw();
+
+            //Draw the UI and selection to override the black
+            Program.WindowUI.ClearArea(Program.Interpreter.CurMode);
+            Program.WindowUI.Draw(Program.Interpreter.CurMode);
+
+            ConEx.ConEx_Draw.DrawScreen();
         }
       
         
