@@ -81,6 +81,14 @@ namespace BefungeSharp.FungeSpace
                 while (_traverse.Data.y < _lower_bound)
                 {
                     _traverse = _traverse.South;
+
+                    if (_traverse == _search_origin)
+                    {
+                        //If we have tried as hard as we can to find a place to start
+                        //yet we found ourselfs back at the beginning
+                        //We say there is no search!
+                        return false;
+                    }
                 }
                 _search_origin = _traverse;
 
@@ -206,6 +214,14 @@ namespace BefungeSharp.FungeSpace
                 while (_traverse.Data.x < _lower_bound)
                 {
                     _traverse = _traverse.East;
+                    
+                    if (_traverse == _search_origin)
+                    {
+                        //If we have tried as hard as we can to find a place to start
+                        //yet we found ourselfs back at the beginning
+                        //We say there is no search!
+                        return false;
+                    }
                 }
                 _search_origin = _traverse;
 
