@@ -85,7 +85,7 @@ namespace BefungeSharp.Instructions.Logic
 
     public class GreaterThanInstruction : LogicInstruction
     {
-        public GreaterThanInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { this.requiredCells = 1; }
+        public GreaterThanInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { this.requiredCells = 2; }
 
         public override bool Preform(IP ip)
         {
