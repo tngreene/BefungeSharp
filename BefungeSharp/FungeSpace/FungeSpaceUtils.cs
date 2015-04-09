@@ -403,7 +403,7 @@ namespace BefungeSharp.FungeSpace
             WalkOnMatrix(matrix3);
         }
 
-        private static void WalkOnMatrix(FungeSparseMatrix matrix)
+        public static void WalkOnMatrix(FungeSparseMatrix matrix)
         {
             FungeNode traverse = matrix.Origin;
             while (traverse != null)

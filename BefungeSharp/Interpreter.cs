@@ -280,7 +280,7 @@ namespace BefungeSharp
 
                                     if (ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_TAB))
                                     {
-                                        //direction.Negate();
+                                        //TODO:OPTION? Inverse scrolling or not. direction.Negate();
                                         MoveViewScreen(fs_view_screen.top + direction.y, fs_view_screen.left + direction.x);
                                         break;
                                     }
@@ -295,41 +295,18 @@ namespace BefungeSharp
                                     //Get where we'll be going next
                                     int nextX = EditIP.Position.Data.x + direction.x;
                                     int nextY = EditIP.Position.Data.y + direction.y;
-
                                     //Since the EditIP wraps around the viewing screen we need to use the old
-                                    //Wrapping function
-                                    {
-                                        //Going in the negative x direction
-                                        if (nextX < fs_view_screen.left)
-                                        {
-                                            nextX = fs_view_screen.right;// +nextX;
-                                        }
-                                        else if (nextX > fs_view_screen.right)
-                                        {
-                                            nextX = fs_view_screen.left;
-                                        }
-
-                                        //Going in the negative y direction
-                                        if (nextY < fs_view_screen.top)
-                                        {
-                                            nextY = fs_view_screen.bottom;// +nextY;
-                                        }
-                                        else if (nextY > fs_view_screen.bottom)
-                                        {
-                                            nextY = fs_view_screen.top;
-                                        }
-
-                                        EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, nextY, nextX);
-                                    }
-
+                                    Vector2 wrappedPosition = WrapEditIPViewScreen(nextX, nextY);
+                                    EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, wrappedPosition.y, wrappedPosition.x);
+                                    
                                     needsMove = false;
                                 }
                                 break;
                             case ConsoleKey.Enter:
                                 {
                                     //Move down a line                                    
-                                    _IPs[0].Position = FungeSpaceUtils.MoveBy(_IPs[0].Position, new Vector2(0,1));
-                                    _IPs[0].Delta = Vector2.East;
+                                    EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, EditIP.Position.Data.y + Vector2.South.y, EditIP.Position.Data.x + Vector2.South.x);
+                                    EditIP.Delta = Vector2.East;
                                 }
                                 break;
                             case ConsoleKey.Delete:
@@ -341,7 +318,7 @@ namespace BefungeSharp
                                 {
                                     Vector2 nVec = EditIP.Delta;
                                     nVec.Negate();
-                                    EditIP.Position = FungeSpaceUtils.MoveBy(EditIP.Position, nVec);
+                                    EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, EditIP.Position.Data.y + nVec.y, EditIP.Position.Data.x + nVec.x);
                                     FungeSpaceUtils.ChangeData(EditIP.Position, ' ');
                                 }
                                 break;
@@ -364,23 +341,19 @@ namespace BefungeSharp
 
                                     int nextX = EditIP.Position.Data.x + EditIP.Delta.x;
                                     int nextY = EditIP.Position.Data.y + EditIP.Delta.y;
-
-                                    if ((nextX >= FS_93.left && nextX <= FS_93.right) && (nextY >= FS_93.top && nextY <= FS_93.bottom))
-                                    {
-                                        EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, nextY, nextX);
-                                    }
-                                    else
-                                    {
-                                        needsMove = true;
-                                    }
+                                    
+                                    EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, nextY, nextX);
                                 }
                                 break;
                         }
                     }
-                    if (needsMove)
+                    
+                    if (_curMode == BoardMode.Edit || _curMode == BoardMode.Debug)
                     {
-                        EditIP.Move();//Move now that we've done some kind of moving input
+                        Vector2 confirmedPosition = WrapEditIPViewScreen(EditIP.Position.Data.x, EditIP.Position.Data.y);
+                        EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, confirmedPosition.y, confirmedPosition.x);
                     }
+                    
                     #endregion HandleInput-------------
                     break;
             }//switch(currentMode)
@@ -442,7 +415,8 @@ namespace BefungeSharp
 
         public void ClearArea()
         {
-            ConEx.ConEx_Draw.FillArea(' ', FS_93.top, FS_93.left, FS_93.left + FS_93.right, FS_93.top + FS_93.bottom);
+                                                                           //+1 because FillArea is not inclusive in its area
+            ConEx.ConEx_Draw.FillArea(' ', FS_93.top, FS_93.left, FS_93.left + FS_93.right + 1, FS_93.top + FS_93.bottom + 1);
         }
 
         private void MoveViewScreen(int new_top, int new_left)
@@ -459,7 +433,34 @@ namespace BefungeSharp
                 fs_view_screen.right = new_left + (FS_93.right - FS_93.left);
             }
         }
+        
+        /// <summary>
+        /// Wraps the EditIP's position inside the View Screen
+        /// </summary>
+        /// <returns>The new position</returns>
+        private Vector2 WrapEditIPViewScreen(int unverifiedX, int unverifiedY)
+        {
+            if (unverifiedX < fs_view_screen.left)
+            {
+                unverifiedX = fs_view_screen.right;// +nextX;
+            }
+            else if (unverifiedX > fs_view_screen.right)
+            {
+                unverifiedX = fs_view_screen.left;
+            }
 
+            //Going in the negative y direction
+            if (unverifiedY < fs_view_screen.top)
+            {
+                unverifiedY = fs_view_screen.bottom;// +nextY;
+            }
+            else if (unverifiedY > fs_view_screen.bottom)
+            {
+                unverifiedY = fs_view_screen.top;
+            }
+            return new Vector2(unverifiedX, unverifiedY);
+        }
+        
         private Instructions.CommandType TakeStep()
         {
             //Start at the end of the list
