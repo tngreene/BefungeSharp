@@ -144,7 +144,7 @@ namespace BefungeSharp
                 //First clear it's area, then draw it
                 if (true)
                 {
-                    Draw(0);
+                    Draw(Program.Interpreter.CurMode);
                 }
                 double mm = watch.ElapsedMilliseconds;
                 //Based on the mode sleep the program so it does not scream by
@@ -203,6 +203,10 @@ namespace BefungeSharp
 
         public void Draw(BoardMode mode)
         {
+            if (mode == BoardMode.Run_TERMINAL)
+            {
+                return;
+            }
             //Draw the innocent sidebar
             Program.WindowSideBar.ClearArea(Program.Interpreter.CurMode);
             Program.WindowSideBar.Draw(Program.Interpreter.CurMode);

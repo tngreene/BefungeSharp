@@ -14,6 +14,7 @@ namespace BefungeSharp
     public enum BoardMode
     {
         Run_MAX = 1,//Program runs instantanously, user will mostlikely not be able to see the IP or The stacks changing
+        Run_TERMINAL = 3,
         Run_FAST = 50,//Program delayed by 50ms. The IP and stacks will move rapidly but visibly
         Run_MEDIUM = 100,//Program delayed by 100ms. IP and stack changes are more easy to follow
         Run_SLOW = 200,//Program delayed by 200ms. IP and stack changes are slow enough to follow on paper
@@ -106,7 +107,7 @@ namespace BefungeSharp
             _fungeSpace = new FungeSparseMatrix(FS_DEFAULT.bottom, FS_DEFAULT.right);
             stopwatch.Stop();
             Console.WriteLine(stopwatch.Elapsed);
-            Console.ReadKey(true);
+            //Console.ReadKey(true);
             if (initial_chars != null)
             {
                 //if there is a file to be loaded in, put those into fungespace
@@ -166,12 +167,18 @@ namespace BefungeSharp
         /// </summary>
         private void EndExecution()
         {
-
+            Program.WindowUI.Reset();
         }
 
         public void ChangeMode(Instructions.IAffectsRunningMode affecter)
         {
             _curMode = affecter.NewMode;
+
+            if (_curMode == BoardMode.Edit)
+            {
+                EndExecution();
+            }
+
         }
 
         public Instructions.CommandType Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
@@ -190,6 +197,7 @@ namespace BefungeSharp
                 case BoardMode.Run_MEDIUM:
                 case BoardMode.Run_SLOW:
                 case BoardMode.Run_STEP:
+                case BoardMode.Run_TERMINAL:
                     //If we're not in stepping mode take a step
                     if (_curMode != BoardMode.Run_STEP)
                     {
@@ -217,8 +225,17 @@ namespace BefungeSharp
                             case ConsoleKey.D5:
                                 _curMode = BoardMode.Run_MAX;
                                 break;
+                            case ConsoleKey.D6:
+                                _curMode = BoardMode.Run_TERMINAL;
+                                ConEx.ConEx_Draw.FillScreen(' ');
+                                ConEx.ConEx_Draw.DrawScreen();
+                                Console.CursorLeft = 0;
+                                Console.CursorTop = 0;
+                                Console.CursorVisible = true;
+                                break;
                             //Takes us back to editor mode
                             case ConsoleKey.F12:
+                                EndExecution();
                                 _curMode = BoardMode.Edit;
                                 break;
                             //Takes the next step
@@ -326,9 +343,18 @@ namespace BefungeSharp
                                 BeginExecution();
                                 _curMode = BoardMode.Run_MEDIUM;
                                 break;
-                            case ConsoleKey.F6:
+                            case ConsoleKey.F1:
                                 BeginExecution();
                                 _curMode = BoardMode.Run_STEP;
+                                break;
+                            case ConsoleKey.F6:
+                                BeginExecution();
+                                ConEx.ConEx_Draw.FillScreen(' ');
+                                ConEx.ConEx_Draw.DrawScreen();
+                                Console.CursorLeft = 0;
+                                Console.CursorTop = 0;
+                                Console.CursorVisible = true;
+                                _curMode = BoardMode.Run_TERMINAL;
                                 break;
                             case ConsoleKey.Escape:
                                 EndExecution();
@@ -395,8 +421,8 @@ namespace BefungeSharp
                 {
                     color = Instructions.InstructionManager.InstructionSet[value].Color;
                 }
-                
-                ConEx.ConEx_Draw.SetAttributes(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x, color, (ConsoleColor)ConsoleColor.Gray + (n % 3));
+
+                ConEx.ConEx_Draw.SetAttributes(_IPs[n].Position.Data.y - fs_view_screen.top, _IPs[n].Position.Data.x - fs_view_screen.left, color, (ConsoleColor)ConsoleColor.Gray + (n % 3));
             }
         }
         
@@ -410,7 +436,7 @@ namespace BefungeSharp
                 color = Instructions.InstructionManager.InstructionSet[value].Color;
             }
 
-            ConEx.ConEx_Draw.SetAttributes(EditIP.Position.Data.y-fs_view_screen.top, EditIP.Position.Data.x-fs_view_screen.left, color, ConsoleColor.Gray);
+            ConEx.ConEx_Draw.SetAttributes(EditIP.Position.Data.y - fs_view_screen.top, EditIP.Position.Data.x - fs_view_screen.left, color, ConsoleColor.Gray);
         }
 
         public void ClearArea()
@@ -421,17 +447,11 @@ namespace BefungeSharp
 
         private void MoveViewScreen(int new_top, int new_left)
         {
-            //If it is in Q1
-            //if(new_top >= FS_93.top)
-            {
-                fs_view_screen.top    = new_top;
-                fs_view_screen.bottom = new_top + (FS_93.bottom - FS_93.top);
-            }
-            //if(new_left >= FS_93.left)
-            {
-                fs_view_screen.left  = new_left;
-                fs_view_screen.right = new_left + (FS_93.right - FS_93.left);
-            }
+            fs_view_screen.top    = new_top;
+            fs_view_screen.bottom = new_top + (FS_93.bottom - FS_93.top);
+            
+            fs_view_screen.left  = new_left;
+            fs_view_screen.right = new_left + (FS_93.right - FS_93.left);
         }
         
         /// <summary>
@@ -442,7 +462,7 @@ namespace BefungeSharp
         {
             if (unverifiedX < fs_view_screen.left)
             {
-                unverifiedX = fs_view_screen.right;// +nextX;
+                unverifiedX = fs_view_screen.right;
             }
             else if (unverifiedX > fs_view_screen.right)
             {
@@ -452,7 +472,7 @@ namespace BefungeSharp
             //Going in the negative y direction
             if (unverifiedY < fs_view_screen.top)
             {
-                unverifiedY = fs_view_screen.bottom;// +nextY;
+                unverifiedY = fs_view_screen.bottom;
             }
             else if (unverifiedY > fs_view_screen.bottom)
             {

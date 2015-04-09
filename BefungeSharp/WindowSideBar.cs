@@ -80,8 +80,9 @@ namespace BefungeSharp
                                                 "New File - Ctrl+N",
                                                 "Save - Alt+S",
                                                 //"Run " + GetDefaultSpeed() + " - F5");
+                                                "Run (Step) - F1",
                                                 "Run (Default Speed) - F5",
-                                                "Run (Step) - F6",
+                                                "Run (Terminal Mode) - F6",
                                                 "XReload source - Home",
                                                 "Main Menu - Esc",
                                                 "Show/Hide Sidebar - F1",

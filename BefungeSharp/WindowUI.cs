@@ -182,6 +182,7 @@ namespace BefungeSharp
 
         public void AddText(string text, Categories catagory)
         {
+            
             switch (catagory)
             {
                 case Categories.TOSS:
@@ -191,6 +192,10 @@ namespace BefungeSharp
                     _SOSSstackRep += text;
                     break;
                 case Categories.OUT:
+                    if (Program.Interpreter.CurMode == BoardMode.Run_TERMINAL)
+                    {
+                        Console.Write(text);
+                    }
                     _outputRep += text;
                     break;
                 case Categories.IN:
@@ -344,8 +349,13 @@ namespace BefungeSharp
                 }
             }
         }
-        
-        
+
+        public void Reset()
+        {
+            _TOSSstackRep = "";
+            _outputRep = "";
+            _inputRep = "";
+        }
         public void Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
             //Based on what mode it is handle those keys
@@ -461,11 +471,7 @@ namespace BefungeSharp
             bool a = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_A);
             if (a && control)
             {
-                Vector2 [] bounds = FungeSpace.FungeSpaceUtils.GetMatrixBounds(Program.Interpreter.FungeSpace);
-                this._selection.dimensions.top = (short)bounds[0].y;
-                this._selection.dimensions.left = (short)bounds[0].x;
-                this._selection.dimensions.bottom = (short)bounds[1].y;
-                this._selection.dimensions.right = (short)bounds[1].x;
+                this._selection.dimensions = Program.Interpreter.FungeSpace.MatrixBounds;
                 created_selection = true;
             }
             return ;
