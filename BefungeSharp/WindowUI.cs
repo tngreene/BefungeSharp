@@ -624,6 +624,48 @@ namespace BefungeSharp
             _selection.dimensions.right = -1;
             _selection.dimensions.top = -1;
             _selection.active = false;
-        } 
+        }
+
+        public char GetCharacter()
+        {
+            if (Program.Interpreter.CurMode != BoardMode.Run_TERMINAL)
+            {
+                Console.SetCursorPosition(0, _inputRow + 1);
+                Console.CursorVisible = true;
+            }
+            char input = '\0';
+            do
+            {
+                input = Console.ReadKey(true).KeyChar;
+            }
+            while (input < ' ' || input > '~');
+
+            AddText(input.ToString(), WindowUI.Categories.IN);
+            Console.CursorVisible = false;
+            return input;
+        }
+
+        public int GetDecimal()
+        {
+            if (Program.Interpreter.CurMode != BoardMode.Run_TERMINAL)
+            {
+                Console.SetCursorPosition(0, _inputRow + 1);
+                Console.CursorVisible = true;
+            }
+            string input = Console.ReadLine();
+            Console.CursorVisible = false;
+            int outResult = 0;
+            bool succeded = int.TryParse(input, out outResult);
+            if (succeded == true)
+            {
+                AddText(input, WindowUI.Categories.IN);
+                return outResult;
+            }
+            else
+            {
+                AddText("0", WindowUI.Categories.IN);
+                return 0;
+            }
+        }
     }
 }

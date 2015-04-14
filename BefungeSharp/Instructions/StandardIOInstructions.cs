@@ -17,10 +17,8 @@ namespace BefungeSharp.Instructions.StdIO
 
         public override bool Preform(IP ip)
         {
-            Console.SetCursorPosition(ip.Position.Data.x, ip.Position.Data.y);
-            char charInput = Console.ReadKey(true).KeyChar;
-            ip.Stack.Push((int)charInput);
-            Program.WindowUI.AddText(charInput.ToString(), WindowUI.Categories.IN);
+            ip.Stack.Push((int)Program.WindowUI.GetCharacter());
+            
             return true;
         }
     }
@@ -31,21 +29,8 @@ namespace BefungeSharp.Instructions.StdIO
 
         public override bool Preform(IP ip)
         {
-            Console.SetCursorPosition(ip.Position.Data.x, ip.Position.Data.y);
-            string input = Console.ReadLine();
-            int outResult = 0;
-            bool succeded = int.TryParse(input, out outResult);
-            if (succeded == true)
-            {
-                ip.Stack.Push(outResult);
-                Program.WindowUI.AddText(input, WindowUI.Categories.IN);
-            }
-            else
-            {
-                ip.Stack.Push(0);
-                Program.WindowUI.AddText("0", WindowUI.Categories.IN);
-            }
-            
+            ip.Stack.Push(Program.WindowUI.GetDecimal());
+           
             return true;
         }
     }
