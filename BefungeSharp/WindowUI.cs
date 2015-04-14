@@ -40,10 +40,10 @@ namespace BefungeSharp
         private string _SOSSstackRep;
         private int _SOSSstackRow;
 
-        private string _outputRep;
+        private Queue<string> _outputRep;
         private int _outputRow;
 
-        private string _inputRep;
+        private Queue<string> _inputRep;
         private int _inputRow;
 
         private Selection _selection;
@@ -59,10 +59,11 @@ namespace BefungeSharp
             _SOSSstackRep = "SS:";
             _SOSSstackRow = -1;//Turn on when we implent stack stack/interpreter currently running in 98 mode//_TOSSstackRow + 1;
 
-            _outputRep = "O:";
+            _outputRep = new Queue<string>();
+            
             _outputRow = _TOSSstackRow + 1;
 
-            _inputRep = "I:";
+            _inputRep = new Queue<string>();
             _inputRow = _outputRow + 1;
 
             UI_BOTTOM = ConEx.ConEx_Draw.Dimensions.height - 1;
@@ -90,87 +91,56 @@ namespace BefungeSharp
                 case BoardMode.Run_STEP:
 #region TOSS
                     _TOSSstackRep = "TS:";
-                    List<int> rStack = _interpRef.IPs[0].Stack.ToList();
-                    rStack.Reverse();
-
-                    for (int i = 0; i < rStack.Count; i++)
+                    if (_interpRef.IPs[0].Stack.Count > 0)
                     {
-                        _TOSSstackRep += rStack.ElementAt(i).ToString() + '|';
-                    }
-                    
-                    for (int i = 0; i < _TOSSstackRep.Length; i++)
-                    {
-                        if(_TOSSstackRep[i] == '|')
+                        //Insert a pipe bar inbetween every number
+                        for (int i = _interpRef.IPs[0].Stack.Count-1; i >= 0; i--)
                         {
-                            ConsoleColor fore = ConsoleColor.DarkGreen;
-                            ConEx.ConEx_Draw.SetAttributes(_TOSSstackRow, i, fore, ConsoleColor.Black);
+                            _TOSSstackRep += _interpRef.IPs[0].Stack.ElementAt(i).ToString() + '|';
+                        }
+
+                        //If the size of the stack's representation is more than our screen can handle, present
+                        //the condensed version
+                        if (_TOSSstackRep.Length > UI_RIGHT)
+                        {
+                            string prefix = "TS:...";
+                            //Copy from the the end (Length - 1) to some characters back (full width) minus[sic] the length of the prefix
+                            _TOSSstackRep = "TS:..." + _TOSSstackRep.Substring((_TOSSstackRep.Length - 1) - UI_RIGHT + prefix.Length);
+                        }
+                    }
+                    ConEx.ConEx_Draw.InsertString(_TOSSstackRep, _TOSSstackRow, 0, false);
+
+                    //Color the pipe bars inbetween something nice
+                    int colorize_row = _TOSSstackRow;
+                    string colorize = _TOSSstackRep;
+                    ConsoleColor pipeColor = ConsoleColor.DarkGreen;
+
+                    for (int j = 0; j < colorize.Length; j++)
+                    {
+                        if (colorize[j] == '|')
+                        {
+                            ConEx.ConEx_Draw.SetAttributes(colorize_row, j, pipeColor, ConsoleColor.Black);
                         }
                     }
 #endregion
-#region SOSS
-                    if (_SOSSstackRow != -1)
+#region OUTPUT
+                    string outputString = "O:";
+                    foreach (var character in _outputRep)
                     {
-                        /*_SOSSstackRep = "SS:";
-                        List<int> rStack = _boardRef.GlobalStack.ToList();
-                        rStack.Reverse();
-
-                        for (int i = 0; i == rStack.Count - 1; i++)
-                        {
-                            _SOSSstackRep += rStack.ElementAt(i).ToString();
-                            _SOSSstackRep += '|';
-                        }
-                        
-
-                        for (int i = 0; i < _SOSSstackRep.Length; i++)
-                        {
-                            ConsoleColor fore = ConsoleColor.White;
-                            if (_SOSSstackRep[i] == '|')
-                            {
-                                fore = ConsoleColor.DarkGreen;
-                                ConEx.ConEx_Draw.SetAttributes(_SOSSstackRow, i, fore, ConsoleColor.Black);
-                            }
-                        }*/
+                        outputString += character;
                     }
-#endregion    
-                    //Insert the strings into the world
-                    ConEx.ConEx_Draw.InsertString(_TOSSstackRep, _TOSSstackRow, 0, false);
-                    //ConEx.ConEx_Draw.InsertString(_SOSSstackRep, _SOSSstackRow, 0, false);
-                    ConEx.ConEx_Draw.InsertString(_outputRep, _outputRow, 0, false);
-                    ConEx.ConEx_Draw.InsertString(_inputRep, _inputRow, 0, false);
-
-                    //For all strings color the pipe bars
-                    for (int i = 0; i < 4; i++)
+                    ConEx.ConEx_Draw.InsertString(outputString, _outputRow, 0, false);                    
+#endregion
+#region INPUT
+                    string inputString = "I:";
+                    foreach (var character in _inputRep)
                     {
-                        string colorize = "";
-                        ConsoleColor pipeColor = ConsoleColor.White;
-                        switch (i)
-                        {
-                            case 0:
-                                colorize = _TOSSstackRep;
-                                pipeColor = ConsoleColor.DarkYellow;
-                                break;
-                            case 1:
-                                colorize = _SOSSstackRep;
-                                pipeColor = ConsoleColor.DarkMagenta;
-                                break;
-                            case 2:
-                                colorize = _outputRep;
-                                pipeColor = ConsoleColor.Gray;
-                                break;
-                            case 3:
-                                colorize = _inputRep;
-                                pipeColor = ConsoleColor.DarkGray;
-                                break;
-                        }
-
-                        for (int j = 0; j < colorize.Length; j++)
-                        {
-                            if (colorize[j] == '|')
-                            {
-                                ConEx.ConEx_Draw.SetAttributes(_outputRow, j, pipeColor, ConsoleColor.Black);
-                            }
-                        }      
+                        inputString += character;
                     }
+                    
+                    ConEx.ConEx_Draw.InsertString(inputString, _inputRow, 0, false);
+#endregion
+                    
                     break;
                 case BoardMode.Edit:
                     DrawSelection(mode);
@@ -182,24 +152,31 @@ namespace BefungeSharp
 
         public void AddText(string text, Categories catagory)
         {
-            
             switch (catagory)
             {
                 case Categories.TOSS:
-                    _TOSSstackRep += text;
+                    //_TOSSstackRep += text;
                     break;
                 case Categories.SOSS:
-                    _SOSSstackRep += text;
+                   // _SOSSstackRep += text;
                     break;
                 case Categories.OUT:
                     if (Program.Interpreter.CurMode == BoardMode.Run_TERMINAL)
                     {
                         Console.Write(text);
                     }
-                    _outputRep += text;
+                    _outputRep.Enqueue(text);
+                    if (_outputRep.Count > UI_RIGHT - 1 - 2)//-1 so we're not on the edge, -2 for the "O:"
+                    {
+                        _outputRep.Dequeue();
+                    }
                     break;
                 case Categories.IN:
-                    _inputRep += text + "|";
+                    _inputRep.Enqueue(text);
+                    if (_inputRep.Count > UI_RIGHT - 1 - 2)//-1 so we're not on the edge, -2 for the "I:"
+                    {
+                        _inputRep.Dequeue();
+                    }
                     break;
             }
         }
@@ -353,8 +330,8 @@ namespace BefungeSharp
         public void Reset()
         {
             _TOSSstackRep = "";
-            _outputRep = "";
-            _inputRep = "";
+            _outputRep.Clear();
+            _inputRep.Clear();
         }
         public void Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
