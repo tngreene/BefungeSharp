@@ -192,7 +192,7 @@ namespace BefungeSharp
             string bottom = new string(' ', UI_RIGHT);
             ConEx.ConEx_Draw.InsertString(bottom, UI_RIGHT, 0, false);
 
-            ConEx.ConEx_Draw.FillArea(' ', UI_TOP, 0, ConEx.ConEx_Draw.Dimensions.width, ConEx.ConEx_Draw.Dimensions.height);
+            ConEx.ConEx_Draw.FillArea(' ', UI_TOP, 0, UI_RIGHT, ConEx.ConEx_Draw.Dimensions.height);
         }
 
         /// <summary>

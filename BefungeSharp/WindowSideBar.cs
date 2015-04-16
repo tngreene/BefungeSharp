@@ -21,30 +21,66 @@ namespace BefungeSharp
         private int BAR_RIGHT;
         private int BAR_BOTTOM = 0;
 
-        private bool _barShowing;
-
+        private int _pageIndex;
+        private List<List<string>> _pages;
         private List<string> _content;
-        
+
         public WindowSideBar(BoardManager mgr, Interpreter interp)
         {
             BAR_RIGHT = ConEx.ConEx_Draw.Dimensions.width - 1;
             BAR_BOTTOM = ConEx.ConEx_Draw.Dimensions.height - 1;
             _content = new List<string>();
-            
-            //TODO - _barShowing = OptionsMenu.GetOption("Show help bar at start")
-            _barShowing = true;
-        }
+            _pageIndex = 0;
+            _pages = new List<List<string>>();
 
+            //Create Page 1
+            _pages.Add(new List<string>());
+            string[] commandContent = { " Commands ",
+                                        "----------"
+                                        };
+            _pages[0].AddRange(commandContent);
+
+            //Create Page 2
+            _pages.Add(new List<string>());
+            string[] asciiTableContent = { 
+                                            "╔═════════════════════╗",
+                                            "║     ASCII Table     ║",
+                                            "╠════╦════╦═════╦═════╣",
+                                            "║32  ║57 9║87  W║112 p║",
+                                            "║33 !║58 :║88  X║113 q║",
+                                            "║34 \"║59 ;║89  Y║114 r║",
+                                            "║35 #║60 <║90  Z║115 s║",
+                                            "║36 $║61 =║91  [║116 t║",
+                                            "║37 %║62 >║92  \\║117 u║",
+                                            "║38 &║63  ║93  ]║118 v║",
+                                            "║39 '║69 E║94  ^║119 w║",
+                                            "║40 (║70 F║95  _║120 x║",
+                                            "║41 )║71 G║96  `║121 y║",
+                                            "║42 *║72 H║97  a║123 z║",
+                                            "║43 +║73 I║98  b║124 {║",
+                                            "║44 ,║74 J║99  c║125 |║",
+                                            "║45 -║75 K║100 d║126 }║",
+                                            "║46 .║76 L║101 e║127 ~║",
+                                            "║47 /║77 M║102 f║     ║",
+                                            "║48 0║78 N║103 g║     ║",
+                                            "║49 1║79 O║104 h║     ║",
+                                            "║50 2║80 P║105 i║     ║",
+                                            "║51 3║81 Q║106 j║     ║",
+                                            "║52 4║82 R║107 k║     ║",
+                                            "║53 5║83 S║108 l║     ║",
+                                            "║54 6║84 T║109 m║     ║",
+                                            "║55 7║85 U║110 n║     ║",
+                                            "║56 8║86 V║111 o║     ║",
+                                            "╚════╩════╩═════╩═════╝"
+                                         };
+            _pages[1].AddRange(asciiTableContent);
+        }
         /// <summary>
         /// Draws the User interface of whatever mode the board is in
         /// </summary>
         /// <param name="mode">The mode of the board</param>
         public void Draw(BoardMode mode)
         {
-            if(_barShowing == false)
-            {
-                return;
-            }
             /*Template
              * Commands
              * --------
@@ -107,10 +143,10 @@ namespace BefungeSharp
                 default:
                     break;
             }
-
-            for (int i = 0; i < _content.Count; i++)
+           // _content = _pages[1];
+            for (int i = 0; i < _pages[_pageIndex].Count; i++)
             {
-                ConEx.ConEx_Draw.InsertString(_content[i], BAR_TOP + i, BAR_LEFT, false);
+                ConEx.ConEx_Draw.InsertString(_pages[_pageIndex][i], BAR_TOP + i, BAR_LEFT, false);
             }
             _content.Clear();
         }
@@ -135,24 +171,12 @@ namespace BefungeSharp
 
                     switch (keysHit[i].Key)
                     {
-                        //F1 Shows/Hides the sidebar
-                        case ConsoleKey.F1:
-                        {
-                            _barShowing = !_barShowing;
-                            ClearArea(mode);
-                            
-                            //By adjusting the WindowWidth we save from messing with the buffer
-                            //And if someone wants to they can still scroll over.
-                            if (_barShowing != true)
-                            {
-                                Console.WindowWidth -= BAR_RIGHT - BAR_LEFT + 2;
-                            }
-                            else
-                            {
-                                Console.WindowWidth += BAR_RIGHT - BAR_LEFT + 2;
-                            }
-                        }
-                        break;
+                        case ConsoleKey.Home:
+                            _pageIndex = _pageIndex > 0 ? _pageIndex-- : _pageIndex = _pages.Count - 1;
+                            break;
+                        case ConsoleKey.End:
+                            _pageIndex = _pageIndex < _pages.Count - 1 ? _pageIndex += 1 : _pageIndex = 0;
+                            break;
                     }
                 }
                 break;
