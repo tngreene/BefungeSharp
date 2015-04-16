@@ -15,7 +15,16 @@ namespace BefungeSharp.FungeSpace
         public int left;
         public int bottom;
         public int right;
+        /// <summary>
+        /// The width of the area (in number of cells, including spaces)
+        /// </summary>
+        public int Width { get { return (right - left) + 1; } }
         
+        /// <summary>
+        /// The height of the area (in number of cells, including spaces)
+        /// </summary>
+        public int Height { get { return (bottom - top) + 1; } }
+
         public FungeSpaceArea(Vector2 top_left, Vector2 bottom_right)
         {
             this.left = top_left.x;
@@ -61,6 +70,7 @@ namespace BefungeSharp.FungeSpace
         /// <param name="dynamic_array_representation">The dynamic array source</param>
         public static void DynamicArrayToMatrix(FungeSparseMatrix matrix, List<List<int>> dynamic_array_representation)
         {
+            System.Diagnostics.Stopwatch watch = System.Diagnostics.Stopwatch.StartNew();
             for (int r = 0; r < dynamic_array_representation.Count; r++)
             {
                 for (int c = 0; c < dynamic_array_representation[r].Count; c++)
@@ -68,6 +78,10 @@ namespace BefungeSharp.FungeSpace
                     matrix.InsertCell(c,r, dynamic_array_representation[r][c]);
                 }
             }
+            
+            TimeSpan time = watch.Elapsed;
+            Console.WriteLine(time);
+            Console.ReadKey(true);
         }
 
         public static List<string> MatrixToStringList(FungeSparseMatrix matrix, Vector2[] cropping_bounds)
@@ -314,7 +328,7 @@ namespace BefungeSharp.FungeSpace
                 ConEx.ConEx_Draw.InsertCharacter(character,
                                                     traverse.Data.y - drawable_bounds.top,
                                                     traverse.Data.x - drawable_bounds.left,
-                                                    color, ConsoleColor.Black);//.DarkGray);
+                                                    color, ConsoleColor.Black);//.DarkGray);//Change if you want to debug where FungeSpaceCells have been inserted
             }
         }
         

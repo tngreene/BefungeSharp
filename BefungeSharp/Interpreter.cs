@@ -132,6 +132,7 @@ namespace BefungeSharp
         /// </summary>
         private void BeginExecution()
         {
+            fs_view_screen = FS_93;
             //Reset the IP system
             _IPs.Clear();
             IP.ResetCounter();
@@ -178,7 +179,6 @@ namespace BefungeSharp
             {
                 EndExecution();
             }
-
         }
 
         public Instructions.CommandType Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
@@ -298,7 +298,7 @@ namespace BefungeSharp
                                     if (ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_TAB))
                                     {
                                         //TODO:OPTION? Inverse scrolling or not. direction.Negate();
-                                        MoveViewScreen(fs_view_screen.top + direction.y, fs_view_screen.left + direction.x);
+                                        MoveViewScreen(direction);
                                         break;
                                     }
 
@@ -390,8 +390,38 @@ namespace BefungeSharp
         public void Draw()
         {
             DrawFungeSpace();
+
             if (_curMode != BoardMode.Edit && _curMode != BoardMode.Debug)
             {
+                //If we are going to draw the IP we are following we must ask,
+                //if it has gone out of the view screen, past which bound did it go?
+                Vector2 followingIPPosition = _IPs[0].Position.Data;//For now, we are always following the main one
+                Vector2 moveDirection = Vector2.Zero;
+ 
+                //If it went past the right edge
+                if (followingIPPosition.x > fs_view_screen.right)
+                {
+                    moveDirection = Vector2.East;
+                }
+                else if (followingIPPosition.x < fs_view_screen.left)
+                {
+                    moveDirection = Vector2.West;
+                }
+
+                if (followingIPPosition.y > fs_view_screen.bottom)
+                {
+                    moveDirection = Vector2.South;
+                }
+                else if (followingIPPosition.y < fs_view_screen.top)
+                {
+                    moveDirection = Vector2.North;
+                }
+                
+                //Keep moving the view screen until the IP we are following is inside it
+                while (fs_view_screen.Contains(followingIPPosition.x, followingIPPosition.y) == false)
+                {
+                    MoveViewScreen(moveDirection);
+                }
                 DrawIP();
             }
             else
@@ -414,29 +444,38 @@ namespace BefungeSharp
                 {
                     continue;
                 }
-                ConsoleColor color = ConsoleColor.White;
-
-                int value = _IPs[n].Position.Data.value;
-                if(value >= ' ' && value <= '~')
+                //Only draw an IP if it is inside the view screen
+                if (fs_view_screen.Contains(_IPs[n].Position.Data.x, _IPs[n].Position.Data.y) == true)
                 {
-                    color = Instructions.InstructionManager.InstructionSet[value].Color;
-                }
+                    ConsoleColor color = ConsoleColor.White;
 
-                ConEx.ConEx_Draw.SetAttributes(_IPs[n].Position.Data.y - fs_view_screen.top, _IPs[n].Position.Data.x - fs_view_screen.left, color, (ConsoleColor)ConsoleColor.Gray + (n % 3));
+                    int value = _IPs[n].Position.Data.value;
+                    if (value >= ' ' && value <= '~')
+                    {
+                        color = Instructions.InstructionManager.InstructionSet[value].Color;
+                    }
+
+                    ConEx.ConEx_Draw.SetAttributes(_IPs[n].Position.Data.y - fs_view_screen.top,
+                                                    _IPs[n].Position.Data.x - fs_view_screen.left,
+                                                    color,
+                                                    (ConsoleColor)ConsoleColor.Gray + (n % 3));
+                }               
             }
         }
         
         private void DrawEditIP()
         {
             ConsoleColor color = ConsoleColor.White;
-
-            int value = EditIP.Position.Data.value;
-            if (value >= ' ' && value <= '~')
+            if (fs_view_screen.Contains(EditIP.Position.Data.x, EditIP.Position.Data.y) == true)
             {
-                color = Instructions.InstructionManager.InstructionSet[value].Color;
-            }
+                int value = EditIP.Position.Data.value;
+                if (value >= ' ' && value <= '~')
+                {
+                    color = Instructions.InstructionManager.InstructionSet[value].Color;
+                }
 
-            ConEx.ConEx_Draw.SetAttributes(EditIP.Position.Data.y - fs_view_screen.top, EditIP.Position.Data.x - fs_view_screen.left, color, ConsoleColor.Gray);
+                ConEx.ConEx_Draw.SetAttributes(EditIP.Position.Data.y - fs_view_screen.top, EditIP.Position.Data.x - fs_view_screen.left, color, ConsoleColor.Gray);
+            }
         }
 
         public void ClearArea()
@@ -445,13 +484,39 @@ namespace BefungeSharp
             ConEx.ConEx_Draw.FillArea(' ', FS_93.top, FS_93.left, FS_93.left + FS_93.right + 1, FS_93.top + FS_93.bottom + 1);
         }
 
-        private void MoveViewScreen(int new_top, int new_left)
+        /// <summary>
+        /// Moves the view screen in a certain direction by half the certain axis of FS_93
+        /// </summary>
+        /// <param name="direction">The direction to move the screen in</param>
+        private void MoveViewScreen(Vector2 direction)
         {
-            fs_view_screen.top    = new_top;
-            fs_view_screen.bottom = new_top + (FS_93.bottom - FS_93.top);
-            
-            fs_view_screen.left  = new_left;
-            fs_view_screen.right = new_left + (FS_93.right - FS_93.left);
+            int xOffset = 16;//TODO:Options["xOffset"]
+            int yOffset = 5;
+            if(direction == Vector2.North)
+            {
+                fs_view_screen.top -= yOffset;
+                fs_view_screen.bottom =  fs_view_screen.top + (FS_93.Height - 1);
+            }
+            else if(direction == Vector2.East)
+            {
+                fs_view_screen.left += xOffset;
+                fs_view_screen.right = fs_view_screen.left + (FS_93.Width - 1);
+            }
+            else if(direction == Vector2.South)
+            {
+                fs_view_screen.top += yOffset;
+                fs_view_screen.bottom =  fs_view_screen.top + (FS_93.Height - 1);
+            }
+            else if(direction == Vector2.West)
+            {
+                fs_view_screen.left -= xOffset;
+                fs_view_screen.right = fs_view_screen.left + (FS_93.Width - 1);
+            }
+
+            if (fs_view_screen.Width != 80 || fs_view_screen.Height != 25)
+            {
+                int stophere = 0;
+            }
         }
         
         /// <summary>
@@ -503,7 +568,7 @@ namespace BefungeSharp
                  * Otherwise, move and wrap all IPs
                  */
 
-                int cmd = _fungeSpace.GetNode(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x).Data.value;
+                int cmd = _IPs[n].Position.Data.value;
                 //If we are currently in string mode
                 //And its not a space and not a " (so we can leave string mode)
                 if (_IPs[n].StringMode == true && cmd != '"')
@@ -515,14 +580,18 @@ namespace BefungeSharp
                     //Move onto the next thread
                     continue;
                 }
+
                 if (cmd == ';' || cmd == ' ')
                 {
                     Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
                     cmd = _fungeSpace.GetNode(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x).Data.value;
-                }             
-
-                bool success = Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
-
+                }
+                
+                //If a command is 0-31,128-255 we'll skip over executing it
+                if (cmd >= ' ' && cmd <= '~')
+                {
+                    bool success = Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
+                }
                 /*if (success == false)
                     switch (cmd)
                     {                  
