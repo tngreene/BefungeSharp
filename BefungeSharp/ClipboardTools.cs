@@ -11,7 +11,6 @@ namespace BefungeSharp.UI
     {
         public FungeSpace.FungeSpaceArea dimensions;
         public List<string> content;
-        public bool active;
     }
 
     public static class ClipboardTools
@@ -19,12 +18,8 @@ namespace BefungeSharp.UI
         public static Selection FromWindowsClipboard(Vector2 origin)
         {
             Selection s = new Selection();
-            
-            s.active = false;
-            
             s.content = new List<string>();
             s.content.Add("");
-            
             s.dimensions.left = s.dimensions.right = (short)origin.x;
             s.dimensions.top = s.dimensions.bottom = (short)origin.y;
             
@@ -70,10 +65,10 @@ namespace BefungeSharp.UI
                 {
                     //TODO - This is only for Befunge-93
                     //If it is not a valid charecter
-                    if (c < '\0' || c > (char)255)
+                    //if (c < '\0' || c > (char)255)
                     {
                         //Replace it with a space
-                        c = ' ';
+                      //  c = ' ';
                     }
 
                     s.content[s.content.Count - 1] += c;
@@ -94,7 +89,7 @@ namespace BefungeSharp.UI
         }
         public static void ToWindowsClipboard(Selection selection)
         {
-            if (selection.active == true)
+            if (selection.content.Count > 0)
             {
                 string output = "";
                 for (int i = 0; i < selection.content.Count; i++)

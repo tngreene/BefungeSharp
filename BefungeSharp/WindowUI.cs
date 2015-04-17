@@ -47,7 +47,7 @@ namespace BefungeSharp
         private int _inputRow;
 
         private Selection _selection;
-        public bool SelectionActive { get { return _selection.active; } }
+        public bool SelectionActive { get { return _selection.content.Count > 0; } }
         public WindowUI(Interpreter interp)
         {
             _interpRef = interp;
@@ -69,8 +69,7 @@ namespace BefungeSharp
             UI_BOTTOM = ConEx.ConEx_Draw.Dimensions.height - 1;
 
             _selection.content = new List<string>();
-            _selection.dimensions.top = _selection.dimensions.right = _selection.dimensions.bottom = _selection.dimensions.left = -1;
-            _selection.active = false;
+            _selection.dimensions.top = _selection.dimensions.right = _selection.dimensions.bottom = _selection.dimensions.left =0;
         }
 
         /// <summary>
@@ -219,7 +218,20 @@ namespace BefungeSharp
         {
             string modeStr = "Mode: ";
             char deltaRep = ' ';
-
+            IP selectedIP = null;
+            if (mode == BoardMode.Run_STEP 
+                || mode == BoardMode.Run_SLOW 
+                || mode == BoardMode.Run_MEDIUM 
+                || mode == BoardMode.Run_MAX 
+                || mode == BoardMode.Run_FAST 
+                || mode == BoardMode.Run_TERMINAL)
+            {
+                selectedIP = Program.Interpreter.IPs[0];
+            }
+            else
+            {
+                selectedIP = Program.Interpreter.EditIP;
+            }
             switch (mode)
             {
                 //All strings padded so their right side is all uniform
@@ -243,19 +255,19 @@ namespace BefungeSharp
                     
                     //Based on the direction of the IP set the delta rep to it
                     //This was the delta representative is only availble in Edit or edit like modes
-                    if (_interpRef.EditIP.Delta == Vector2.North)
+                    if (selectedIP.Delta == Vector2.North)
                     {
                         deltaRep = (char)9516;
                     }
-                    else if (_interpRef.EditIP.Delta == Vector2.East)
+                    else if (selectedIP.Delta == Vector2.East)
                     {
                         deltaRep = (char)9508;
                     }
-                    else if (_interpRef.EditIP.Delta == Vector2.South)
+                    else if (selectedIP.Delta == Vector2.South)
                     {
                         deltaRep = (char)9524;
                     }
-                    else if (_interpRef.EditIP.Delta == Vector2.West)
+                    else if (selectedIP.Delta == Vector2.West)
                     {
                         deltaRep = (char)9500;
                     }
@@ -270,7 +282,7 @@ namespace BefungeSharp
             //Generates a strings which is always five chars wide, with the number stuck to the ','
             //Like " 0,8 " , "17,5 " , "10,10", " 8,49"
             string IP_Pos = "";
-            Vector2 vec_pos = _interpRef.EditIP.Position.Data;
+            Vector2 vec_pos = selectedIP.Position.Data;
             IP_Pos += vec_pos.x.ToString().Length == 1 ? ' ' : vec_pos.x.ToString()[0];
             IP_Pos += vec_pos.x.ToString().Length == 1 ? vec_pos.x.ToString()[0] : vec_pos.x.ToString()[1];
             IP_Pos += ',';
@@ -292,7 +304,7 @@ namespace BefungeSharp
         private void DrawSelection(BoardMode mode)
         {
             //Fix the perminate 1 cell in [0,0] bug
-            if (_selection.active == false)
+            if (_selection.content.Count == 0)
             {
                 return;
             }
@@ -321,8 +333,7 @@ namespace BefungeSharp
                         color = Instructions.InstructionManager.InstructionSet[value].Color;
                     }
 	                        
-                    ConEx.ConEx_Draw.SetAttributes(r, c, color, ConsoleColor.DarkGreen);
-                    
+                    ConEx.ConEx_Draw.SetAttributes(r - Program.Interpreter.ViewScreen.top, c - Program.Interpreter.ViewScreen.left, color, ConsoleColor.DarkGreen);
                 }
             }
         }
@@ -333,6 +344,7 @@ namespace BefungeSharp
             _outputRep.Clear();
             _inputRep.Clear();
         }
+
         public void Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
             //Based on what mode it is handle those keys
@@ -363,6 +375,15 @@ namespace BefungeSharp
                                 //If we are editing the selection
                                 if (ConEx.ConEx_Input.ShiftDown == true)
                                 {
+                                    //If we are starting a new selection
+                                    if (_selection.content.Count == 0)
+                                    {
+                                        //Set everything to the cell we are currently in
+                                        _selection.dimensions.left = _interpRef.EditIP.Position.Data.x;
+                                        _selection.dimensions.top =  _interpRef.EditIP.Position.Data.y;
+                                        _selection.dimensions.bottom = _interpRef.EditIP.Position.Data.y;
+                                        _selection.dimensions.right =  _interpRef.EditIP.Position.Data.x;
+                                    }
                                     UpdateSelection(k);
                                 
                                     //Clear if we used an arrow key without shift
@@ -490,8 +511,7 @@ namespace BefungeSharp
                     Program.Interpreter.FungeSpace.InsertCell(new FungeSpace.FungeCell(left + s_column, top + s_row, _selection.content[s_row][s_column]));
                 }
             }
-
-            
+                        
             if (_interpRef.EditIP.Delta == Vector2.North || _interpRef.EditIP.Delta == Vector2.West)
             {
                 _interpRef.EditIP.Move();
@@ -504,45 +524,11 @@ namespace BefungeSharp
             {
                 _interpRef.EditIP.Move((_selection.dimensions.bottom-_selection.dimensions.top));
             }
-
         }
         
+
         private void UpdateSelection(ConsoleKey k)
         {
-            //If the selection doesn't exist then we'll start by making a new one
-            //Ensure that the selection is unintialized (Top is always > 0),
-            //We aren't using the left or up arrow
-            //and we are not currently in the middle of a selection
-            if (_selection.dimensions.top == -1 &&
-                (k != ConsoleKey.LeftArrow || k != ConsoleKey.UpArrow) &&
-                _selection.active == false)
-            {
-
-                //The selection origin is set to the IP's X and Y
-                _selection.dimensions.left = (short)_interpRef.EditIP.Position.Data.x;
-                _selection.dimensions.top = (short)_interpRef.EditIP.Position.Data.y;
-
-                //The bottom is also set to the Y position
-                _selection.dimensions.bottom = (short)_interpRef.EditIP.Position.Data.y;
-
-                //To counter act if we are starting off moving down
-                //we must account for the y position to be lower than normal
-                //and that we are imediantly incrementing the bottom side
-                if (k == ConsoleKey.DownArrow)
-                {
-                    _selection.dimensions.bottom -= 1;
-                    _selection.dimensions.top -= 1;
-                }
-
-                _selection.dimensions.right = (short)_interpRef.EditIP.Position.Data.x;
-                if (k == ConsoleKey.RightArrow)
-                {
-                    _selection.dimensions.right -= 1;
-                    _selection.dimensions.left -= 1;
-                }
-                _selection.active = true;
-            }
-
             //Finally get to the changing of the directions!
             if (k == ConsoleKey.UpArrow)
                 _selection.dimensions.bottom--;
@@ -556,16 +542,9 @@ namespace BefungeSharp
             //Now we do a post check to see if we made a bad selection
             bool error_creating_selection = false;
 
-
-            int x = _interpRef.EditIP.Position.Data.x;
-            int y = _interpRef.EditIP.Position.Data.y;
-
-            //Test if the IP has wrapped around behind itself or
-            //Has walked behind itself
-            error_creating_selection |= x < _selection.dimensions.left;
-            error_creating_selection |= _selection.dimensions.right > 79;
-            error_creating_selection |= y < _selection.dimensions.top;
-            error_creating_selection |= _selection.dimensions.bottom > 24;
+            //Test to see if the selection box has warped backwards on itself
+            error_creating_selection |= _selection.dimensions.right < _selection.dimensions.left;
+            error_creating_selection |= _selection.dimensions.bottom < _selection.dimensions.top;
 
             if (error_creating_selection == true)
             {
@@ -574,9 +553,20 @@ namespace BefungeSharp
             else
             {
                 _selection.content = GetSelectionContents();
+                //If the selection is bigger than the screen will hold move the view screen
+                if (_selection.dimensions.right > Program.Interpreter.ViewScreen.right)
+                {
+                    Program.Interpreter.MoveViewScreen(Vector2.East);
+                }
+
+                //If the selection is bigger than the screen will hold move the view screen
+                if (_selection.dimensions.bottom > Program.Interpreter.ViewScreen.bottom)
+                {
+                    Program.Interpreter.MoveViewScreen(Vector2.South);
+                }
             }
         }
-
+        
         private void DeleteSelection()
         {
             int top = _selection.dimensions.top;
@@ -593,14 +583,14 @@ namespace BefungeSharp
                 }
             }
         }
+
         private void ClearSelection()
         {
             _selection.content.Clear();
-            _selection.dimensions.bottom = -1;
-            _selection.dimensions.left = -1;
-            _selection.dimensions.right = -1;
-            _selection.dimensions.top = -1;
-            _selection.active = false;
+            _selection.dimensions.bottom = 0;
+            _selection.dimensions.left = 0;
+            _selection.dimensions.right = 0;
+            _selection.dimensions.top = 0;
         }
 
         public char GetCharacter()

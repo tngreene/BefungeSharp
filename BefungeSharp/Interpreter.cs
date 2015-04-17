@@ -52,7 +52,7 @@ namespace BefungeSharp
         /// It will be moveable eventually.
         /// </summary>
         private FungeSpaceArea fs_view_screen;
-
+        public FungeSpaceArea ViewScreen { get { return fs_view_screen; } }
         /// <summary>
         /// A subset of FS_DEFAULT which the program uses for deciding what portion of FungeSpace is
         /// savable/loadable and what is beyond the ability to. Saving one row of Theoretical FungeSpace results in a 4.3 GB file
@@ -277,6 +277,12 @@ namespace BefungeSharp
                             case ConsoleKey.DownArrow:
                             case ConsoleKey.LeftArrow:
                                 {
+                                    //If shift is pressed right now WindowUI is about to start a new selection
+                                    //So we don't want to move the EditIP right now
+                                    if (ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_SHIFT))
+                                    {
+                                        break;
+                                    }
                                     Vector2 direction = Vector2.Zero;
 
                                     switch (keysHit[i].Key)
@@ -447,16 +453,30 @@ namespace BefungeSharp
                 //Only draw an IP if it is inside the view screen
                 if (fs_view_screen.Contains(_IPs[n].Position.Data.x, _IPs[n].Position.Data.y) == true)
                 {
-                    ConsoleColor color = ConsoleColor.White;
-
                     int value = _IPs[n].Position.Data.value;
+                    FungeNode drawing_position = _IPs[n].Position;
+                    
+                    //If the next space we are at is actually one we will be skipping over then
+                    //look forward to where we ACTUALLY will be going and draw the IP as there
+                    //However! If we are in string mode the IP will be traveling to those spaces
+
+                    //TODO:It's not looking up ; or ' ', its looking up those instructions,
+                    //whatever their form might be
+                    while ((value == ';' || value == ' ') && _IPs[n].StringMode == false)
+                    {
+                        drawing_position = FungeSpaceUtils.MoveBy(drawing_position, _IPs[n].Delta);
+                        value = drawing_position.Data.value;
+                    }
+                    value = drawing_position.Data.value;
+
+                    ConsoleColor color = ConsoleColor.White;
                     if (value >= ' ' && value <= '~')
                     {
                         color = Instructions.InstructionManager.InstructionSet[value].Color;
                     }
 
-                    ConEx.ConEx_Draw.SetAttributes(_IPs[n].Position.Data.y - fs_view_screen.top,
-                                                    _IPs[n].Position.Data.x - fs_view_screen.left,
+                    ConEx.ConEx_Draw.SetAttributes( drawing_position.Data.y - fs_view_screen.top,
+                                                    drawing_position.Data.x - fs_view_screen.left,
                                                     color,
                                                     (ConsoleColor)ConsoleColor.Gray + (n % 3));
                 }               
@@ -468,13 +488,19 @@ namespace BefungeSharp
             ConsoleColor color = ConsoleColor.White;
             if (fs_view_screen.Contains(EditIP.Position.Data.x, EditIP.Position.Data.y) == true)
             {
-                int value = EditIP.Position.Data.value;
-                if (value >= ' ' && value <= '~')
+                if (Program.WindowUI.SelectionActive == false)
                 {
-                    color = Instructions.InstructionManager.InstructionSet[value].Color;
-                }
+                    int value = EditIP.Position.Data.value;
+                    if (value >= ' ' && value <= '~')
+                    {
+                        color = Instructions.InstructionManager.InstructionSet[value].Color;
+                    }
 
-                ConEx.ConEx_Draw.SetAttributes(EditIP.Position.Data.y - fs_view_screen.top, EditIP.Position.Data.x - fs_view_screen.left, color, ConsoleColor.Gray);
+                    ConEx.ConEx_Draw.SetAttributes( EditIP.Position.Data.y - fs_view_screen.top,
+                                                    EditIP.Position.Data.x - fs_view_screen.left,
+                                                    color,
+                                                    ConsoleColor.Gray);
+                }
             }
         }
 
@@ -488,7 +514,7 @@ namespace BefungeSharp
         /// Moves the view screen in a certain direction by half the certain axis of FS_93
         /// </summary>
         /// <param name="direction">The direction to move the screen in</param>
-        private void MoveViewScreen(Vector2 direction)
+        public void MoveViewScreen(Vector2 direction)
         {
             int xOffset = 16;//TODO:Options["xOffset"]
             int yOffset = 5;
@@ -554,6 +580,7 @@ namespace BefungeSharp
             //For every active IP in the list
             do
             {
+                int cmd = 0;
                 //If the IP is active skip over handling it
                 if (_IPs[n].Active == false)
                 {
@@ -568,93 +595,33 @@ namespace BefungeSharp
                  * Otherwise, move and wrap all IPs
                  */
 
-                int cmd = _IPs[n].Position.Data.value;
+                cmd = _IPs[n].Position.Data.value;
+
                 //If we are currently in string mode
                 //And its not a space and not a " (so we can leave string mode)
                 if (_IPs[n].StringMode == true && cmd != '"')
                 {
                     //Push the character value, move and return
+                    //TODO: SGML or not Funge-98 "secapS "::" 3" vs Funge-93 "secapS   3"
                     _IPs[n].Stack.Push((int)cmd);
 
                     n--;
                     //Move onto the next thread
                     continue;
                 }
-
-                if (cmd == ';' || cmd == ' ')
+                
+                while (cmd == ';' || cmd == ' ')
                 {
                     Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
-                    cmd = _fungeSpace.GetNode(_IPs[n].Position.Data.y, _IPs[n].Position.Data.x).Data.value;
+                    cmd = _IPs[n].Position.Data.value;
                 }
-                
+               
                 //If a command is 0-31,128-255 we'll skip over executing it
                 if (cmd >= ' ' && cmd <= '~')
                 {
                     bool success = Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
                 }
-                /*if (success == false)
-                    switch (cmd)
-                    {                  
-                        //Funge 98 stack manipulation
-                        //TODO - implement
-                        case 'u':
-                        case '{':
-                        case '}':
-                            break;
-                        //Funge-98
-                        case 'i':
-                        case 'o':
-                            try
-                            {
 
-                            }
-                            catch (Exception e)
-                            {
-
-                            }
-                            finally
-                            {
-
-                            }
-                            break;
-                        
-                        //Footprint stuff
-                        case '(':
-                        case ')':
-                        case 'A':
-                        case 'B':
-                        case 'C':
-                        case 'D':
-                        case 'E':
-                        case 'F':
-                        case 'G':
-                        case 'H':
-                        case 'I':
-                        case 'J':
-                        case 'K':
-                        case 'L':
-                        case 'M':
-                        case 'N':
-                        case 'O':
-                        case 'P':
-                        case 'Q':
-                        case 'R':
-                        case 'S':
-                        case 'T':
-                        case 'U':
-                        case 'V':
-                        case 'W':
-                        case 'X':
-                        case 'Y':
-                        case 'Z':
-                            break;
-                        //Trefunge or more
-                        case 'h':
-                        case 'l':
-                        case 'm':
-
-                            break;
-                    }*/
 
                 //Increment n
                 n--;
