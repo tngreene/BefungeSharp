@@ -119,8 +119,8 @@ namespace BefungeSharp.FungeSpace
             
             //Find out if the place we want to start exists
             FungeNode f = filled_matrix.GetNode(row, column);
-
-            FungeSparseMatrixRowEnumerator rowEnumerator = new FungeSparseMatrixRowEnumerator(filled_matrix.Origin,cropping_bounds[0].y,cropping_bounds[1].y);
+            
+            FungeSparseMatrixRowEnumerator rowEnumerator = new FungeSparseMatrixRowEnumerator(f,cropping_bounds[0].y,cropping_bounds[1].y);
             while(rowEnumerator.MoveNext())
             {
                 FungeSparseMatrixColumnEnumerator colEnumerator = new FungeSparseMatrixColumnEnumerator(rowEnumerator.Current,cropping_bounds[0].x,cropping_bounds[1].x);
