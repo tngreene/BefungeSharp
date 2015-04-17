@@ -125,7 +125,7 @@ namespace BefungeSharp
                                                     "║Run (Step) - F1                  ║",
                                                     "║Run (Default Speed) - F5         ║",//TODO:OPTION["DefaultSpeed"]
                                                     "║Run (Terminal Mode) - F6         ║",
-                                                    "║XReload source - Home            ║",
+                                                    "║XReload source - Ctrl + R        ║",
                                                     "║Main Menu - Esc                  ║",
                                                     "║Set IP Delta - Ctrl + Arrow Key  ║",
                                                     "║XInsert Snippet - Insert         ║",

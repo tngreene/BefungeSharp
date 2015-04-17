@@ -80,12 +80,13 @@ namespace BefungeSharp
                 bool shift = ConEx.ConEx_Input.ShiftDown;
                 bool alt = ConEx.ConEx_Input.AltDown;
                 bool control = ConEx.ConEx_Input.CtrlDown;
-
+               
                 //Get the current keys
                 ConsoleKeyInfo[] keysHit = ConEx.ConEx_Input.GetInput();
+                
                 Instructions.CommandType type =  Program.Interpreter.Update( Program.Interpreter.CurMode, keysHit);
-                                   Program.WindowUI.Update( Program.Interpreter.CurMode, keysHit);
-                                   Program.WindowSideBar.Update( Program.Interpreter.CurMode, keysHit);
+                                                 Program.WindowUI.Update(Program.Interpreter.CurMode, keysHit);
+                                                 Program.WindowSideBar.Update( Program.Interpreter.CurMode, keysHit);
 
                 //Based on what mode it is handle those keys
                 switch ( Program.Interpreter.CurMode)

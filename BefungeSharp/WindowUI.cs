@@ -437,7 +437,7 @@ namespace BefungeSharp
             *  XCtrl + A - Select the whole board?
             *  XCtrl + Z - Undo, a planned feature
             *  XCtrl + Y - Redo, also a planned feature
-            *  Ctrl + S - Save
+            *  Alt + S - Save
             */
             bool x = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_X);
             if (x && control)
