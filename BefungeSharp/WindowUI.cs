@@ -47,7 +47,7 @@ namespace BefungeSharp
         private int _inputRow;
 
         private Selection _selection;
-        
+        public bool SelectionActive { get { return _selection.active; } }
         public WindowUI(Interpreter interp)
         {
             _interpRef = interp;

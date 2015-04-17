@@ -23,22 +23,17 @@ namespace BefungeSharp
 
         private int _pageIndex;
         private List<List<string>> _pages;
-        private List<string> _content;
 
         public WindowSideBar(BoardManager mgr, Interpreter interp)
         {
             BAR_RIGHT = ConEx.ConEx_Draw.Dimensions.width - 1;
             BAR_BOTTOM = ConEx.ConEx_Draw.Dimensions.height - 1;
-            _content = new List<string>();
             _pageIndex = 0;
             _pages = new List<List<string>>();
 
             //Create Page 1
             _pages.Add(new List<string>());
-            string[] commandContent = { " Commands ",
-                                        "----------"
-                                        };
-            _pages[0].AddRange(commandContent);
+
 
             //Create Page 2
             _pages.Add(new List<string>());
@@ -86,9 +81,13 @@ namespace BefungeSharp
              * --------
              * Command - Keyboard short cut, notes
             */
-            _content.Add(" Commands ");
-            _content.Add("----------");
-
+            List<string> content = new List<string>();
+            string[] commandContent = {
+                                        "╔═════════════════════════════════╗",
+                                        "║        Keyboard Shortcuts       ║",
+                                        "╠═════════════════════════════════╣"
+                                        };
+            content.AddRange(commandContent);
             switch (mode)
             {
                 case BoardMode.Run_MAX:
@@ -97,91 +96,105 @@ namespace BefungeSharp
                 case BoardMode.Run_SLOW:
                 case BoardMode.Run_STEP:
                     {
-                        string stepInstructions = mode == BoardMode.Run_STEP ? "Next Tick - Right arrow" : "";
+                        string stepInstructions = mode == BoardMode.Run_STEP ?
+                                              "║Next Tick - Right arrow          ║" : "";
                         string[] contentArr = {
-                                              "Select Speed - 1 - 5",
-                                              "Back to Edit Mode - F12",
-                                              stepInstructions
+                                              "║Select Speed - F1 - F6           ║",
+                                              "║Back to Edit Mode - F12          ║",
+                                              stepInstructions,
+                                              "╚═════════════════════════════════╝",
                                               };
-                        _content.AddRange(contentArr);
+                        content.AddRange(contentArr);
                     }
                     break;
                 case BoardMode.Edit:
                     {
-                        if(true)//_bUI.IsSelecting == false)
+                        //We'll only build up the command list
+                        //if we'll be showing it
+                        if (_pageIndex != 0)
                         {
-                        string[] contentArr =   {
+                            break;
+                        }
+                        if (Program.WindowUI.SelectionActive == false)
+                        {
+                            string[] contentArr = {
                                                     //TODO Organize these
                                                     //X indicates the feature has not been implemented
-                                                "New File - Ctrl+N",
-                                                "Save - Alt+S",
-                                                //"Run " + GetDefaultSpeed() + " - F5");
-                                                "Run (Step) - F1",
-                                                "Run (Default Speed) - F5",
-                                                "Run (Terminal Mode) - F6",
-                                                "XReload source - Home",
-                                                "Main Menu - Esc",
-                                                "Show/Hide Sidebar - F1",
-                                                "Set IP Delta - Control + Arrow Key",
-                                                "XInsert Snippet - Insert",
-                                                "Start Selection Mode - Shift (hold)"
-                                                };
-                        _content.AddRange(contentArr);
-                            }
-                        //if (_bUI.IsSelecting)
-                        {
+                                                    "║New File - Ctrl+N                ║",
+                                                    "║Save - Alt+S                     ║",
+                                                    "║Run (Step) - F1                  ║",
+                                                    "║Run (Default Speed) - F5         ║",//TODO:OPTION["DefaultSpeed"]
+                                                    "║Run (Terminal Mode) - F6         ║",
+                                                    "║XReload source - Home            ║",
+                                                    "║Main Menu - Esc                  ║",
+                                                    "║Set IP Delta - Ctrl + Arrow Key  ║",
+                                                    "║XInsert Snippet - Insert         ║",
+                                                    "║Start Selection - Shift (hold)   ║",
+                                                    "║XSelect All - Ctrl + A           ║",
+                                                    "╚═════════════════════════════════╝"
+                                                  };
+
+                            content.AddRange(contentArr);
                         }
-                        //"Adjust Selection Box - Arrow Keys",
-                        //"Copy Section - Ctrl + C",
-                        //"Cut Section - Ctrl + X",
-                        //"Paste Section - Ctrl + V",
-                        //"Clear area - Delete",
-                        //"Reverse line - Alt + F4"
-                        //"Cancel Selection - Any Other Key"
+                        else
+                        {
+                            string[] contentArr = {
+                                                    "║Adjust Selection Box - Arrow Keys║",
+                                                    "║Copy Section - Ctrl + C          ║",
+                                                    "║Cut Section - Ctrl + X           ║",
+                                                    "║Paste Section - Ctrl + V         ║",
+                                                    "║Clear area - Delete              ║",
+                                                    "║Reverse line - Alt + F4          ║",
+                                                    "║Cancel Selection - Any Other Key ║",
+                                                    "╚═════════════════════════════════╝"
+                                                   };
+                            content.AddRange(contentArr);
+                        }
+
+                        _pages[0] = content;
                     }
                     break;
                 default:
                     break;
             }
-           // _content = _pages[1];
+
             for (int i = 0; i < _pages[_pageIndex].Count; i++)
             {
                 ConEx.ConEx_Draw.InsertString(_pages[_pageIndex][i], BAR_TOP + i, BAR_LEFT, false);
             }
-            _content.Clear();
         }
 
         public void ClearArea(BoardMode mode)
         {
             ConEx.ConEx_Draw.FillArea(' ', BAR_TOP, BAR_LEFT, ConEx.ConEx_Draw.Dimensions.width, ConEx.ConEx_Draw.Dimensions.height);
-        }  
-        
+        }
+
         public void Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
-            switch(mode)
+            switch (mode)
             {
                 default:
-                #region --HandleInput-------------
-                for (int i = 0; i < keysHit.Length; i++)
-                {
-                    //--Debugging key presses
-                    System.ConsoleKey k = keysHit[i].Key;
-                    var m = keysHit[i].Modifiers;
-                    //------------------------
-
-                    switch (keysHit[i].Key)
+                    #region --HandleInput-------------
+                    for (int i = 0; i < keysHit.Length; i++)
                     {
-                        case ConsoleKey.Home:
-                            _pageIndex = _pageIndex > 0 ? _pageIndex-- : _pageIndex = _pages.Count - 1;
-                            break;
-                        case ConsoleKey.End:
-                            _pageIndex = _pageIndex < _pages.Count - 1 ? _pageIndex += 1 : _pageIndex = 0;
-                            break;
+                        //--Debugging key presses
+                        System.ConsoleKey k = keysHit[i].Key;
+                        var m = keysHit[i].Modifiers;
+                        //------------------------
+
+                        switch (keysHit[i].Key)
+                        {
+                            case ConsoleKey.Home:
+                                _pageIndex = _pageIndex > 0 ? _pageIndex -= 1 : _pageIndex = _pages.Count - 1;
+                                break;
+                            case ConsoleKey.End:
+                                _pageIndex = _pageIndex < _pages.Count - 1 ? _pageIndex += 1 : _pageIndex = 0;
+                                break;
+                        }
                     }
-                }
-                break;
+                    break;
             }
-            #endregion
+                    #endregion
         }
     }
 }

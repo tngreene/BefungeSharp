@@ -210,28 +210,28 @@ namespace BefungeSharp
                         switch (keysHit[i].Key)
                         {
                             //1-5 adjusts execution speed
-                            case ConsoleKey.D1:
+                            case ConsoleKey.F1:
                                 _curMode = BoardMode.Run_STEP;
                                 break;
-                            case ConsoleKey.D2:
+                            case ConsoleKey.F2:
                                 _curMode = BoardMode.Run_SLOW;
                                 break;
-                            case ConsoleKey.D3:
+                            case ConsoleKey.F3:
                                 _curMode = BoardMode.Run_MEDIUM;
                                 break;
-                            case ConsoleKey.D4:
+                            case ConsoleKey.F4:
                                 _curMode = BoardMode.Run_FAST;
                                 break;
-                            case ConsoleKey.D5:
+                            case ConsoleKey.F5:
                                 _curMode = BoardMode.Run_MAX;
                                 break;
-                            case ConsoleKey.D6:
+                            case ConsoleKey.F6:
                                 _curMode = BoardMode.Run_TERMINAL;
                                 ConEx.ConEx_Draw.FillScreen(' ');
                                 ConEx.ConEx_Draw.DrawScreen();
                                 Console.CursorLeft = 0;
                                 Console.CursorTop = 0;
-                                Console.CursorVisible = true;
+                                Console.CursorVisible = false;
                                 break;
                             //Takes us back to editor mode
                             case ConsoleKey.F12:
@@ -339,13 +339,13 @@ namespace BefungeSharp
                                     FungeSpaceUtils.ChangeData(EditIP.Position, ' ');
                                 }
                                 break;
-                            case ConsoleKey.F5:
-                                BeginExecution();
-                                _curMode = BoardMode.Run_MEDIUM;
-                                break;
                             case ConsoleKey.F1:
                                 BeginExecution();
                                 _curMode = BoardMode.Run_STEP;
+                                break;
+                            case ConsoleKey.F5:
+                                BeginExecution();
+                                _curMode = BoardMode.Run_MEDIUM;
                                 break;
                             case ConsoleKey.F6:
                                 BeginExecution();
@@ -353,7 +353,7 @@ namespace BefungeSharp
                                 ConEx.ConEx_Draw.DrawScreen();
                                 Console.CursorLeft = 0;
                                 Console.CursorTop = 0;
-                                Console.CursorVisible = true;
+                                Console.CursorVisible = false;
                                 _curMode = BoardMode.Run_TERMINAL;
                                 break;
                             case ConsoleKey.Escape:
