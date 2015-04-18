@@ -181,6 +181,81 @@ namespace BefungeSharp.FungeSpace
             return bounds;
         }
 
+        /// <summary>
+        /// Gets the bounds of the world without the void
+        /// </summary>
+        /// <param name="matrix">The matrix to inspect</param>
+        /// <returns></returns>
+        public static Vector2[] GetRealWorldBounds(FungeSparseMatrix matrix)
+        {
+            //Where bounds[0] is the top left bound and bounds[1] is the bottom right
+            Vector2[] bounds = new Vector2[2];
+
+            FungeNode start = null;
+            FungeSparseMatrixRowEnumerator rowEnumerator = new FungeSparseMatrixRowEnumerator(matrix.Origin);
+            FungeSparseMatrixColumnEnumerator colEnumerator = null;
+            while(rowEnumerator.MoveNext() && start == null)
+            {
+                colEnumerator= new FungeSparseMatrixColumnEnumerator(rowEnumerator.Current);
+                while(colEnumerator.MoveNext() && start == null)
+                {
+                    if(colEnumerator.Current.Data.value != ' ')
+                    {
+                        start = colEnumerator.Current;
+                    }
+                }
+            }
+
+            //The bounds start off as the start position's
+            bounds[0].x = start.Data.x;
+            bounds[0].y = start.Data.y;
+            bounds[1].x = start.Data.x;
+            bounds[1].y = start.Data.y;
+
+            //This node will always exist
+            FungeNode rowStart = matrix.GetNode(start.Data.y, 0);
+            //Start the row off on the spine
+            rowEnumerator = new FungeSparseMatrixRowEnumerator(rowStart);
+            colEnumerator = null;
+            while (rowEnumerator.MoveNext())
+            {
+                //if this is our first time starting on the start
+                if (colEnumerator == null)
+                {
+                    //Start the column on the actual "start"
+                    colEnumerator = new FungeSparseMatrixColumnEnumerator(start);
+                }
+                else
+                {
+                    colEnumerator = new FungeSparseMatrixColumnEnumerator(rowEnumerator.Current);
+                }
+                while (colEnumerator.MoveNext())
+                {
+                    FungeCell cell = colEnumerator.Current.Data;
+                    if (cell.value != ' ')
+                    {
+                        if (cell.y < bounds[0].y)
+                        {
+                            bounds[0].y = cell.y;
+                        }
+                        if (cell.y > bounds[1].y)
+                        {
+                            bounds[1].y = cell.y;
+                        }
+                        if (cell.x < bounds[0].x)
+                        {
+                            bounds[0].x = cell.x;
+                        }
+                        if (cell.x > bounds[1].x)
+                        {
+                            bounds[1].x = cell.x;
+                        }
+                    }
+                }
+            }
+            return bounds;
+        }
+
         public static void ChangeData(FungeNode node, int new_value)
         {
             node.Data = new FungeCell(node.Data.x, node.Data.y, new_value);

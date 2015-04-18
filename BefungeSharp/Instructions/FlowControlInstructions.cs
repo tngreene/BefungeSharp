@@ -17,6 +17,20 @@ namespace BefungeSharp.Instructions.FlowControl
         
         public override bool Preform(IP ip)
         {
+            //Get the bounds because we'll be testing if we're about to go over the left or top edge
+            Vector2[] bounds = FungeSpace.FungeSpaceUtils.GetRealWorldBounds(ip.Position.ParentMatrix);
+
+            if (ip.Position.Data.y == bounds[0].y && ip.Delta == Vector2.North)
+            {
+                return true;
+            }
+
+            if (ip.Position.Data.x == bounds[0].x && ip.Delta == Vector2.West)
+            {
+                return true;
+            }
+
+            //Only move if we aren't about about to jump over an edge
             ip.Move();
             return true;
         }
@@ -124,10 +138,13 @@ namespace BefungeSharp.Instructions.FlowControl
             }
             else
             {
-                Instruction executable = InstructionManager.InstructionSet[temporaryIP.Position.Data.value];
-                for (int i = 0; i < iterations; i++)
+                if (temporaryIP.Position.Data.value >= ' ' && temporaryIP.Position.Data.value <= '~')
                 {
-                    executable.Preform(temporaryIP);
+                    Instruction executable = InstructionManager.InstructionSet[temporaryIP.Position.Data.value];
+                    for (int i = 0; i < iterations; i++)
+                    {
+                        executable.Preform(temporaryIP);
+                    }
                 }
             }
             
@@ -151,6 +168,7 @@ namespace BefungeSharp.Instructions.FlowControl
                 ip.Move();
             }
             while (ip.GetCurrentCell().value != ';');
+            
             ip.Move();
 
             return true;
