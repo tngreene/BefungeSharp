@@ -97,7 +97,8 @@ namespace BefungeSharp
                 case BoardMode.Run_STEP:
                     {
                         string stepInstructions = mode == BoardMode.Run_STEP ?
-                                              "║Next Tick - Right arrow          ║" : "";
+                                              "║Next Tick - Right arrow          ║" : 
+                                              "║                                 ║";
                         string[] contentArr = {
                                               "║Select Speed - F1 - F6           ║",
                                               "║Back to Edit Mode - F12          ║",
@@ -105,6 +106,7 @@ namespace BefungeSharp
                                               "╚═════════════════════════════════╝",
                                               };
                         content.AddRange(contentArr);
+                        _pages[0] = content;
                     }
                     break;
                 case BoardMode.Edit:
@@ -130,7 +132,7 @@ namespace BefungeSharp
                                                     "║Set IP Delta - Ctrl + Arrow Key  ║",
                                                     "║XInsert Snippet - Insert         ║",
                                                     "║Start Selection - Shift (hold)   ║",
-                                                    "║XSelect All - Ctrl + A           ║",
+                                                    //"║XSelect All - Ctrl + A           ║",
                                                     "╚═════════════════════════════════╝"
                                                   };
 

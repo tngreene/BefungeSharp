@@ -466,13 +466,15 @@ namespace BefungeSharp
                 System.Threading.Thread.Sleep(150);
             }
 
-            bool a = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_A);
+            //TODO:FEATURE? What does Select All mean to us in text editor mode? Do we want this?
+            /*bool a = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_A);
             if (a && control)
             {
-                this._selection.dimensions = Program.Interpreter.FungeSpace.MatrixBounds;
+                this._selection.dimensions = FungeSpaceUtils.GetWorldBounds(Program.Interpreter.FungeSpace);
+                this._selection.content = this.GetSelectionContents();
                 created_selection = true;
-            }
-            return ;
+            }*/
+            return;
         }
 
         /// <summary>
