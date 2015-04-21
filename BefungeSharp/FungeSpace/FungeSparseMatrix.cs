@@ -591,22 +591,11 @@ namespace BefungeSharp.FungeSpace
             //The Search: We travel back to the central column (0,y) and travel up each row, searching until we find a place where the x locations match.
             //We hook up applicable nodes until we arrive back at the row we started at.
             
-            FungeNode traverse = attempt_origin;
-
-            //Move back to the central column
-            while (traverse.Data.x != 0)
-            {
-                //If this turns out to be very slow
-                //We'll add some heuristics
-                traverse = traverse.East;
-            }
-            
-            //Attempt to go north one column
-            traverse = traverse.North;
-
             //Our current place in the "spine" of the central column
-            FungeNode vertibrae = traverse;
+            FungeNode vertibrae = this.GetNode(attempt_origin.Data.y, 0).North;
+            FungeNode traverse = vertibrae;
 
+            //Non-wrap north node/south node, not "real" north and south
             FungeNode northNode = null;
             FungeNode southNode = null;
 
@@ -626,12 +615,10 @@ namespace BefungeSharp.FungeSpace
                         //Remember, y increases as we go down and number != north or south!
                         if (traverse.Data.y > attempt_origin.Data.y)
                         {
-                            if (southNode == null)
-                            {
-                                //Traverse is our south node
-                                southNode = traverse;
-                            }
-                            break;
+                            //Traverse is our south node
+                            //Because our search direction is North East 
+                            //we may find another node a row north that is closer to the attempt origin
+                            southNode = traverse;
                         }
                         else if (traverse.Data.y < attempt_origin.Data.y)
                         {
@@ -649,9 +636,45 @@ namespace BefungeSharp.FungeSpace
                 //Go up to the next vertibrae
                 vertibrae = vertibrae.North;
             }
+
+            #region Explination of our test cases
+            //A node that is above or bellow, without wrapping around
+
+            //1.)Case N,S = NULL:
+            //[][?]
+            //N = NULL, S = NULL
+
+            //2.)Case N = NULL
+            //[][?]
+            //[][S]
+
+            //3.)Case S = NULL
+            //[][N]
+            //[][?]
+
+            //4.)Case X
+            //[][N]
+            //[][?]
+            //[][S]
+
+            //     North  | South
+            //NULL| 1,2   |  1,3
+            //----|       |
+            //Real| 3,4   |  2,4
             
-            //now that we (possibly have the north and south nodes found its time to connect them up to the attempt_origin
-            if (northNode != null)
+            //We work through reducing possibilities
+            //Are both are real?
+            //  Yes:We have case 4
+            //else, is North real?
+            //  Yes:We have case 3, 4 is no longer possible
+            //else, is South real?
+            //  Yes:We have case 2, 3,4 are no longer possible
+            //else,
+            //  We are in 1 and nothing is needed
+            #endregion
+            
+            //Test Case 4
+            if (northNode != null && southNode != null)
             {
                 attempt_origin.North = northNode;
                 attempt_origin.South = northNode.South;
@@ -659,20 +682,31 @@ namespace BefungeSharp.FungeSpace
                 northNode.South.North = attempt_origin;
                 northNode.South = attempt_origin;
             }
-
-            if (southNode != null)
+            else if(northNode != null && southNode == null)//Test Case 3
             {
-                attempt_origin.South = southNode;
-                attempt_origin.North = southNode.North;
+                //Implicityly a duplicate of Case 4,
+                //included for thoroughness 
+                attempt_origin.North = northNode;
+                attempt_origin.South = northNode.South;
+
+                northNode.South.North = attempt_origin;
+                northNode.South = attempt_origin;
+            }
+            else if (southNode != null && northNode == null)//Test Case 2
+            {
+                attempt_origin.North = southNode;
+                attempt_origin.South = southNode.North;
 
                 southNode.North.South = attempt_origin;
                 southNode.North = attempt_origin;
             }
-
-            if (northNode == null && southNode == null)
+            else
             {
+                //We are in Case 1, implicitly taken care of in
+                //the FungeNode constructor
                 return false;
             }
+
             return true;
         }
 
