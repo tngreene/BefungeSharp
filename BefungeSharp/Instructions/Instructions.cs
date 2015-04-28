@@ -75,6 +75,7 @@ namespace BefungeSharp.Instructions
         public static void BuildInstructionSet()
         {
             instruction_set = new Dictionary<int, Instruction>();
+            instruction_set.Add((char)182, new SystemCalls.Breakpoint((char)182, 0));
             for (char c = ' '; c <= '~'; c++)
             {
                 switch (c)

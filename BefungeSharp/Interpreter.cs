@@ -104,7 +104,8 @@ namespace BefungeSharp
             Console.WriteLine("Please wait");
             
             System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            _fungeSpace = new FungeSparseMatrix(FS_DEFAULT.bottom, FS_DEFAULT.right);
+            _fungeSpace = new FungeSparseMatrix(0,0
+            );//FS_DEFAULT.bottom, FS_DEFAULT.right);
             stopwatch.Stop();
             Console.WriteLine(stopwatch.Elapsed);
             //Console.ReadKey(true);
@@ -115,7 +116,7 @@ namespace BefungeSharp
             }
 
             _IPs = new List<IP>();
-            _editIP = new IP(_fungeSpace.Origin, Vector2.East, _fungeSpace.Origin, new Stack<int>(), -1, false);
+            _editIP = new IP(_fungeSpace.Origin, Vector2.East, Vector2.Zero, new Stack<int>(), -1, false);
             
             _curMode = mode;
 
@@ -138,7 +139,7 @@ namespace BefungeSharp
             IP.ResetCounter();
 
             //Add the main thread IP/standard IP
-            _IPs.Add(new IP(_fungeSpace.Origin, Vector2.East, _fungeSpace.Origin, new Stack<int>(), 0, false));
+            _IPs.Add(new IP(_fungeSpace.Origin, Vector2.East, Vector2.Zero, new Stack<int>(), 0, false));
             _IPs[0].Active = true;
 
             //Rebuild the instruction set
@@ -455,7 +456,7 @@ namespace BefungeSharp
                 {
                     int value = _IPs[n].Position.Data.value;
                     FungeNode drawing_position = _IPs[n].Position;
-                    
+
                     //If the next space we are at is actually one we will be skipping over then
                     //look forward to where we ACTUALLY will be going and draw the IP as there
                     //However! If we are in string mode the IP will be traveling to those spaces
@@ -516,6 +517,7 @@ namespace BefungeSharp
         /// <param name="direction">The direction to move the screen in</param>
         public void MoveViewScreen(Vector2 direction)
         {
+            //TODO:MAJOR!MoveViewScreen does not do well when not moving in a + sign
             int xOffset = 16;//TODO:Options["xOffset"]
             int yOffset = 5;
             if(direction == Vector2.North)
@@ -574,69 +576,60 @@ namespace BefungeSharp
         
         private Instructions.CommandType TakeStep()
         {
-            //Start at the end of the list
-            int n = IPs.Count - 1;
-
             //For every active IP in the list
-            do
+            for (int n = _IPs.Count - 1; n >= 0; n--)
             {
-                int cmd = 0;
-                //If the IP is active skip over handling it
+                //If the IP isn't active skip over handling it
                 if (_IPs[n].Active == false)
                 {
-                    n--;
                     continue;
                 }
 
-                /* If we are in string mode and not ending it, push the value of the command and continue, else
-                 * Attempt to consume all whitespace and "ethereal" space 
-                 * Attempt the next instruction
-                 * If there are no active instructions left, set the interpreter to go back to "edit" mode
-                 * Otherwise, move and wrap all IPs
-                 */
-
-                cmd = _IPs[n].Position.Data.value;
-
-                //If we are currently in string mode
-                //And its not a space and not a " (so we can leave string mode)
+                //1.) If we're in string mode, add the push the value
+                //2.) Otherwise try as hard as we can to get to the next instruction
+                //  - We skip over any space that needs to be skipped
+                //  - We execute any command in range
+                //3.) We move the IP
+                int cmd = _IPs[n].Position.Data.value;
+                
                 if (_IPs[n].StringMode == true && cmd != '"')
                 {
-                    //Push the character value, move and return
-                    //TODO: SGML or not Funge-98 "secapS "::" 3" vs Funge-93 "secapS   3"
-                    _IPs[n].Stack.Push((int)cmd);
+                    //Push a single ' ' then consume all spaces
+                    _IPs[n].Stack.Push(cmd);
 
-                    n--;
-                    //Move onto the next thread
-                    continue;
+                    if (/*Language == 98 &&*/cmd == ' ')
+                    {
+                        Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
+                        //We skip moving with .Move() because by now the IP is already in the correct position
+                    }
+                    //else if(Language == 93)
+                    //{
+
+                    //}
+                    else
+                    {
+                        _IPs[n].Move();
+                    }
                 }
-                
-                while (cmd == ';' || cmd == ' ')
+                else 
                 {
-                    Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
-                    cmd = _IPs[n].Position.Data.value;
+                    while (cmd == ';' || cmd == ' ')
+                    {
+                        Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
+                        cmd = _IPs[n].Position.Data.value;
+                    }
+                    if (cmd >= ' ' && cmd <= '~')
+                    {
+                        bool success = Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
+                    }
+                    _IPs[n].Move();
                 }
-               
-                //If a command is 0-31,128-255 we'll skip over executing it
-                if (cmd >= ' ' && cmd <= '~')
-                {
-                    bool success = Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
-                }
+            }
 
-
-                //Increment n
-                n--;
-            } while (n >= 0);
-
-            //If ther are no more active IP's left then set us back to edit mode
+            //If there are no more active IP's left then set us back to edit mode
             if (IPs.Exists(item => item.Active == true) == false)
             {
                 _curMode = BoardMode.Edit;
-            }
-
-            //Move and wrap every delta
-            for (int i = 0; i < IPs.Count; i++)
-            {
-                _IPs[i].Move();
             }
 
             return Instructions.CommandType.NotImplemented;//TODO - Needs a better idea

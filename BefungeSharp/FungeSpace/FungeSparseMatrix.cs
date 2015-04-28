@@ -598,7 +598,7 @@ namespace BefungeSharp.FungeSpace
             //Non-wrap north node/south node, not "real" north and south
             FungeNode northNode = null;
             FungeNode southNode = null;
-
+            FungeNode southernEdge = null;
             while(vertibrae.Data.y != attempt_origin.Data.y)
             {
                 //Start at the vertibrae
@@ -619,6 +619,15 @@ namespace BefungeSharp.FungeSpace
                             //Because our search direction is North East 
                             //we may find another node a row north that is closer to the attempt origin
                             southNode = traverse;
+
+                            //In the case of the north node being null just
+                            //having the closest southern node won't cut it
+                            //Therefore we save what is the most southernEdge node of this column
+                            //For case 2
+                            if (southernEdge == null)
+                            {
+                                southernEdge = traverse;
+                            }
                         }
                         else if (traverse.Data.y < attempt_origin.Data.y)
                         {
@@ -694,8 +703,8 @@ namespace BefungeSharp.FungeSpace
             }
             else if (southNode != null && northNode == null)//Test Case 2
             {
-                attempt_origin.North = southNode;
-                attempt_origin.South = southNode.North;
+                attempt_origin.North = southernEdge;
+                attempt_origin.South = southNode;
 
                 southNode.North.South = attempt_origin;
                 southNode.North = attempt_origin;

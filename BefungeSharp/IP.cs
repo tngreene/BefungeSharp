@@ -27,8 +27,8 @@ namespace BefungeSharp
         /// </summary>
         public Vector2 Delta { get { return _delta; } set { _delta = value; } }
 
-        private FungeNode _storageOffset;
-        public FungeNode StorageOffset { get { return _storageOffset; } set { _storageOffset = value; } }
+        private Vector2 _storageOffset;
+        public Vector2 StorageOffset { get { return _storageOffset; } set { _storageOffset = value; } }
 
         //Needed for concurrent-98, TODO - Implement the stack stack system
         private Stack<int> _stack;
@@ -63,7 +63,7 @@ namespace BefungeSharp
         {
             _position = null;
             _delta = Vector2.East;
-            _storageOffset = null;
+            _storageOffset = Vector2.Zero;
 
             _stack = new Stack<int>();
             _active = false;
@@ -74,7 +74,7 @@ namespace BefungeSharp
             StringMode = false;
         }
 
-        public IP(FungeNode position, Vector2 delta, FungeNode storageOffset, Stack<int> stack, int parent_id, bool willIncrementCounter)
+        public IP(FungeNode position, Vector2 delta, Vector2 storageOffset, Stack<int> stack, int parent_id, bool willIncrementCounter)
         {
             _position = position;
             _delta = delta;

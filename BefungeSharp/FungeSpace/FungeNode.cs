@@ -26,7 +26,7 @@ namespace BefungeSharp.FungeSpace
 
         public override string ToString()
         {
-            return "X: " + x + " Y: " + y + " Value: " + value;
+            return "X: " + x + " Y: " + y + " Value: " + value + " (" + (char)value + ")";
         }
     }
 

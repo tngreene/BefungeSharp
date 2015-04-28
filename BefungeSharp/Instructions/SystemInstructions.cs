@@ -197,7 +197,7 @@ namespace BefungeSharp.Instructions.SystemCalls
 					case 12:
                         //12. A vector containing the storage offset of the ip (ip specific)
                         {
-                            StackUtils.VectorPush(ip.Stack, new Vector2(ip.StorageOffset.Data.x,ip.StorageOffset.Data.y));
+                            StackUtils.VectorPush(ip.Stack, new Vector2(ip.StorageOffset.x,ip.StorageOffset.y));
                         }
                         break;
 					#endregion
@@ -355,4 +355,23 @@ namespace BefungeSharp.Instructions.SystemCalls
             return true;
         }
     }
+
+    public class Breakpoint : SystemInstruction, IAffectsRunningMode
+    {
+        public Breakpoint(char inName, int minimum_flags) : base(inName, minimum_flags) { color = ConsoleColor.Red; }
+
+        public override bool Preform(IP ip)
+        {
+            int stophere = 0;
+            stophere++;
+            Program.Interpreter.ChangeMode(this);
+            return true;
+        }
+
+        public BoardMode NewMode
+        {
+            get { return BoardMode.Run_STEP; }
+        }
+    }
+
 }
