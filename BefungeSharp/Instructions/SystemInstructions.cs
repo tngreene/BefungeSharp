@@ -86,7 +86,8 @@ namespace BefungeSharp.Instructions.SystemCalls
             {
                 switch (toExamine)
                 {
-                    case 20:
+                    #region case 20
+					case 20:
                         //20. A series of strings containing the environment variables (global environment)
                         {
                             foreach (System.Collections.DictionaryEntry entry in System.Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Machine))
@@ -105,7 +106,9 @@ namespace BefungeSharp.Instructions.SystemCalls
                             }
                         }
                         break;
-                    case 19:
+					#endregion
+                    #region case 19
+					case 19:
                         //19. A sequence of strings containing the file name, followed by all of the commandline arguments
                         //Passed into the interpreter.Each string is, of course, terminated with a '\0' and the whole is terminated with
                         //'\0''\0'. Two null string arguments will result in the command end parsing too early. This is rare
@@ -124,7 +127,9 @@ namespace BefungeSharp.Instructions.SystemCalls
                             ip.Stack.Push(0);
                         }
                         break;
-                    case 18:
+					#endregion
+                    #region case 18
+					case 18:
                         //18. Size of each stack in the stack stack listed from TOSS to BOSS (ip specific)
                         {
                             //iterate through the whole stack stack, top to bottom
@@ -132,13 +137,19 @@ namespace BefungeSharp.Instructions.SystemCalls
                             ip.Stack.Push(initialTOSS_Size);
                         }
                         break;
+					#endregion
+                    #region case 17
+                    case 17:
                         //17. Number of stacks on the stack stack (ip specific)
                         {
                             //TODO when stack stack is implemented
                             //For now, push the count of the one stack we have
                             ip.Stack.Push(1);
                         }
-                    case 16:
+                        break;
+                    #endregion
+                    #region case 16
+					case 16:
                         //16. The current hour, minute, and second (local environment)
                         {
                             System.DateTime time = System.DateTime.Now;
@@ -149,7 +160,9 @@ namespace BefungeSharp.Instructions.SystemCalls
                             ip.Stack.Push(hours + minutes + seconds);
                         }
                         break;
-                    case 15:
+					#endregion
+                    #region case 15
+					case 15:
                         //15. The current year, month, and day (local environment)
                         {
                             System.DateTime time = System.DateTime.Now;
@@ -160,7 +173,9 @@ namespace BefungeSharp.Instructions.SystemCalls
                             ip.Stack.Push(year + month + day);
                         }
                         break;
-                    case 14:
+					#endregion
+                    #region case 14
+					case 14:
                         //14. A vector pointing to the greatest non-empty space relative to the least point
                         //If you were to have a non-empty cell at 79, 24 this point is 0 + 79, 0 + 24 (local environment)
                         {
@@ -168,45 +183,60 @@ namespace BefungeSharp.Instructions.SystemCalls
                             StackUtils.VectorPush(ip.Stack, new Vector2(0 + 79, 0 + 24));
                         }
                         break;
-                    case 13:
+					#endregion
+                    #region case 13
+					case 13:
                         //13. A vector pointing to the least non-empty space relative to the origin
                         {
-                            StackUtils.VectorPush(ip.Stack, new Vector2(0 - 0, 0 - 0));
+                            Vector2[] realBounds = FungeSpace.FungeSpaceUtils.GetRealWorldBounds(ip.Position.ParentMatrix);
+                            StackUtils.VectorPush(ip.Stack, realBounds[0]);
                         }
                         break;
-                    case 12:
+					#endregion
+                    #region case 12
+					case 12:
                         //12. A vector containing the storage offset of the ip (ip specific)
                         {
                             StackUtils.VectorPush(ip.Stack, new Vector2(ip.StorageOffset.Data.x,ip.StorageOffset.Data.y));
                         }
                         break;
-                    case 11:
+					#endregion
+                    #region case 11
+					case 11:
                         //11. A vector containing the delta of the ip (ip specific)
                         {
                             StackUtils.VectorPush(ip.Stack, ip.Delta);
                         }
                         break;
-                    case 10:
+					#endregion
+                    #region case 10
+					case 10:
                         //10. A vector containing the position of the ip (ip specific)
                         {
                             StackUtils.VectorPush(ip.Stack, new Vector2(ip.Position.Data.x, ip.Position.Data.y));
                         }
                         break;
-                    case 9:
+					#endregion
+                    #region case 9
+					case 9:
                         //9. A cell containing a unique team number (ip specific)
                         //This appears to be useless, not even appearing in RC/Funge
                         {
                             ip.Stack.Push(0);
                         }
                         break;
-                    case 8:
+					#endregion
+                    #region case 8
+					case 8:
                         //8. A cell containing the unique ID for the current ip (ip specific)
                         //Used in Concurrent Funge
                         {
                             ip.Stack.Push(ip.ID);
                         }
                         break;
-                    case 7:
+					#endregion
+                    #region case 7
+					case 7:
                         //7. A cell containing the dimensions of the interpreter
                         //1 for Unefunge, 2 for Befunge, 3 for Trefunge, etc. (global environment)
                         {
@@ -214,14 +244,18 @@ namespace BefungeSharp.Instructions.SystemCalls
                             ip.Stack.Push(2);
                         }
                         break;
-                    case 6:
+					#endregion
+                    #region case 6
+					case 6:
                         //6. A cell containing the path sperator for use with 'i' and 'o' (global environment)
                         {
                             //Give this is a windows system the seperator is that aweful \
                             ip.Stack.Push('\\');
                         }
                         break;
-                    case 5:
+					#endregion
+                    #region case 5
+					case 5:
                         //5. A cell containing an ID code for the Operating Paradigm,
                         //used for understanding how the '=' instruction will handle input (global environment)
                         {
@@ -229,16 +263,20 @@ namespace BefungeSharp.Instructions.SystemCalls
                             ip.Stack.Push(1);
                         }
                         break;
-                    case 4:
+					#endregion
+                    #region case 4
+					case 4:
                         //4. A cell containing this implementation's version number 
                         //where all .'s are stripped out (local environment)
                         {
-                            //I'd say we are currently about half way through implementing the language and the UI
-                            //Making the current version 4.7.0
-                            ip.Stack.Push(47);
+                            //I'd say we're more than half way and really rocking the application
+                            //development making our current version 6.8
+                            ip.Stack.Push(68);
                         }
                         break;
-                    case 3:
+					#endregion
+                    #region case 3
+					case 3:
                         //3. A cell containing this implementation's handprint (local environment)
                         //Our handprint is BSHP for BefungeSharp! Oh so clever.
                         {
@@ -252,13 +290,17 @@ namespace BefungeSharp.Instructions.SystemCalls
                             ip.Stack.Push(0x42534850);
                         }
                         break;
-                    case 2:
+					#endregion
+                    #region case 2
+					case 2:
                         //2. A cell containing the number of bytes per cell
                         {
                             ip.Stack.Push(sizeof(int));
                         }
                         break;
-                    case 1:
+					#endregion
+                    #region case 1
+					case 1:
                         //1. A cell containing various flags relating to which instructions
                         //Are implemented
                         {
@@ -267,6 +309,8 @@ namespace BefungeSharp.Instructions.SystemCalls
                             ip.Stack.Push(0x01 | 0x08 | 0x10);
                         }
                         break;
+					#endregion
+                    #region default
                     default:
                         {
                             //Since it is impossible to get stack[20-20]
@@ -277,6 +321,7 @@ namespace BefungeSharp.Instructions.SystemCalls
                             ip.Stack.Push(result);
                         }
                         break;
+					#endregion
                 }
                 
                 //If we are taking everything ever
