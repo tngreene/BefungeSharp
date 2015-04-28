@@ -30,8 +30,9 @@ namespace BefungeSharp.Instructions.FlowControl
                 return true;
             }
 
-            //Only move if we aren't about about to jump over an edge
-            ip.Move();
+            Vector2 nextPosition = ip.Position.Data + ip.Delta;
+            ip.Position = FungeSpace.FungeSpaceUtils.MoveTo(ip.Position, nextPosition.y, nextPosition.x);
+
             return true;
         }
     }
@@ -121,33 +122,48 @@ namespace BefungeSharp.Instructions.FlowControl
 
             int iterations = ip.Stack.Pop();
 
-            //Create a puppet of the current ip that has a reference to the ip's stack and doesn't increment the ip counter
-            IP temporaryIP = new IP(ip.Position, ip.Delta, ip.StorageOffset, ip.Stack, ip.ID, false);
-
-            //Move to the next non-space
-            temporaryIP.Move();
-
+            int cmd = 0;
             
+            //Get the next command we'll be executing
+            {
+                //Create a copy
+                IP traverseIP = new IP(ip.Position, ip.Delta, ip.StorageOffset, ip.Stack, ip.IP_ParentID, false);
+                
+                //Move to the next cell over
+                traverseIP.Move();
+
+                cmd = traverseIP.Position.Data.value;
+                
+                //Keep moving through ethereal space until we're out of it
+                while (cmd == ';' || cmd == ' ')
+                {
+                    Instructions.InstructionManager.InstructionSet[cmd].Preform(traverseIP);
+                    cmd = traverseIP.Position.Data.value;
+                }
+            }
+
             if (iterations < 0)
             {
                 InstructionManager.InstructionSet['r'].Preform(ip);
+                return true;
             }
             else if (iterations == 0)
             {
                 InstructionManager.InstructionSet['#'].Preform(ip);
+                return true;
             }
             else
             {
-                if (temporaryIP.Position.Data.value >= ' ' && temporaryIP.Position.Data.value <= '~')
+                if (cmd >= ' ' && cmd <= '~')
                 {
-                    Instruction executable = InstructionManager.InstructionSet[temporaryIP.Position.Data.value];
+                    Instruction executable = InstructionManager.InstructionSet[cmd];
                     for (int i = 0; i < iterations; i++)
                     {
-                        executable.Preform(temporaryIP);
+                        executable.Preform(ip);
                     }
                 }
             }
-            
+
             return true;
         }
 
