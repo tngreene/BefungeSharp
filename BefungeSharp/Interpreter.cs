@@ -131,8 +131,10 @@ namespace BefungeSharp
         /// <summary>
         /// Sets up the interpreter to begin executing a program
         /// </summary>
-        private void BeginExecution()
+        private void BeginExecution(BoardMode mode)
         {
+            _curMode = mode;
+
             fs_view_screen = FS_93;
             //Reset the IP system
             _IPs.Clear();
@@ -250,9 +252,7 @@ namespace BefungeSharp
                     }
                     break;
                     #endregion
-                case BoardMode.Edit:
-                    bool needsMove = false;
-                                        
+                case BoardMode.Edit:                                        
                     #region --HandleInput-------------
                     for (int i = 0; i < keysHit.Length; i++)
                     {
@@ -267,7 +267,7 @@ namespace BefungeSharp
                              * Tab   + Arrow Key moves view screen
                              * Shift + Arrow Key changes IP direction
                              * Arrow Key press:
-                             * MoveBy(position, direction)
+                             * MoveTo
                              * Ignore future movement
                              * 
                              * This system makes sure we still use our generalizations and
@@ -322,8 +322,6 @@ namespace BefungeSharp
                                     //Since the EditIP wraps around the viewing screen we need to use the old
                                     Vector2 wrappedPosition = WrapEditIPViewScreen(nextX, nextY);
                                     EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, wrappedPosition.y, wrappedPosition.x);
-                                    
-                                    needsMove = false;
                                 }
                                 break;
                             case ConsoleKey.Enter:
@@ -347,21 +345,18 @@ namespace BefungeSharp
                                 }
                                 break;
                             case ConsoleKey.F1:
-                                BeginExecution();
-                                _curMode = BoardMode.Run_STEP;
+                                BeginExecution(BoardMode.Run_STEP);
                                 break;
                             case ConsoleKey.F5:
-                                BeginExecution();
-                                _curMode = BoardMode.Run_MEDIUM;
+                                BeginExecution(BoardMode.Run_MEDIUM);
                                 break;
                             case ConsoleKey.F6:
-                                BeginExecution();
+                                BeginExecution(BoardMode.Run_TERMINAL);
                                 ConEx.ConEx_Draw.FillScreen(' ');
                                 ConEx.ConEx_Draw.DrawScreen();
                                 Console.CursorLeft = 0;
                                 Console.CursorTop = 0;
                                 Console.CursorVisible = false;
-                                _curMode = BoardMode.Run_TERMINAL;
                                 break;
                             case ConsoleKey.Escape:
                                 EndExecution();
@@ -451,25 +446,25 @@ namespace BefungeSharp
                 {
                     continue;
                 }
-                //Only draw an IP if it is inside the view screen
-                if (fs_view_screen.Contains(_IPs[n].Position.Data.x, _IPs[n].Position.Data.y) == true)
+                
+                int value = _IPs[n].Position.Data.value;
+                FungeNode drawing_position = _IPs[n].Position;
+
+                //If the next space we are at is actually one we will be skipping over then
+                //look forward to where we ACTUALLY will be going and draw the IP as there
+                //However! If we are in string mode the IP will be traveling to those spaces
+
+                //TODO:It's not looking up ; or ' ', its looking up those instructions,
+                //whatever their form might be
+                while ((value == ';' || value == ' ') && _IPs[n].StringMode == false)
                 {
-                    int value = _IPs[n].Position.Data.value;
-                    FungeNode drawing_position = _IPs[n].Position;
-
-                    //If the next space we are at is actually one we will be skipping over then
-                    //look forward to where we ACTUALLY will be going and draw the IP as there
-                    //However! If we are in string mode the IP will be traveling to those spaces
-
-                    //TODO:It's not looking up ; or ' ', its looking up those instructions,
-                    //whatever their form might be
-                    while ((value == ';' || value == ' ') && _IPs[n].StringMode == false)
-                    {
-                        drawing_position = FungeSpaceUtils.MoveBy(drawing_position, _IPs[n].Delta);
-                        value = drawing_position.Data.value;
-                    }
+                    drawing_position = FungeSpaceUtils.MoveBy(drawing_position, _IPs[n].Delta);
                     value = drawing_position.Data.value;
-
+                }
+                value = drawing_position.Data.value;
+                //Only draw the drawing IP if it is inside the view screen
+                if (fs_view_screen.Contains(drawing_position.Data.x, drawing_position.Data.y) == true)
+                {
                     ConsoleColor color = ConsoleColor.White;
                     if (value >= ' ' && value <= '~')
                     {

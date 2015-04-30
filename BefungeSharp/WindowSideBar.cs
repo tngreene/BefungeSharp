@@ -9,7 +9,7 @@ namespace BefungeSharp
     public class WindowSideBar
     {
         /* The side bar extends from the right side of the board to a location W
-         * | [0,82]                 [0,C_Width]
+         * | [0,81]                 [0,C_Width]
          * |
          * |
          * |
@@ -17,7 +17,7 @@ namespace BefungeSharp
          * | [C_Height,0]                 [C_Height,C_Width]
          * */
         private const int BAR_TOP = 0;
-        private const int BAR_LEFT = 82;
+        private const int BAR_LEFT = 81;
         private int BAR_RIGHT;
         private int BAR_BOTTOM = 0;
 
@@ -146,7 +146,7 @@ namespace BefungeSharp
                                                     "║Cut Section - Ctrl + X           ║",
                                                     "║Paste Section - Ctrl + V         ║",
                                                     "║Clear area - Delete              ║",
-                                                    "║Reverse line - Alt + F4          ║",
+                                                    "║XReverse line - Alt + R          ║",
                                                     "║Cancel Selection - Any Other Key ║",
                                                     "╚═════════════════════════════════╝"
                                                    };
