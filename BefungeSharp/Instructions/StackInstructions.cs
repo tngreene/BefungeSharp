@@ -88,11 +88,12 @@ namespace BefungeSharp.Instructions.Stack
         public override bool Preform(IP ip)
         {
             StackUtils.EnsureStackSafety(ip.Stack, this.RequiredCells());
-            int a = ip.Stack.Pop();
             int b = ip.Stack.Pop();
+            int a = ip.Stack.Pop();
 
-            ip.Stack.Push(a);
-            ip.Stack.Push(b);//Now b is on top
+            ip.Stack.Push(b);
+            ip.Stack.Push(a);//Now a is on top
+            
             return true;
         }
 

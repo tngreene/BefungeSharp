@@ -91,10 +91,10 @@ namespace BefungeSharp.Instructions.Logic
         {
             StackUtils.EnsureStackSafety(ip.Stack, this.RequiredCells());
             
-            int a = ip.Stack.Pop();
             int b = ip.Stack.Pop();
+            int a = ip.Stack.Pop();
 
-            if (b > a)
+            if (a > b)
             {
                 ip.Stack.Push(1);
             }
@@ -115,20 +115,21 @@ namespace BefungeSharp.Instructions.Logic
         {
             StackUtils.EnsureStackSafety(ip.Stack, this.RequiredCells());
             //Pop a and b off the stack
-            int a = ip.Stack.Pop();
             int b = ip.Stack.Pop();
+            int a = ip.Stack.Pop();
 
             //Get our current direction
             Vector2 currentDir = ip.Delta;
 
-            if (b < a)//If b is less than turn left
-            {
-                ip.Delta = new Vector2(ip.Delta.y * -1, ip.Delta.x);
-            }
-            else if (b > a)//if b is more turn right
+            if (a > b)//If b is less than a, turn left
             {
                 ip.Delta = new Vector2(ip.Delta.y, ip.Delta.x * -1);
             }
+            else if (a < b)//if b is more than a, turn right
+            {
+                ip.Delta = new Vector2(ip.Delta.y * -1, ip.Delta.x);
+            }
+
             return true;
         }
     }
