@@ -299,31 +299,106 @@ namespace BefungeSharp.FungeSpace
         }
 
         /// <summary>
-        /// Instantiates and fills, with ' 's, a new FungeSparseMatrix
+        /// Instantiates and fills with content, a new FungeSparseMatrix
         /// </summary>
-        /// <param name="rows">The number of rows for the new matrix</param>
-        /// <param name="columns">The number of columns for the new matrix</param>
-        public FungeSparseMatrix(int rows, int columns)
+        /// <param name="rows">The number of rows for the new matrix, 1 based</param>
+        /// <param name="columns">The number of columns for the new matrix, 1 based</param>
+        /// <param name="initial_content">The initial content (or ' ' if left null) of the matrix</param>
+        public FungeSparseMatrix(List<List<int>> initial_content)
         {
+            //Set up the origin and the node list
             m_Nodes = new List<FungeNode>();
-            FungeCell data = new FungeCell();
-            data.x = 0;
-            data.y = 0;
-            data.value = ' ';
-
-            m_Origin = new FungeNode(data,this);
-            
-            m_Nodes.Add(m_Origin);
-
-            for (int y = 0; y <= rows; y++)
+            m_Origin = new FungeNode(new FungeCell(0,0,' '),this);
+            //If we have not been given any initial content add the origin
+            if (initial_content.Count == 0)
             {
-                Console.Write(y + " ");
-                for (int x = 0; x <= columns; x++)
+                m_Nodes.Add(m_Origin);
+                return;
+            }
+
+            //Find the maximum row and column
+            int rows = initial_content.Count;
+            int columns = 0;
+            foreach (var row in initial_content)
+            {
+                if (row.Count > columns)
+                {
+                    columns = row.Count;
+                }
+            }
+
+            //Fill in the initial_content row's so it becomes 
+            //this big uniform rectangle
+            for (int i = 0; i < rows; i++)
+            {
+                while(initial_content[i].Count < columns)
+                {
+                    initial_content[i].Add(' ');
+                }
+            }
+            
+            //Attempt to create a matrix holder of a sufficient size
+            FungeNode [,] matrixHolder = null;
+            try
+            {
+                matrixHolder = new FungeNode[rows, columns];
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+            //The last placed node
+            FungeNode cached = m_Origin;
+            
+            //For all the initial content, put it into rows
+            //All connected east and west
+            for (int y = 0; y < rows; y++)
+            { 
+                FungeCell data;
+                data.x = 0;
+                data.y = y;
+                data.value = initial_content[data.y][data.x];
+                cached = InsertRow(data, cached);
+                m_Nodes.Add(cached);
+                matrixHolder[data.y, data.x] = cached;
+
+                for (int x = 1; x < columns; x++)
                 {
                     data.x = x;
                     data.y = y;
-                    data.value = ' ';
-                    InsertCell(data);
+                    data.value = initial_content[data.y][data.x];
+                    cached = InsertColumn(data, cached);
+                    m_Nodes.Add(cached);
+                    matrixHolder[data.y, data.x] = cached;
+                }
+                cached = cached.East;//Wrap around to the spine
+            }
+
+            //Loop through every one hooking up the north and south
+            for (int r = 0; r < rows; r++)
+            {
+                for (int c = 0; c < columns; c++)
+                {
+                    //Connect the top row's north
+                    if (r == 0)
+                    {
+                        matrixHolder[0, c].North = matrixHolder[rows - 1, c];
+                    }
+                    else
+                    {
+                        matrixHolder[r, c].North = matrixHolder[r - 1, c];
+                    }
+
+                    //Connect the bottom row's south
+                    if (r == rows - 1)
+                    {
+                        matrixHolder[rows - 1, c].South = matrixHolder[0, c];
+                    }
+                    else
+                    {
+                        matrixHolder[r, c].South = matrixHolder[r + 1, c];
+                    }
                 }
             }
         }
@@ -352,10 +427,13 @@ namespace BefungeSharp.FungeSpace
         /// <returns>The FungeNode if found or null if not found</returns>
         public FungeNode GetNode(int row, int column)
         {
+            System.Diagnostics.Stopwatch watch = System.Diagnostics.Stopwatch.StartNew();
+            _area = new FungeSpaceArea(row, column, int.MaxValue, int.MaxValue);
             foreach (var node in this)
             {
                 if (node.Data.y == row && node.Data.x == column)
                 {
+                    TimeSpan span = watch.Elapsed;
                     return node;
                 }
             }
@@ -460,8 +538,9 @@ namespace BefungeSharp.FungeSpace
             {
                 if (cell.x == traverse.Data.x)
                 {
-                    //Nothing to insert, return null
-                    return null;
+                    //Change the contents, return the origin
+                    operation_origin.Data = cell;
+                    return operation_origin;
                 }
             }
 
@@ -523,8 +602,10 @@ namespace BefungeSharp.FungeSpace
             {
                 if (cell.x == traverse.Data.x)
                 {
-                    //Nothing to insert, return null
-                    return null;
+                    //Change the contents, return the origin
+                    operation_origin.Data = cell;
+                    
+                    return operation_origin;
                 }
             }
 

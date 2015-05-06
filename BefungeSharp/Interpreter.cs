@@ -90,7 +90,7 @@ namespace BefungeSharp
         /// Controls the intepretation and execution of commands
         /// </summary>
         /// <param name="mgr">A reference to the manager</param>
-        public Interpreter(List<List<int>> initial_chars = null, Stack<int> stack = null, BoardMode mode = BoardMode.Edit)
+        public Interpreter(List<List<int>> initial_chars, Stack<int> stack = null, BoardMode mode = BoardMode.Edit)
         {
             //Set up the area's the program will refer to
             FS_93 = new FungeSpaceArea(0, 0, 24, 79);
@@ -99,21 +99,27 @@ namespace BefungeSharp
             FS_SAVEABLE = FS_DEFAULT;
             FS_EXTENDED = FS_DEFAULT;
             
-            //Create FungeSpace, prefilled with ' '
-            Console.WriteLine("Creating FungeSpace with a width of {0} and a height of {1}, ",FS_DEFAULT.right,FS_DEFAULT.bottom);
-            Console.WriteLine("Please wait");
-            
             System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            _fungeSpace = new FungeSparseMatrix(0,0
-            );//FS_DEFAULT.bottom, FS_DEFAULT.right);
+            
+            int rows = initial_chars.Count;
+            int columns = 0;
+
+            foreach (var list in initial_chars)
+            {
+                if (columns < list.Count)
+                {
+                    columns = list.Count;
+                }
+            }
+            //Create FungeSpace, prefilled with ' '
+            Console.WriteLine("Creating FungeSpace with a width of {0} and a height of {1}", columns, rows);
+            Console.WriteLine("Please wait");
+            _fungeSpace = new FungeSparseMatrix(initial_chars);
             stopwatch.Stop();
             Console.WriteLine(stopwatch.Elapsed);
-            //Console.ReadKey(true);
-            if (initial_chars != null)
-            {
-                //if there is a file to be loaded in, put those into fungespace
-                FungeSpaceUtils.DynamicArrayToMatrix(_fungeSpace, initial_chars);
-            }
+            Console.WriteLine("Press any key to continue");
+            Console.ReadKey(true);
+            
 
             _IPs = new List<IP>();
             _editIP = new IP(_fungeSpace.Origin, Vector2.East, Vector2.Zero, new Stack<int>(), -1, false);
