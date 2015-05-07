@@ -97,10 +97,10 @@ namespace BefungeSharp.Instructions
                         instruction_set.Add(c, new Delta.RandomDeltaInstruction(c, 0));
                         break;
                     case '[':
-                        instruction_set.Add(c, new Delta.RotateDeltaInstruction(c, 0, false));
+                        instruction_set.Add(c, new Delta.TurnLeftInstruction(c, 0));
                         break;
                     case ']':
-                        instruction_set.Add(c, new Delta.RotateDeltaInstruction(c, 0, true));
+                        instruction_set.Add(c, new Delta.TurnRightInstruction(c, 0));
                         break;
                     case 'x':
                         instruction_set.Add(c, new Delta.SetDeltaInstruction(c, 0));

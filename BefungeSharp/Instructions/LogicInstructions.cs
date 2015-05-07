@@ -109,7 +109,7 @@ namespace BefungeSharp.Instructions.Logic
 
     public class CompareInstruction : LogicInstruction
     {
-        public CompareInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { this.requiredCells = 1; }
+        public CompareInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { this.requiredCells = 2; }
 
         public override bool Preform(IP ip)
         {
@@ -121,13 +121,14 @@ namespace BefungeSharp.Instructions.Logic
             //Get our current direction
             Vector2 currentDir = ip.Delta;
 
-            if (a > b)//If b is less than a, turn left
+            if (a > b)//If b is less than a, turn right
             {
-                ip.Delta = new Vector2(ip.Delta.y, ip.Delta.x * -1);
+                Instructions.InstructionManager.InstructionSet[']'].Preform(ip);
+
             }
-            else if (a < b)//if b is more than a, turn right
+            else if (a < b)//if b is more than a, turn left
             {
-                ip.Delta = new Vector2(ip.Delta.y * -1, ip.Delta.x);
+                Instructions.InstructionManager.InstructionSet['['].Preform(ip);
             }
 
             return true;
