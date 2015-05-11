@@ -35,6 +35,7 @@ namespace BefungeSharp.Instructions.Storage
             }
             else
             {
+                ip.Stack.Push(' ');
                 return false;
             }
         }

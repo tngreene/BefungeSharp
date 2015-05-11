@@ -385,7 +385,10 @@ namespace BefungeSharp
                     if (_curMode == BoardMode.Edit || _curMode == BoardMode.Debug)
                     {
                         Vector2 confirmedPosition = WrapEditIPViewScreen(EditIP.Position.Data.x, EditIP.Position.Data.y);
-                        EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, confirmedPosition.y, confirmedPosition.x);
+                        if (confirmedPosition != EditIP.Position.Data)
+                        {
+                            EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, confirmedPosition.y, confirmedPosition.x);
+                        }
                     }
                     
                     #endregion HandleInput-------------

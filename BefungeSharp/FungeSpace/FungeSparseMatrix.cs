@@ -401,6 +401,7 @@ namespace BefungeSharp.FungeSpace
                     }
                 }
             }
+            _matrix_bounds = new FungeSpaceArea(0, 0, rows-1, columns-1);
         }
 
         /// <summary>

@@ -17,22 +17,8 @@ namespace BefungeSharp.Instructions.FlowControl
         
         public override bool Preform(IP ip)
         {
-            //Get the bounds because we'll be testing if we're about to go over the left or top edge
-            Vector2[] bounds = FungeSpace.FungeSpaceUtils.GetRealWorldBounds(ip.Position.ParentMatrix);
-
-            if (ip.Position.Data.y == bounds[0].y && ip.Delta == Vector2.North)
-            {
-                return true;
-            }
-
-            if (ip.Position.Data.x == bounds[0].x && ip.Delta == Vector2.West)
-            {
-                return true;
-            }
-
             Vector2 nextPosition = ip.Position.Data + ip.Delta;
             ip.Position = FungeSpace.FungeSpaceUtils.MoveTo(ip.Position, nextPosition.y, nextPosition.x);
-
             return true;
         }
     }
