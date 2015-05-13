@@ -13,15 +13,20 @@ namespace BefungeSharp
     /// </summary>
     public static class FileUtils
     {
-        private static string _lastUserOpenedPath;
-        public static string LastUserOpenedPath { get { return _lastUserOpenedPath; } }
+        
+        public static string LastUserOpenedPath { get; private set;}
 
-        private static string LastUserOpenedFile { get { return Path.GetFileName(_lastUserOpenedPath); } }
+        public static string LastUserOpenedFile { get { return Path.GetFileName(LastUserOpenedPath); } }
+        
+        static FileUtils()
+        {
+            LastUserOpenedPath = Directory.GetCurrentDirectory();
+        }
 
         /// <summary>
         /// A wrapper around StreamReader operations
         /// </summary>
-        /// <param name="filePath">Full path to the file you want to open</param>
+        /// <param name="filePath">Full path to the file you want to open, assumed clean</param>
         /// <returns>A list of strings containing the lines of the file</returns>
         public static List<string> ReadFile(string filePath)
         {
@@ -45,10 +50,12 @@ namespace BefungeSharp
                     currentLine = rStream.ReadLine();
                     inStrings.Add(currentLine);
                 }
+                LastUserOpenedPath = Path.GetFullPath(filePath);
             }
             catch (Exception e)
             {
                 Console.WriteLine("Error reading: " + e.Message);
+                LastUserOpenedPath = "";
             }
             finally
             {

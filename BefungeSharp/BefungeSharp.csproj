@@ -49,7 +49,12 @@
   <ItemGroup>
     <Compile Include="FungeSpace\FungeNode.cs" />
     <Compile Include="Instructions\ConcurrentInstructions.cs" />
+    <Compile Include="Instructions\StackStackInstructions.cs" />
     <Compile Include="Instructions\StandardIOInstructions.cs" />
+    <Compile Include="Menus\IMenu.cs" />
+    <Compile Include="Menus\MainMenu.cs" />
+    <Compile Include="Menus\MenuUtils.cs" />
+    <Compile Include="Menus\OpenSimpleMenu.cs" />
     <Compile Include="WindowSideBar.cs" />
     <Compile Include="BoardManager.cs" />
     <Compile Include="WindowUI.cs" />
