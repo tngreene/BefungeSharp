@@ -11,7 +11,7 @@ namespace BefungeSharp.Menus
     {
         public string[] InputRestriction
         {
-            get { return new[] { "[12345]" }; }
+            get { return new[] { "[123456]" }; }
         }
         
         public void OnOpening()
@@ -47,10 +47,12 @@ namespace BefungeSharp.Menus
             while (true)
             {
                 input = Console.ReadKey().KeyChar.ToString();
+                Console.WriteLine();
                 bool valid = Regex.IsMatch(input, this.InputRestriction[0]);
                 if (valid == false)
                 {
-                    Console.Write("Please enter a number 1-5");
+                    string numbers = this.InputRestriction[0].Substring(1,this.InputRestriction[0].Length-2);
+                    Console.Write("Please enter a number " + numbers.First() + '-' + numbers.Last() + '\n');
                 }
                 else
                 {
@@ -77,6 +79,8 @@ namespace BefungeSharp.Menus
                 case 4://Options
                     break;
                 case 5://Help
+                    Menus.HelpMenu helpMenu = new HelpMenu();
+                    helpMenu.RunLoop();
                     break;
                 case 6://Exist
                     return;
