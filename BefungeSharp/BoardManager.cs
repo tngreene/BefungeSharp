@@ -196,7 +196,9 @@ namespace BefungeSharp
             if (s && alt)
             {
                 ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_CONTROL);
-                FileUtils.SaveFungeSpace();
+                Menus.SaveSimpleMenu save = new Menus.SaveSimpleMenu();
+                save.RunLoop();
+
                 //Emergancy sleep so we don't get a whole bunch of operations at once
                 System.Threading.Thread.Sleep(150);
             }            

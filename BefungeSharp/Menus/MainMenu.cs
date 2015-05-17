@@ -59,6 +59,7 @@ namespace BefungeSharp.Menus
                     break;
                 }
             }
+            Console.Clear();
             switch (input[0] - 48)
             {
                 case 1://New File
