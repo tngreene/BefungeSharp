@@ -16,7 +16,8 @@ namespace BefungeSharp.Instructions
 
         Arithmetic,//Operators like +-*/
         Numbers,//0-9,a-f that will be pushed onto the stack
-        StackManipulation,//:$u{}
+        StackManipulation,//:$\
+        StackStackManipulation,//{}u
         DataStorage,//gp
         StdIO,//&~,.
         FileIO,//io
@@ -75,7 +76,7 @@ namespace BefungeSharp.Instructions
         public static void BuildInstructionSet()
         {
             instruction_set = new Dictionary<int, Instruction>();
-            instruction_set.Add((char)182, new SystemCalls.Breakpoint((char)182, 0));
+            instruction_set.Add((char)182, new SystemCall.Breakpoint((char)182, 0));
             for (char c = ' '; c <= '~'; c++)
             {
                 switch (c)
@@ -211,10 +212,14 @@ namespace BefungeSharp.Instructions
                         break;
                     //-----------------
                     //--StackStack Manipulation
-                    case 'u':
                     case '{':
+                        instruction_set.Add(c, new StackStack.BeginBlockInstruction(c, 0));
+                        break;
                     case '}':
-                        instruction_set.Add(c, new SystemCalls.NotImplemented(c, 0));   
+                        instruction_set.Add(c, new StackStack.EndBlockInstruction(c, 0));   
+                        break;
+                    case 'u':
+                        instruction_set.Add(c, new StackStack.StackUnderStackInstruction(c, 0));
                         break;
                     //-----------------
                     //--StdIO----------
@@ -234,7 +239,7 @@ namespace BefungeSharp.Instructions
                     //--FileIO---------
                     case 'i':
                     case 'o':
-                        instruction_set.Add(c, new SystemCalls.NotImplemented(c, 0));                        
+                        instruction_set.Add(c, new SystemCall.NotImplemented(c, 0));                        
                         break;
                     //-----------------
                     //--Data Storage---
@@ -252,10 +257,10 @@ namespace BefungeSharp.Instructions
                     //-----------------
                     //--System---------
                     case '=':
-                        instruction_set.Add(c, new SystemCalls.ExecuteInstruction(c, 0));
+                        instruction_set.Add(c, new SystemCall.ExecuteInstruction(c, 0));
                         break;
                     case 'y':
-                        instruction_set.Add(c, new SystemCalls.GetSysInfo(c, 0));
+                        instruction_set.Add(c, new SystemCall.GetSysInfo(c, 0));
                         break;
                     //-----------------
                     //--Footprint------
@@ -293,7 +298,7 @@ namespace BefungeSharp.Instructions
                     case 'l'://Go low, 3D movement
                     case 'm'://3D if statment
                         //For now Footprint and Trefunge all get "Not Implemented", which acts like 'r'
-                        instruction_set.Add(c, new SystemCalls.NotImplemented(c, 0));
+                        instruction_set.Add(c, new SystemCall.NotImplemented(c, 0));
                         break;
                     //----------------
                     //--Nop-----------

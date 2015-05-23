@@ -113,7 +113,7 @@ namespace BefungeSharp.Instructions.FlowControl
             //Get the next command we'll be executing
             {
                 //Create a copy
-                IP traverseIP = new IP(ip.Position, ip.Delta, ip.StorageOffset, ip.Stack, ip.IP_ParentID, false);
+                IP traverseIP = new IP(ip.Position, ip.Delta, ip.StorageOffset, ip.StackStack, ip.IP_ParentID, false);
                 
                 //Move to the next cell over
                 traverseIP.Move();

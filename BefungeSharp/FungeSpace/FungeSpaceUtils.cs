@@ -409,7 +409,7 @@ namespace BefungeSharp.FungeSpace
             if (true)
             {
                 //Many columns, 1 row
-                FungeSparseMatrix matrix1 = new FungeSparseMatrix(10, 10);
+                FungeSparseMatrix matrix1 = new FungeSparseMatrix();//10, 10);
                 
                 matrix1.InsertCell(-1, 0, 'a');
                 matrix1.InsertCell(-2, 0, 'b');

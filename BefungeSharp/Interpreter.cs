@@ -122,7 +122,7 @@ namespace BefungeSharp
             
 
             _IPs = new List<IP>();
-            _editIP = new IP(_fungeSpace.Origin, Vector2.East, Vector2.Zero, new Stack<int>(), -1, false);
+            _editIP = new IP(_fungeSpace.Origin, Vector2.East, Vector2.Zero, new Stack<Stack<int>>(), -1, false);
             
             _curMode = mode;
 
@@ -147,8 +147,9 @@ namespace BefungeSharp
             IP.ResetCounter();
 
             //Add the main thread IP/standard IP
-            _IPs.Add(new IP(_fungeSpace.Origin, Vector2.East, Vector2.Zero, new Stack<int>(), 0, false));
+            _IPs.Add(new IP());
             _IPs[0].Active = true;
+            _IPs[0].Position = _fungeSpace.Origin;
 
             //Rebuild the instruction set
             Instructions.InstructionManager.BuildInstructionSet();

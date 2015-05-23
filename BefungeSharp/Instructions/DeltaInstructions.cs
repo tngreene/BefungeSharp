@@ -81,11 +81,10 @@ namespace BefungeSharp.Instructions.Delta
         public override bool Preform(IP ip)
         {
             StackUtils.EnsureStackSafety(ip.Stack, this.RequiredCells());
-
+            
             //Set the new delta to the a vector popped off the stack
-            newDelta.x = ip.Stack.Pop();
-            newDelta.y = ip.Stack.Pop();
-
+            newDelta = StackUtils.VectorPop(ip.Stack);
+            
             //Set the Delta
             ip.Delta = newDelta;
 

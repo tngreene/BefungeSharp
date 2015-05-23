@@ -98,6 +98,93 @@ namespace BefungeSharp
             return new Vector2(vector[1], vector[0]);
         }
 
+        public static void TransferCells(Stack<int> source_stack, Stack<int> destination_stack, int count, bool reverseOrder, bool removeFromSource)
+        {
+            if (count <= 0)
+            {
+                return;
+            }
+            
+            Stack<int> workingSource;
+
+            if (removeFromSource == true)
+            {
+                //workingSource is a reference to the original source
+                workingSource = source_stack;
+            }
+            else
+            {
+                //workingSource is a reference to a new stack
+                workingSource = new Stack<int>(source_stack.Reverse());
+            }
+
+            
+            List<int> items = workingSource.GetRange(0,count);
+            
+            if (reverseOrder == true)
+            {
+                items.Reverse();
+            }
+
+            for (int i = items.Count - 1; i >= 0; i--)
+            {
+                destination_stack.Push(items[i]);
+            }
+
+            if (removeFromSource == true)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    workingSource.PopOrDefault();
+                }
+            }
+        }
+
+        public static List<T> GetRange<T>(this Stack<T> stack, int index, int count)
+        {
+            List<T> list = new List<T>();
+            int i = index;
+            while (i < count)
+            {
+                list.Add(stack.ElementAtOrDefault(i));
+                i++;
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// Ensures that one can pop off the stack without ever causing an empty stack exception
+        /// </summary>
+        /// <param name="stack">The Stack object to pop off of</param>
+        /// <returns>The popped element</returns>
+        public static T PopOrDefault<T>(this Stack<T> stack)
+        {
+            if (stack.Count > 0)
+            {
+                return stack.Pop();
+            }
+            else
+            {
+                return default(T);
+            }
+        }
+
+        /// <summary>
+        /// Ensures that one can peek the top of the stack without ever causing an empty stack exception
+        /// </summary>
+        /// <param name="stack">The Stack object to peek at</param>
+        /// <returns>The peeked element</returns>
+        public static T PeekOrDefault<T>(this Stack<T> stack)
+        {
+            if (stack.Count > 0)
+            {
+                return stack.Peek();
+            }
+            else
+            {
+                return default(T);
+            }
+        }
         public static void EnsureStackSafety(Stack<int> stack, int required)
         {
             if (required > stack.Count)

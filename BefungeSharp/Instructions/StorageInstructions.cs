@@ -24,7 +24,7 @@ namespace BefungeSharp.Instructions.Storage
         public override bool Preform(IP ip)
         {
             StackUtils.EnsureStackSafety(ip.Stack, RequiredCells());
-            Vector2 v = StackUtils.VectorPop(ip.Stack);
+            Vector2 v = ip.StorageOffset + StackUtils.VectorPop(ip.Stack);
             
             FungeSpace.FungeNode lookup = ip.Position.ParentMatrix.GetNode(v.y, v.x);
             
@@ -59,7 +59,7 @@ namespace BefungeSharp.Instructions.Storage
         {
             StackUtils.EnsureStackSafety(ip.Stack, RequiredCells());
 
-            Vector2 v = StackUtils.VectorPop(ip.Stack);
+            Vector2 v = ip.StorageOffset + StackUtils.VectorPop(ip.Stack);
             
             int value = ip.Stack.Pop();
             ip.Position.ParentMatrix.InsertCell(v.x, v.y, value);

@@ -30,9 +30,17 @@ namespace BefungeSharp
         private Vector2 _storageOffset;
         public Vector2 StorageOffset { get { return _storageOffset; } set { _storageOffset = value; } }
 
-        //Needed for concurrent-98, TODO - Implement the stack stack system
-        private Stack<int> _stack;
-        public Stack<int> Stack { get { return _stack; } set { _stack = value; } }
+        private Stack<Stack<int>> _stackStack;
+        
+        /// <summary>
+        /// A public interface for dealing with the TOSS (which is what most people ever will use)
+        /// </summary>
+        public Stack<int> Stack { get { return _stackStack.Peek(); } }
+
+        /// <summary>
+        /// A public interface for dealing with the real stack stack
+        /// </summary>
+        public Stack<Stack<int>> StackStack { get { return _stackStack; } }
 
         /// <summary>
         /// Active is whether the IP should be drawn/updated/moved/anything. It is not the same a stopped IP
@@ -65,7 +73,8 @@ namespace BefungeSharp
             _delta = Vector2.East;
             _storageOffset = Vector2.Zero;
 
-            _stack = new Stack<int>();
+            _stackStack = new Stack<Stack<int>>();
+            _stackStack.Push(new Stack<int>());
             _active = false;
 
             _IP_ParentID = 0;
@@ -74,13 +83,13 @@ namespace BefungeSharp
             StringMode = false;
         }
 
-        public IP(FungeNode position, Vector2 delta, Vector2 storageOffset, Stack<int> stack, int parent_id, bool willIncrementCounter)
+        public IP(FungeNode position, Vector2 delta, Vector2 storageOffset, Stack<Stack<int>> stack_stack, int parent_id, bool willIncrementCounter)
         {
             _position = position;
             _delta = delta;
             _storageOffset = storageOffset;
 
-            _stack = stack;
+            _stackStack = stack_stack;
             _active = false;
 
             _IP_ParentID = parent_id;
@@ -104,9 +113,17 @@ namespace BefungeSharp
             this._delta = parent._delta;
             this._storageOffset = parent._storageOffset;
             
-            //Copies the array instead of assaigning the reference!
-            this._stack = new Stack<int>(parent._stack);
-
+            this._stackStack = new Stack<Stack<int>>();
+            //Copy the exact contents and order of the stack stack
+            for (int stackNumber = parent._stackStack.Count - 1; stackNumber >= 0; stackNumber--)
+            {
+                this._stackStack.Push(new Stack<int>());
+                Stack<int> currentStack = parent._stackStack.ElementAt(stackNumber);
+                for (int i = currentStack.Count - 1; i >= 0; i--)
+                {
+                    this._stackStack.Peek().Push(currentStack.ElementAt(i));
+                }
+            }
             _active = false;
 
             this._IP_ParentID = parent._IP_ParentID;
@@ -139,7 +156,7 @@ namespace BefungeSharp
         {
             _position = _position.ParentMatrix.Origin;
             _delta = Vector2.East;
-            _stack.Clear();
+            _stackStack = new Stack<Stack<int>>();
 
             _active = false;
             StringMode = false;
@@ -165,7 +182,7 @@ namespace BefungeSharp
         }
         public override string ToString()
         {
-            return "P: " + this._position + ", D: " + this._delta + ", S:" + this._stack + ", ID: " + this._IP_ID;
+            return "P: " + this._position + ", D: " + this._delta + ", TOSS:" + this.Stack + ", ID: " + this._IP_ID;
         }
     }
 }

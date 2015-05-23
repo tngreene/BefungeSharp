@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
-namespace BefungeSharp.Instructions.SystemCalls
+namespace BefungeSharp.Instructions.SystemCall
 {
     public abstract class SystemInstruction : Instruction
     {
@@ -128,23 +128,28 @@ namespace BefungeSharp.Instructions.SystemCalls
                         }
                         break;
 					#endregion
-                    #region case 18
-					case 18:
-                        //18. Size of each stack in the stack stack listed from TOSS to BOSS (ip specific)
+                    #region 18. Size of each stack in the stack stack listed from TOSS to BOSS (ip specific)
+                    case 18:
                         {
-                            //iterate through the whole stack stack, top to bottom
-                            //TODO when stack stack is implemented - for each stack get it's count and push it, if it is the TOSS push intialTOSS_Size instead
-                            ip.Stack.Push(initialTOSS_Size);
+                            foreach (var stack in ip.StackStack.Reverse())
+                            {
+                                //If this is the TOSS
+                                if (stack == ip.Stack)
+                                {
+                                    ip.Stack.Push(initialTOSS_Size);
+                                }
+                                else
+                                {
+                                    ip.Stack.Push(stack.Count);
+                                }
+                            }
                         }
                         break;
 					#endregion
-                    #region case 17
+                    #region 17. Number of stacks on the stack stack (ip specific)
                     case 17:
-                        //17. Number of stacks on the stack stack (ip specific)
                         {
-                            //TODO when stack stack is implemented
-                            //For now, push the count of the one stack we have
-                            ip.Stack.Push(1);
+                            ip.Stack.Push(ip.StackStack.Count);
                         }
                         break;
                     #endregion
