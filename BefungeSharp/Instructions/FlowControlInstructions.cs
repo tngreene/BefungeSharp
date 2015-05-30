@@ -18,6 +18,8 @@ namespace BefungeSharp.Instructions.FlowControl
         public override bool Preform(IP ip)
         {
             Vector2 nextPosition = ip.Position.Data + ip.Delta;
+            //TODO: This is majorly slow, if we could figure out a way to make sure it uses MoveBy as much as possible it would
+            //really help
             ip.Position = FungeSpace.FungeSpaceUtils.MoveTo(ip.Position, nextPosition.y, nextPosition.x);
             return true;
         }
