@@ -49,6 +49,7 @@ namespace BefungeSharp
                     currentLine = rStream.ReadLine();
                     fileContents.Add(currentLine);
                 }
+                
                 LastUserOpenedPath = Path.GetFullPath(filePath);
             }
             catch (Exception e)
@@ -91,9 +92,16 @@ namespace BefungeSharp
                 {
                     wStream.WriteLine(outStrings[i]);
                 }
+                
+                LastUserOpenedPath = Path.GetFullPath(filePath);
             }
             catch (Exception e)
             {
+                Console.WriteLine("Error reading: " + e.Message);
+
+                //Reset the LastUserOpenedPath to something safe
+                LastUserOpenedPath = Environment.GetCommandLineArgs()[0];
+
                 return e;
             }
             finally
@@ -282,7 +290,7 @@ namespace BefungeSharp
         public static bool HelpCommand()
         {
             Console.WriteLine("Commands:");
-            Console.WriteLine("back - Goes back to the main menu");
+            Console.WriteLine("back - Goes back to the previous window");
             Console.WriteLine("dir - Prints out the 15 most recently used files");
             Console.WriteLine("dir index - Like dir, but allowing you to print out other parts of the list of files. Ex: dir 5");
             Console.WriteLine("cd - Prints the current working directory");

@@ -47,9 +47,6 @@ namespace BefungeSharp.Menus
             //--General FileMenu content-----
             OnOpening();
 
-            //Create the output list
-            List<string> outputLines = new List<string>();
-
             string input = "";
             int timeout = 0;
 
@@ -133,7 +130,7 @@ namespace BefungeSharp.Menus
                 List<string> outStrings = FungeSpace.FungeSpaceUtils.MatrixToStringList(Program.Interpreter.FungeSpace, bounds);
                     
                 Console.WriteLine("Attempting to save {0}", path);
-                Exception e = FileUtils.WriteFile(path, outputLines);
+                Exception e = FileUtils.WriteFile(path, outStrings);
 
                 //--General FileMenu content-----
                 if (e != null)
