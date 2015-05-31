@@ -354,8 +354,17 @@ namespace BefungeSharp
                             case ConsoleKey.F1:
                                 BeginExecution(BoardMode.Run_STEP);
                                 break;
-                            case ConsoleKey.F5:
+                                case ConsoleKey.F2:
+                                BeginExecution(BoardMode.Run_SLOW);
+                                break;
+                            case ConsoleKey.F3:
                                 BeginExecution(BoardMode.Run_MEDIUM);
+                                break;
+                            case ConsoleKey.F4:
+                                BeginExecution(BoardMode.Run_FAST);
+                                break;
+                            case ConsoleKey.F5:
+                                BeginExecution(BoardMode.Run_MAX);
                                 break;
                             case ConsoleKey.F6:
                                 BeginExecution(BoardMode.Run_TERMINAL);

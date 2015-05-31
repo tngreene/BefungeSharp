@@ -122,15 +122,15 @@ namespace BefungeSharp
                             string[] contentArr = {
                                                     //TODO Organize these
                                                     //X indicates the feature has not been implemented
-                                                    "║New File - Ctrl+N                ║",
-                                                    "║Save - Alt+S                     ║",
+                                                    "║New File - Ctrl + N              ║",
+                                                    "║Save - Alt + S                   ║",
                                                     "║Run (Step) - F1                  ║",
-                                                    "║Run (Default Speed) - F5         ║",//TODO:OPTION["DefaultSpeed"]
+                                                    "║Run (Real Time) - F2 - F5        ║",//TODO:OPTION["DefaultSpeed"]
                                                     "║Run (Terminal Mode) - F6         ║",
                                                     "║XReload source - Ctrl + R        ║",
                                                     "║Main Menu - Esc                  ║",
                                                     "║Set IP Delta - Ctrl + Arrow Key  ║",
-                                                    "║XInsert Snippet - Insert         ║",
+                                                    //"║XInsert Snippet - Insert         ║",
                                                     "║Start Selection - Shift (hold)   ║",
                                                     //"║XSelect All - Ctrl + A           ║",
                                                     "╚═════════════════════════════════╝"
