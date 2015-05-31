@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
+using System.Text.RegularExpressions;
 
 namespace BefungeSharp.Menus
 {
@@ -13,105 +15,155 @@ namespace BefungeSharp.Menus
             get { return new string[]{ "[^\"<>|;]" }; }
         }
 
-        public void RunLoop()
-        {
-            OnOpening();
-            
-            Console.Write("File Name: ");
-            Console.Out.Flush();
-
-            //Read filename from user
-            string input = "";
-            bool badInput = false;//Assume innocent until proven guilty
-
-            int timeout = 0;
-            do
-            {
-                input = Console.ReadLine();
-                input = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory() + input);
-                Console.WriteLine();
-
-                if (FileUtils.IsValidPath(input) == false)
-                {
-                    Console.WriteLine(input + "contains an invalid folder path, please try again");
-                    badInput = true;
-                    timeout++;
-                }
-
-                if (FileUtils.IsValidFileName(input) == false)
-                {
-                    Console.WriteLine(input + "is not a valid name, please try again");
-                    badInput = true;
-                    timeout++;
-                }
-
-                if (timeout == 3)
-                {
-                    Console.WriteLine("File could not be saved, press any key to continue");
-                    Console.ReadKey(true);
-                    Console.CursorVisible = false;
-                    return;
-                }
-            }
-            while (badInput == true);
-
-            //Test the ending
-            string extention = System.IO.Path.GetExtension(input);
-
-            //TODO - use extension based off the current mode
-            //.uf for unfunge
-            //.bf for befunge
-            //.b98 for befunge98
-            //.tf/.3f? for trefunge
-            switch (extention)
-            {
-                //If they have included either a .txt or .bf then its okay
-                case ".txt":
-                case ".bf":
-                    break;
-                default:
-                    input += ".bf";//OptionsManager.OptionsDictionary["Default extension"]
-                    break;
-            }
-
-            Vector2[] bounds = FungeSpace.FungeSpaceUtils.GetMatrixBounds(Program.Interpreter.FungeSpace);
-            List<string> outStrings = FungeSpace.FungeSpaceUtils.MatrixToStringList(Program.Interpreter.FungeSpace, bounds);
-
-            Console.WriteLine("Writing file to " + System.IO.Path.GetFullPath(input));
-            Console.WriteLine();
-
-            Exception e = FileUtils.WriteFile(input, outStrings);
-            if (e != null)
-            {
-                Console.WriteLine("Error writing file: " + e.Message);
-                Console.WriteLine();
-            }
-            else
-            {
-                Console.WriteLine("File written succesfully!");
-                Console.WriteLine();
-            }
-            OnClosing();
-        }
-
         public void OnOpening()
         {
-            //Clears the screen and writes info
-            Console.Clear();
             Console.SetCursorPosition(0, 0);
             Console.CursorVisible = true;
-            System.IO.Directory.SetCurrentDirectory(System.IO.Directory.GetCurrentDirectory() + '\\');
-            Console.WriteLine("Current Working Directory: " + System.IO.Directory.GetCurrentDirectory());
+
+            //--General FileMenu content---------
+            Console.Clear();
+            Console.WriteLine("Enter in a file path (relative to current directory)");
             Console.WriteLine();
 
+            Console.WriteLine("Type help for a list of advanced commands");
+
+            Console.WriteLine();
+            FileUtils.DisplayCurrentDirectory();
+            //--End General FileMenu content-----
         }
 
         public void OnClosing()
         {
+            //--General FileMenu content---------
             Console.WriteLine("Press any key to continue");
             Console.ReadKey(true);
             Console.Clear();
             Console.CursorVisible = false;
+            //--End General FileMenu content-----
         }
+
+        public void RunLoop()
+        {
+            //--General FileMenu content-----
+            OnOpening();
+
+            //Create the output list
+            List<string> outputLines = new List<string>();
+
+            string input = "";
+            int timeout = 0;
+
+            do
+            {
+                string path = "";
+                input = Console.ReadLine().Trim();
+
+                //Attempt to use our commands
+                string testIfCommand = input.ToLower();
+
+                Match dir_match = Regex.Match(testIfCommand, "dir ([0-9]+)$");
+
+                if (testIfCommand == "back")
+                {
+                    return;
+                }
+                //Test if we are using the simple "dir" or one with parameters
+                else if (testIfCommand == "dir")
+                {
+                    FileUtils.DIRCommand(input, 0, 15);
+                    continue;
+                }
+                else if (dir_match.Success == true)
+                {
+                    FileUtils.DIRCommand(input, Convert.ToInt32(dir_match.Groups[1].Value), 15);
+                    continue;
+                }
+                else if ((testIfCommand.StartsWith("cd")) && testIfCommand.Length == 2)
+                {
+                    FileUtils.CDCommand(input);
+                    continue;
+                }
+                else if (testIfCommand.StartsWith("cd ") && testIfCommand.Length > 3)
+                {
+                    FileUtils.CD_WithPathCommand(input);
+                    continue;
+                }
+                else if (testIfCommand == "help")
+                {
+                    FileUtils.HelpCommand();
+                    continue;
+                }
+                else if (testIfCommand == "last")
+                {
+                    FileUtils.LastCommand(input);
+                    continue;
+                }
+                else if (testIfCommand == "use last")
+                {
+                    path = FileUtils.UseLastCommand(input);
+                }
+
+                //If by this point the path has not been assaigned use the input
+                if (path == "")
+                {
+                    //If we have a last user opened path
+                    path = FileUtils.FullyExpandPath(Directory.GetCurrentDirectory() + '\\' + input);
+                }
+
+                if (FileUtils.IsValidPath(path) == false)
+                {
+                    Console.WriteLine(input + " is an invalid file path, please try again");
+                    timeout++;
+                    continue;
+                }
+
+                if (FileUtils.IsValidFileName(path) == false)
+                {
+                    Console.WriteLine(input + " is an invalid file name, please try again");
+                    timeout++;
+                    continue;
+                }
+                //--End General FileMenu content-
+
+                Vector2[] bounds = FungeSpace.FungeSpaceUtils.GetMatrixBounds(Program.Interpreter.FungeSpace);
+                //Make sure we're only saving Q1
+                bounds[0].x = 0;
+                bounds[0].y = 0;
+
+                List<string> outStrings = FungeSpace.FungeSpaceUtils.MatrixToStringList(Program.Interpreter.FungeSpace, bounds);
+                    
+                Console.WriteLine("Attempting to save {0}", path);
+                Exception e = FileUtils.WriteFile(path, outputLines);
+
+                //--General FileMenu content-----
+                if (e != null)
+                {
+                    Console.WriteLine("Please try again");
+
+                    //Increase the time out on a failed attempt
+                    timeout++;
+                    continue;
+                }
+                else
+                {
+                    Console.WriteLine("Success!");
+                    Console.WriteLine();
+                    break;
+                }
+                //--End General FileMenu content-
+            }
+            while (timeout < 3);
+
+            if (timeout == 3)
+            {
+                Console.WriteLine("Could not save file, returning to home screen");
+                OnClosing();
+                return;
+            }
+
+            OnClosing();
+        }
+
+        
     }
 }

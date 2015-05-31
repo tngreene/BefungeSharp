@@ -68,6 +68,7 @@ namespace BefungeSharp
                     rStream.Close();
                 }
             }
+
             return null;
         }
 
@@ -113,18 +114,21 @@ namespace BefungeSharp
         /// <returns>Returns true if the path is a valid path</returns>
         public static bool IsValidPath(string path)
         {
-            ///We need atleast a drive letter and :\
+            //We need atleast a drive letter and :\
             if (path.Count() < 3)
             {
                 return false;
             }
-
-            bool testResult = true;
+            
             foreach (char c in System.IO.Path.GetInvalidPathChars())
             {
-                testResult |= path.Contains(c); //A good input will never return true
+                if (path.Contains(c) == true)
+                {
+                    return false;
+                }
             }
-            return testResult;
+
+            return true;
         }
 
         /// <summary>
@@ -132,26 +136,111 @@ namespace BefungeSharp
         /// </summary>
         /// <param name="name">The file name to test</param>
         /// <returns>Returns true if the path is a valid path</returns>
-        public static bool IsValidFileName(string name)
+        public static bool IsValidFileName(string path)
         {
-            if (name.Count() < 1)
+            if (path.Count() == 0)
             {
                 return false;
             }
+            
+            path = path.Substring(path.LastIndexOf('\\') + 1);
 
-            bool testResult = true;
             foreach (char c in System.IO.Path.GetInvalidFileNameChars())
             {
-                testResult |= System.IO.Path.GetFileName(name).Contains(c); //A good input will never return true
+                if (path.Contains(c) == true)
+                {
+                    return false;
+                }
             }
-            return testResult;
+
+            return true;
+        }
+        
+        /// <summary>
+        /// Fully expands a path to expand environment variables
+        /// and navigate ..'s
+        /// </summary>
+        /// <param name="path">The path to attempt to expand</param>
+        /// <returns>The expanded string or "" if there was a problem</returns>
+        public static string FullyExpandPath(string path)
+        {
+            if (FileUtils.IsValidPath(path) == false)
+            {
+                return "";
+            }
+
+            if (FileUtils.IsValidFileName(path) == false)
+            {
+                return "";
+            }
+
+            //Expands any environment variables
+            string expanded = Environment.ExpandEnvironmentVariables(path);
+            //Handles cases like . and ..
+            expanded = Path.GetFullPath(expanded);
+            
+            return expanded;
         }
 
         /// <summary>
-        /// Generates a short list of strings which are a partial list of directories and files
+        /// Tries to run our pretend CD command, 
+        /// without accepting the optional argument for a path to change directories to
         /// </summary>
-        /// <returns>The list of strings to be displayed</returns>
-        public static List<string> PartialDirectoryList(int count)
+        /// <param name="input">The input to test if it is "CD" or "cd"</param>
+        /// <returns>
+        /// Returns true if the input was the CD command,
+        /// false if not or if there was a problem
+        /// </returns>
+        public static bool CDCommand(string input)
+        {
+            if ((input.ToLower().StartsWith("cd")) && input.Length == 2)
+            {
+                FileUtils.DisplayCurrentDirectory();
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Tries to run our pretend CD command, with the path argument
+        /// </summary>
+        /// <param name="input">The input to test if it is the command</param>
+        /// <returns>
+        /// Returns true if the input was the CD command with the path argument,
+        /// false if not or there was a problem
+        /// </returns>
+        public static bool CD_WithPathCommand(string input)
+        {
+            string path = "";
+            try
+            {
+                path = FileUtils.FullyExpandPath(Directory.GetCurrentDirectory() + '\\' + input.Substring(3));
+                Directory.SetCurrentDirectory(path);
+                Console.WriteLine();
+                FileUtils.DisplayCurrentDirectory();
+            }
+            catch (Exception)
+            {
+                Console.WriteLine(path + " is not a valid path");
+                Console.WriteLine();
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Tries to run our pretend DIR command,
+        /// printing out a partial list of the most recently used files
+        /// </summary>
+        /// <param name="input">The input to test if it is "DIR" or "dir"</param>
+        /// <returns>
+        /// Returns true if the input was the DIR command,
+        /// false if not
+        /// </returns>
+        public static bool DIRCommand(string input, int start_index = 0, int count = 15)
         {
             List<string> outList = new List<string>();
 
@@ -162,7 +251,6 @@ namespace BefungeSharp
 
             try
             {
-                
                 DirectoryInfo info = new DirectoryInfo(Directory.GetCurrentDirectory());
                 List<FileInfo> fileList = info
                     .GetFiles("*", SearchOption.AllDirectories) //Get all the files with the allowed extensions,
@@ -170,9 +258,11 @@ namespace BefungeSharp
                     //Sort by the last access time so they appear on the top of the list and will get chosen first
                     .OrderBy(f => f.LastAccessTime)
                     .ToList();
-                for (int i = 0; i < fileList.Count && i < count; i++)
+
+                Console.WriteLine("Found {0} files, displaying up to {1} starting at index {2}:", fileList.Count, count, start_index);
+                for (int i = start_index; i < fileList.Count || i < count; i++)
                 {
-                    outList.Add(fileList[i].FullName.Remove(0, Directory.GetCurrentDirectory().Count() + 1)); 
+                    outList.Add(fileList[i].FullName.Remove(0, Directory.GetCurrentDirectory().Count() + 1));
                 }
             }
             catch (Exception e)
@@ -180,17 +270,77 @@ namespace BefungeSharp
 
             }
 
-            return outList;
+            foreach (var fileName in outList)
+            {
+                Console.WriteLine(fileName);
+            }
+            Console.WriteLine();
+            return true;
         }
 
-        public static string FullyExpandPath(string path)
+        //Print out the help text for the commands
+        public static bool HelpCommand()
         {
-            //Expands any environment variables
-            string expanded = Environment.ExpandEnvironmentVariables(path);
-            //Handles cases like . and ..
-            expanded = Path.GetFullPath(expanded);
-            
-            return expanded;
+            Console.WriteLine("Commands:");
+            Console.WriteLine("back - Goes back to the main menu");
+            Console.WriteLine("dir - Prints out the 15 most recently used files");
+            Console.WriteLine("dir index - Like dir, but allowing you to print out other parts of the list of files. Ex: dir 5");
+            Console.WriteLine("cd - Prints the current working directory");
+            Console.WriteLine("cd path -  Attempts to set the current working directory to the path argument. Ex: cd C:\\");
+            Console.WriteLine("last - Prints the last used file, if there is one");
+            Console.WriteLine("use last - Attempts to use the last used file");
+            Console.WriteLine("help - Brings up this information");
+            return true;
+        }
+        /// <summary>
+        /// Tries to run our LAST command,
+        /// printing out the last used file path
+        /// </summary>
+        /// <param name="input">The input to test if it is "LAST" or "last"</param>
+        /// <returns>
+        /// Returns true if the input was the last command,
+        /// false if not
+        /// </returns>
+        public static bool LastCommand(string input)
+        {
+            //We never tell people that we're using the exe as a technicality
+            if (FileUtils.LastUserOpenedPath == Environment.GetCommandLineArgs()[0])
+            {
+                Console.WriteLine("No files have been used this session");
+                Console.WriteLine();
+                return true;
+            }
+            else
+            {
+                Console.WriteLine(FileUtils.LastUserOpenedPath);
+                Console.WriteLine();
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Checks if the input is matches the USE LAST command
+        /// </summary>
+        /// <param name="input">The input to test if it is "USE LAST" or "use last"</param>
+        /// <returns>
+        /// Returns the LastUserOpenedPath if it is not the default, or "" if it is the default
+        /// </returns>
+        public static string UseLastCommand(string input)
+        {
+            //We never allow opening the default
+            if (FileUtils.LastUserOpenedPath == Environment.GetCommandLineArgs()[0])
+            {
+                Console.WriteLine("No last used file to use");
+                Console.WriteLine();
+                return  "";
+            }
+            return FileUtils.LastUserOpenedPath;
+        }
+
+        public static void DisplayCurrentDirectory()
+        {
+            Console.WriteLine("Currently in " + Directory.GetCurrentDirectory() + '\\');
+            Console.WriteLine();
         }
     }
 }

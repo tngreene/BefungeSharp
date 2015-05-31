@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Text.RegularExpressions;
+
 namespace BefungeSharp.Menus
 {
     public class OpenSimpleMenu : IMenu
@@ -15,11 +17,16 @@ namespace BefungeSharp.Menus
 
         public void OnOpening()
         {
+            //--General FileMenu content---------
             Console.Clear();
             Console.WriteLine("Enter in a file path (relative to current directory)");
-            Console.WriteLine("To see a partial list of existing files type dir");
-            Console.WriteLine("To see the current working directory type \"cd\", to set it use \"cd path\"");
-            DisplayCurrentDirectory();
+            Console.WriteLine();
+
+            Console.WriteLine("Type help for a list of advanced commands");
+
+            Console.WriteLine();
+            FileUtils.DisplayCurrentDirectory();
+            //--End General FileMenu content-----
         }
 
         public void OnClosing()
@@ -29,64 +36,122 @@ namespace BefungeSharp.Menus
 
         public void RunLoop()
         {
+            //--General FileMenu content-----
             OnOpening();
 
             //Create the output list
             List<string> outputLines = new List<string>();
-            int timeoutCounter = 0;
-            string inString;
+
+            string input = "";
+            int timeout = 0;
 
             do
             {
-                //Get the string, such as examples\mything.txt
-                inString = Console.ReadLine().TrimEnd(' ');
+                string path = "";
+                input = Console.ReadLine().Trim();
 
-                if (inString == "DIR" || inString == "dir")
+                //Attempt to use our commands
+                string testIfCommand = input.ToLower();
+
+                Match dir_match = Regex.Match(testIfCommand, "dir ([0-9]+)$");
+                
+                if (testIfCommand == "back")
                 {
-                    List<string> filesList = FileUtils.PartialDirectoryList(15);//15 seems right
-                    foreach (var fileName in filesList)
-                    {
-                        Console.WriteLine(fileName);
-                    }
+                    return;
                 }
-                else if ((inString.StartsWith("CD") || inString.StartsWith("cd")) && inString.Length == 2)
+                //Test if we are using the simple "dir" or one with parameters
+                else if (testIfCommand == "dir")
                 {
-                    DisplayCurrentDirectory();
+                    FileUtils.DIRCommand(input, 0, 15);
+                    continue;
                 }
-                else if ((inString.StartsWith("CD ") || inString.StartsWith("cd ")) && inString.Length > 3)
+                else if (dir_match.Success == true)
                 {
-                    string path = "";
-                    try
-                    {
-                        path = FileUtils.FullyExpandPath(Directory.GetCurrentDirectory() + '\\' + inString.Substring(3));
-                        Directory.SetCurrentDirectory(path);
-                        Console.WriteLine();
-                        DisplayCurrentDirectory();
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine(path + " is not a valid path");
-                    }
+                    FileUtils.DIRCommand(input, Convert.ToInt32(dir_match.Groups[1].Value), 15);
+                    continue;
+                }
+                else if ((testIfCommand.StartsWith("cd")) && testIfCommand.Length == 2)
+                {
+                    FileUtils.CDCommand(input);
+                    continue;
+                }
+                else if (testIfCommand.StartsWith("cd ") && testIfCommand.Length > 3)
+                {
+                    FileUtils.CD_WithPathCommand(input);
+                    continue;
+                }
+                else if (testIfCommand == "help")
+                {
+                    FileUtils.HelpCommand();
+                    continue;
+                }
+                else if (testIfCommand == "last")
+                {
+                    FileUtils.LastCommand(input);
+                    continue;
+                }
+                else if (testIfCommand == "use last")
+                {
+                    path = FileUtils.UseLastCommand(input);
+                }
+
+                //If by this point the path has not been assaigned use the input
+                if (path == "")
+                {
+                    //If we have a last user opened path
+                    path = FileUtils.FullyExpandPath(Directory.GetCurrentDirectory() + '\\' + input);
+                }
+
+                if (FileUtils.IsValidPath(path) == false)
+                {
+                    Console.WriteLine(input + " is an invalid file path, please try again");
+                    timeout++;
+                    continue;
+                }
+
+                if (FileUtils.IsValidFileName(path) == false)
+                {
+                    Console.WriteLine(input + " is an invalid file name, please try again");
+                    timeout++;
+                    continue;
+                }
+                //--End General FileMenu content-
+
+                //TODO:Check the extension and compare 
+                //if the current settings would allow such a file,
+                //then give a warning and ask them what they want to do
+                Console.WriteLine("Attempting to load {0}", path);
+                Console.WriteLine();
+                Exception e = FileUtils.ReadFile(path, ref outputLines);
+                
+                if (outputLines.Count == 0)
+                {
+                    Console.WriteLine("File is either empty or did not read correctly");
+                    Console.WriteLine();
+                    timeout++;
+                    continue;
+                }
+
+                //--General FileMenu content-----
+                if (e != null)
+                {
+                    Console.WriteLine("Please try again");
+                    Console.WriteLine();
+                    //Increase the time out on a failed attempt
+                    timeout++;
+                    continue;
                 }
                 else
                 {
-                    string path = FileUtils.FullyExpandPath(Directory.GetCurrentDirectory() + '\\' + inString);
-                                        
-                    Console.WriteLine("Attempting to load {0}", path);
-                    Exception e = FileUtils.ReadFile(path, ref outputLines);
-
-                    if (e != null)
-                    {
-                        Console.WriteLine("Please try again");
-                        
-                        //Increase the time out on a failed attempt
-                        timeoutCounter++;                      
-                    }
+                    Console.WriteLine("Success!");
+                    Console.WriteLine();
+                    break;
                 }
+                //--End General FileMenu content-
             }
-            while (outputLines.Count == 0 && timeoutCounter < 3);
+            while (outputLines.Count == 0 && timeout < 3);
 
-            if (timeoutCounter == 3)
+            if (timeout == 3)
             {
                 Console.WriteLine("Could not open file, returning to home screen");
                 OnClosing();
@@ -94,16 +159,10 @@ namespace BefungeSharp.Menus
             }
 
             Program.BoardManager = new BoardManager(25, 80, outputLines);
-            
+
             //Truely start the program up!
             Program.BoardManager.UpdateBoard();
             OnClosing();
-        }
-
-        private void DisplayCurrentDirectory()
-        {
-            Console.WriteLine("Currently in " + Directory.GetCurrentDirectory() + '\\');
-            Console.WriteLine();
         }
     }
 }
