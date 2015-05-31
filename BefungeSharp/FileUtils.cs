@@ -16,26 +16,25 @@ namespace BefungeSharp
         
         public static string LastUserOpenedPath { get; private set;}
 
+        public static string LastUserOpenedDirectory { get { return Path.GetDirectoryName(LastUserOpenedPath); } }
         public static string LastUserOpenedFile { get { return Path.GetFileName(LastUserOpenedPath); } }
         
         static FileUtils()
         {
-            LastUserOpenedPath = Directory.GetCurrentDirectory();
+            LastUserOpenedPath = Environment.GetCommandLineArgs()[0];
         }
 
         /// <summary>
         /// A wrapper around StreamReader operations
         /// </summary>
         /// <param name="filePath">Full path to the file you want to open, assumed clean</param>
-        /// <returns>A list of strings containing the lines of the file</returns>
-        public static List<string> ReadFile(string filePath)
+        /// <param name="fileContents">A list of strings containing the lines of the file</returns>
+        /// <returns>If the write succeedes it will return a null exception, else it will return the exception that was generated</returns>
+        public static Exception ReadFile(string filePath, ref List<string> fileContents)
         {
             //The stream for reading the file
             StreamReader rStream = null;
-
-            //The final list of strings
-            List<string> inStrings = new List<string>();
-
+            
             try
             {
                 //Create the stream reader from the file path
@@ -48,14 +47,18 @@ namespace BefungeSharp
                 {
                     //Read a line and add it
                     currentLine = rStream.ReadLine();
-                    inStrings.Add(currentLine);
+                    fileContents.Add(currentLine);
                 }
                 LastUserOpenedPath = Path.GetFullPath(filePath);
             }
             catch (Exception e)
             {
                 Console.WriteLine("Error reading: " + e.Message);
-                LastUserOpenedPath = "";
+                
+                //Reset the LastUserOpenedPath to something safe
+                LastUserOpenedPath = Environment.GetCommandLineArgs()[0];
+                
+                return e;
             }
             finally
             {
@@ -65,7 +68,7 @@ namespace BefungeSharp
                     rStream.Close();
                 }
             }
-            return inStrings;
+            return null;
         }
 
         /// <summary>
@@ -142,6 +145,52 @@ namespace BefungeSharp
                 testResult |= System.IO.Path.GetFileName(name).Contains(c); //A good input will never return true
             }
             return testResult;
+        }
+
+        /// <summary>
+        /// Generates a short list of strings which are a partial list of directories and files
+        /// </summary>
+        /// <returns>The list of strings to be displayed</returns>
+        public static List<string> PartialDirectoryList(int count)
+        {
+            List<string> outList = new List<string>();
+
+            //TODO:Choose the allowed extentions based on the language
+            string[] allowedExtensions;
+            //Thanks Marc! http://stackoverflow.com/a/30082323
+            allowedExtensions = new string[] { ".bf", ".b93", ".b98", ".tf", ".txt" };
+
+            try
+            {
+                
+                DirectoryInfo info = new DirectoryInfo(Directory.GetCurrentDirectory());
+                List<FileInfo> fileList = info
+                    .GetFiles("*", SearchOption.AllDirectories) //Get all the files with the allowed extensions,
+                    .Where(file => allowedExtensions.Any(file.Extension.ToLower().EndsWith))
+                    //Sort by the last access time so they appear on the top of the list and will get chosen first
+                    .OrderBy(f => f.LastAccessTime)
+                    .ToList();
+                for (int i = 0; i < fileList.Count && i < count; i++)
+                {
+                    outList.Add(fileList[i].FullName.Remove(0, Directory.GetCurrentDirectory().Count() + 1)); 
+                }
+            }
+            catch (Exception e)
+            {
+
+            }
+
+            return outList;
+        }
+
+        public static string FullyExpandPath(string path)
+        {
+            //Expands any environment variables
+            string expanded = Environment.ExpandEnvironmentVariables(path);
+            //Handles cases like . and ..
+            expanded = Path.GetFullPath(expanded);
+            
+            return expanded;
         }
     }
 }

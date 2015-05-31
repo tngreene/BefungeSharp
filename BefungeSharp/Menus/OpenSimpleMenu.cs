@@ -17,7 +17,9 @@ namespace BefungeSharp.Menus
         {
             Console.Clear();
             Console.WriteLine("Enter in a file path (relative to current directory)");
-            Console.WriteLine("For example, examples\\itoroman.bf\n");
+            Console.WriteLine("To see a partial list of existing files type dir");
+            Console.WriteLine("To see the current working directory type \"cd\", to set it use \"cd path\"");
+            DisplayCurrentDirectory();
         }
 
         public void OnClosing()
@@ -28,9 +30,7 @@ namespace BefungeSharp.Menus
         public void RunLoop()
         {
             OnOpening();
-            Directory.SetCurrentDirectory(FileUtils.LastUserOpenedPath);
-            Console.Write("Currently in " + Directory.GetCurrentDirectory());
-            
+
             //Create the output list
             List<string> outputLines = new List<string>();
             int timeoutCounter = 0;
@@ -38,36 +38,72 @@ namespace BefungeSharp.Menus
 
             do
             {
-                //Increase the time out
-                timeoutCounter++;
-
                 //Get the string, such as examples\mything.txt
-                inString = Console.ReadLine();
+                inString = Console.ReadLine().TrimEnd(' ');
 
-                //Apppend C:\Users\...etc + \ + my words
-                string fileString = Directory.GetCurrentDirectory() + inString;
-                Console.WriteLine("\n Attempting to load {0}", fileString);
-                outputLines = FileUtils.ReadFile(fileString);
-
-                if (outputLines.Count == 0)
+                if (inString == "DIR" || inString == "dir")
                 {
-                    Console.WriteLine("\nPlease try again");
+                    List<string> filesList = FileUtils.PartialDirectoryList(15);//15 seems right
+                    foreach (var fileName in filesList)
+                    {
+                        Console.WriteLine(fileName);
+                    }
+                }
+                else if ((inString.StartsWith("CD") || inString.StartsWith("cd")) && inString.Length == 2)
+                {
+                    DisplayCurrentDirectory();
+                }
+                else if ((inString.StartsWith("CD ") || inString.StartsWith("cd ")) && inString.Length > 3)
+                {
+                    string path = "";
+                    try
+                    {
+                        path = FileUtils.FullyExpandPath(Directory.GetCurrentDirectory() + '\\' + inString.Substring(3));
+                        Directory.SetCurrentDirectory(path);
+                        Console.WriteLine();
+                        DisplayCurrentDirectory();
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine(path + " is not a valid path");
+                    }
+                }
+                else
+                {
+                    string path = FileUtils.FullyExpandPath(Directory.GetCurrentDirectory() + '\\' + inString);
+                                        
+                    Console.WriteLine("Attempting to load {0}", path);
+                    Exception e = FileUtils.ReadFile(path, ref outputLines);
+
+                    if (e != null)
+                    {
+                        Console.WriteLine("Please try again");
+                        
+                        //Increase the time out on a failed attempt
+                        timeoutCounter++;                      
+                    }
                 }
             }
             while (outputLines.Count == 0 && timeoutCounter < 3);
 
-            if (timeoutCounter >= 3)
+            if (timeoutCounter == 3)
             {
-                Console.WriteLine("Could not open the file you wanted, starting in \"New File\" mode");
-            }
-            else if (outputLines.Count == 0)
-            {
-                Console.WriteLine("It appears the file had no lines, starting in \"New File\" mode");
+                Console.WriteLine("Could not open file, returning to home screen");
+                OnClosing();
+                return;
             }
 
             Program.BoardManager = new BoardManager(25, 80, outputLines);
+            
+            //Truely start the program up!
             Program.BoardManager.UpdateBoard();
             OnClosing();
+        }
+
+        private void DisplayCurrentDirectory()
+        {
+            Console.WriteLine("Currently in " + Directory.GetCurrentDirectory() + '\\');
+            Console.WriteLine();
         }
     }
 }
