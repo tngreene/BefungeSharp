@@ -63,11 +63,11 @@ namespace BefungeSharp.Menus
             switch (input[0] - 48)
             {
                 case 1://New File
-                        List<string> s = null;// new List<string>();
+                        List<List<int>> s = new List<List<int>>();
                         //s.Add(@"""dlroW olleH"">:#,_@");
                         //s.Add(@"12341234");
                         //s_board_manager = new BoardManager(25, 80, s);
-                        Program.BoardManager = new BoardManager(0, 0, s);
+                        Program.BoardManager = new BoardManager(s);
                         Program.BoardManager.UpdateBoard();
                     break;
                 case 2://Open File

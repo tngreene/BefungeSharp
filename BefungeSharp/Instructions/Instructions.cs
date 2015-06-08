@@ -238,6 +238,8 @@ namespace BefungeSharp.Instructions
                     //-----------------
                     //--FileIO---------
                     case 'i':
+                        instruction_set.Add(c, new FileIO.InputFileInstruction(c, 0));
+                        break;
                     case 'o':
                         instruction_set.Add(c, new SystemCall.NotImplemented(c, 0));                        
                         break;
@@ -375,6 +377,6 @@ namespace BefungeSharp.Instructions
     /// </summary>
     public interface IFungeSpaceAltering
     {
-        List<List<char>> GetFungeSpace();
+        
     }
 }

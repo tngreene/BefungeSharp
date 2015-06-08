@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace BefungeSharp
 {
@@ -28,38 +29,68 @@ namespace BefungeSharp
         /// A wrapper around StreamReader operations
         /// </summary>
         /// <param name="filePath">Full path to the file you want to open, assumed clean</param>
-        /// <param name="fileContents">A list of strings containing the lines of the file</returns>
-        /// <returns>If the write succeedes it will return a null exception, else it will return the exception that was generated</returns>
-        public static Exception ReadFile(string filePath, ref List<string> fileContents)
+        /// <param name="readAsBinary">Reads the file as if it were all binary data</param>
+        /// <param name="supressConsoleMessages">Blocks the printing of console messages (for when not in a terminal like mode)</param>
+        /// <returns>If reading is a success a List of Lists of ints containing the file contents
+        /// will be returned, if there was a problem null will be returned</returns>
+        public static List<List<int>> ReadFile(string filePath, bool readAsBinary, bool supressConsoleMessages)
         {
             //The stream for reading the file
             StreamReader rStream = null;
             
+            List<List<int>> fileContents = new List<List<int>>();
+            fileContents.Add(new List<int>());
+
             try
             {
                 //Create the stream reader from the file path
                 rStream = new StreamReader(filePath);
 
-                string currentLine;
-
-                //While the next character is not null
-                while (rStream.EndOfStream == false)
+                if (readAsBinary == true)
                 {
-                    //Read a line and add it
-                    currentLine = rStream.ReadLine();
-                    fileContents.Add(currentLine);
+                    while (rStream.EndOfStream == false)
+                    {
+                        int value = rStream.Read();
+                        fileContents.Last().Add(value);
+                    }
+                }
+                else
+                {
+                    //While the next character is not null
+                    while (rStream.EndOfStream == false)
+                    {
+                        //Read a line and add it
+                        int value = rStream.Read();
+
+                        if (value == '\r' || value == '\n')
+                        {
+                            //If the line ending is \r\n
+                            if (rStream.Peek() == '\n')
+                            {
+                                //advanced past it
+                                rStream.Read();
+                            }
+                            fileContents.Add(new List<int>());
+                        }
+                        else
+                        {
+                            fileContents.Last().Add(value);
+                        }
+                    }
                 }
                 
                 LastUserOpenedPath = Path.GetFullPath(filePath);
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error reading: " + e.Message);
-                
+                if (supressConsoleMessages == false)
+                {
+                    Console.WriteLine("Error reading: " + e.Message);
+                }
                 //Reset the LastUserOpenedPath to something safe
                 LastUserOpenedPath = Environment.GetCommandLineArgs()[0];
                 
-                return e;
+                return null;
             }
             finally
             {
@@ -70,7 +101,7 @@ namespace BefungeSharp
                 }
             }
 
-            return null;
+            return fileContents;
         }
 
         /// <summary>
@@ -122,7 +153,7 @@ namespace BefungeSharp
         /// <returns>Returns true if the path is a valid path</returns>
         public static bool IsValidPath(string path)
         {
-            //We need atleast a drive letter and :\
+            //We need atleast a drive letter and :\ OR %X%
             if (path.Count() < 3)
             {
                 return false;
@@ -184,9 +215,19 @@ namespace BefungeSharp
 
             //Expands any environment variables
             string expanded = Environment.ExpandEnvironmentVariables(path);
-            //Handles cases like . and ..
-            expanded = Path.GetFullPath(expanded);
-            
+
+            //If it is rooted
+            if (Path.IsPathRooted(expanded) == true)
+            {
+                //Handles cases like . and ..
+                expanded = Path.GetFullPath(expanded);
+            }
+            else
+            {
+                //Else we root it ourselfs
+                expanded = (Directory.GetCurrentDirectory() + '\\' + path);
+                expanded = Path.GetFullPath(expanded);
+            }
             return expanded;
         }
 
@@ -225,7 +266,7 @@ namespace BefungeSharp
             string path = "";
             try
             {
-                path = FileUtils.FullyExpandPath(Directory.GetCurrentDirectory() + '\\' + input.Substring(3));
+                path = FileUtils.FullyExpandPath(input.Substring(3));
                 Directory.SetCurrentDirectory(path);
                 Console.WriteLine();
                 FileUtils.DisplayCurrentDirectory();

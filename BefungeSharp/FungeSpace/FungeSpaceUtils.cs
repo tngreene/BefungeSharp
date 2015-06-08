@@ -134,7 +134,23 @@ namespace BefungeSharp.FungeSpace
             
             return outArray;
         }
-        
+
+        public static void OverlayMatrix(FungeSparseMatrix base_matrix, FungeSparseMatrix overlay_matrix, Vector2 overlay_start)
+        {
+            foreach (var node in overlay_matrix)
+            {
+                if (node.Data.value == ' ')
+                {
+                    continue;
+                }
+
+                FungeCell overlay_cell = node.Data;
+                overlay_cell.x += overlay_start.x;
+                overlay_cell.y += overlay_start.y;
+                base_matrix.InsertCell(overlay_cell);
+            }
+        }
+
         /// <summary>
         /// Fills the matrix's empty spaces with a certain value
         /// </summary>

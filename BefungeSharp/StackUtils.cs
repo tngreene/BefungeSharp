@@ -29,11 +29,12 @@ namespace BefungeSharp
 
             while(stack.Count > 0)
             {
-                c = (char)stack.Pop();
+                c = (char)stack.PopOrDefault();
                 
                 if (c != '\0')
                 {
                     outString += c;
+                    //TODO:Is this useful or good anymore?
                     if (isPath == true)
                     {
                         //If we just added a \ and its time to add a "
@@ -92,7 +93,7 @@ namespace BefungeSharp
             int i = 0;
             while (stack.Count >= 1 && i < 2)
             {
-                vector[i] = stack.Pop();
+                vector[i] = stack.PopOrDefault();
                 i++;
             }
             return new Vector2(vector[1], vector[0]);

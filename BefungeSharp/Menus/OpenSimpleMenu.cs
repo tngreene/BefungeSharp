@@ -40,7 +40,7 @@ namespace BefungeSharp.Menus
             OnOpening();
 
             //Create the output list
-            List<string> outputLines = new List<string>();
+            List<List<int>> outputLines = new List<List<int>>();
 
             string input = "";
             int timeout = 0;
@@ -99,7 +99,7 @@ namespace BefungeSharp.Menus
                 if (path == "")
                 {
                     //If we have a last user opened path
-                    path = FileUtils.FullyExpandPath(Directory.GetCurrentDirectory() + '\\' + input);
+                    path = FileUtils.FullyExpandPath(input);
                 }
 
                 if (FileUtils.IsValidPath(path) == false)
@@ -122,18 +122,10 @@ namespace BefungeSharp.Menus
                 //then give a warning and ask them what they want to do
                 Console.WriteLine("Attempting to load {0}", path);
                 Console.WriteLine();
-                Exception e = FileUtils.ReadFile(path, ref outputLines);
-                
-                if (outputLines.Count == 0)
-                {
-                    Console.WriteLine("File is either empty or did not read correctly");
-                    Console.WriteLine();
-                    timeout++;
-                    continue;
-                }
-
+                outputLines = FileUtils.ReadFile(path, false, false);
+               
                 //--General FileMenu content-----
-                if (e != null)
+                if (outputLines == null)
                 {
                     Console.WriteLine("Please try again");
                     Console.WriteLine();
@@ -149,7 +141,7 @@ namespace BefungeSharp.Menus
                 }
                 //--End General FileMenu content-
             }
-            while (outputLines.Count == 0 && timeout < 3);
+            while (timeout < 3);
 
             if (timeout == 3)
             {
@@ -158,7 +150,7 @@ namespace BefungeSharp.Menus
                 return;
             }
 
-            Program.BoardManager = new BoardManager(25, 80, outputLines);
+            Program.BoardManager = new BoardManager(outputLines);
 
             //Truely start the program up!
             Program.BoardManager.UpdateBoard();

@@ -11,46 +11,16 @@ namespace BefungeSharp
         /// <summary>
         /// Creates a new BoardManager with the options to set up its entire intial state and run type
         /// </summary>
-        /// <param name="rows">Number of rows</param>
-        /// <param name="columns">Number of columns</param>
-        /// <param name="initStrings">
+        /// <param name="init_board">
         /// Each element in the array represents a row of text.
         /// If you wish a blank board pass in an empty array
         /// </param>
         /// <param name="initGlobalStack">Initialize the input stack with preset numbers</param>
         /// <param name="mode">Chooses what mode you would like to start the board in</param>
-        public BoardManager(int rows, int columns, List<string> initStrings = null,
+        public BoardManager(List<List<int>> init_board,
                             Stack<int> initGlobalStack = null, BoardMode mode = BoardMode.Edit)
         {
-            List<List<int>> int_array = null;
-            if (initStrings == null)
-            {
-                int_array = new List<List<int>>();
-                //Fill up the whole rectangle with spaces
-                for (int y = 0; y < rows; y++)
-                {
-                    int_array.Add(new List<int>());
-                    for (int x = 1; x < columns; x++)
-                    {
-                        int_array[y].Add(' ');
-                    }
-                }
-            }
-            else
-            {
-                int_array = new List<List<int>>();
-                //Fill up the whole rectangle with the intial load
-                for (int y = 0; y < initStrings.Count; y++)
-                {
-                    int_array.Add(new List<int>());
-                    for (int x = 0; x < initStrings[y].Length; x++)
-                    {
-                        int_array[y].Add(initStrings[y][x]);
-                    }
-                }
-            }
-
-            Program.Interpreter = new Interpreter(int_array, initGlobalStack, mode);
+            Program.Interpreter = new Interpreter(init_board, initGlobalStack, mode);
 
             Program.WindowUI = new WindowUI(Program.Interpreter);
             Program.WindowSideBar = new WindowSideBar(this, Program.Interpreter);
