@@ -31,9 +31,10 @@ namespace BefungeSharp
         /// <param name="filePath">Full path to the file you want to open, assumed clean</param>
         /// <param name="readAsBinary">Reads the file as if it were all binary data</param>
         /// <param name="supressConsoleMessages">Blocks the printing of console messages (for when not in a terminal like mode)</param>
+        /// <param name="changeLastUsed">If true it allows for the IDE's last used file</param>
         /// <returns>If reading is a success a List of Lists of ints containing the file contents
         /// will be returned, if there was a problem null will be returned</returns>
-        public static List<List<int>> ReadFile(string filePath, bool readAsBinary, bool supressConsoleMessages)
+        public static List<List<int>> ReadFile(string filePath, bool readAsBinary, bool supressConsoleMessages, bool changeLastUsed)
         {
             //The stream for reading the file
             StreamReader rStream = null;
@@ -78,8 +79,11 @@ namespace BefungeSharp
                         }
                     }
                 }
-                
-                LastUserOpenedPath = Path.GetFullPath(filePath);
+
+                if (changeLastUsed == true)
+                {
+                    LastUserOpenedPath = Path.GetFullPath(filePath);
+                }
             }
             catch (Exception e)
             {
@@ -87,9 +91,12 @@ namespace BefungeSharp
                 {
                     Console.WriteLine("Error reading: " + e.Message);
                 }
-                //Reset the LastUserOpenedPath to something safe
-                LastUserOpenedPath = Environment.GetCommandLineArgs()[0];
                 
+                if (changeLastUsed == true)
+                {
+                    //Reset the LastUserOpenedPath to something safe
+                    LastUserOpenedPath = Environment.GetCommandLineArgs()[0];
+                }
                 return null;
             }
             finally
@@ -109,8 +116,11 @@ namespace BefungeSharp
         /// </summary>
         /// <param name="filePath">Full path to the file you want to open</param>
         /// <param name="outStrings">The list of strings you want to write out</param>
-        /// <returns>If the write succeedes it will return a null exception, else it will return the exception that was generated</returns>
-        public static Exception WriteFile(string filePath, List<string> outStrings)
+        /// <param name="writeAsBinary">Writes file as according to the Funge-98 spec on the 'o' writing as a binary file</param>
+        /// <param name="supressConsoleMessages">Blocks the printing of console messages (for when not in a terminal like mode)</param>
+        /// <param name="changeLastUsed">If true it allows for the IDE's last used file</param>
+        /// <returns>Returns true if the file was written succesfully, false if not</returns>
+        public static bool WriteFile(string filePath, List<List<int>> outStrings, bool supressConsoleMessages, bool changeLastUsed)
         {
             //The stream for writing the file
             StreamWriter wStream = null;
@@ -119,10 +129,15 @@ namespace BefungeSharp
                 //Create the stream writer from the file path
                 wStream = new StreamWriter(filePath);
 
-                for (int i = 0; i < outStrings.Count; i++)
-                {
-                    wStream.WriteLine(outStrings[i]);
-                }
+                for (int r = 0; r < outStrings.Count; r++)
+			    {
+                    //Attempt to find the last space in the row
+                    for (int c = 0; c < outStrings[r].Count; c++)
+                    {
+                        wStream.Write((char)outStrings[r][c]);
+                    }
+                    wStream.WriteLine();
+			    }
                 
                 LastUserOpenedPath = Path.GetFullPath(filePath);
             }
@@ -133,7 +148,7 @@ namespace BefungeSharp
                 //Reset the LastUserOpenedPath to something safe
                 LastUserOpenedPath = Environment.GetCommandLineArgs()[0];
 
-                return e;
+                return false;
             }
             finally
             {
@@ -143,7 +158,7 @@ namespace BefungeSharp
                     wStream.Close();
                 }
             }
-            return null;
+            return true;
         }//void WriteFile
 
         /// <summary>

@@ -261,15 +261,10 @@ namespace BefungeSharp.FungeSpace
         public FungeNode Origin { get { return m_Origin; } set { m_Origin = value; } }
 
         /// <summary>
-        /// The area to enumerate over, defaults every time to FS_THEORETICAL
-        /// </summary>
-        private FungeSpaceArea _area;
-        
-        /// <summary>
         /// The area to enumerate over, if bounds are desired they must be set per enumeration and are
         /// reset to FS_THEORETICAL every time afterward
         /// </summary>
-        public FungeSpaceArea EnumerationArea { get { return _area; } internal set { _area = value; } }
+        public FungeSpaceArea EnumerationArea { get; internal set; }
 
         private FungeSpaceArea _matrix_bounds;
         public FungeSpaceArea MatrixBounds { get { return _matrix_bounds; } }
@@ -294,7 +289,7 @@ namespace BefungeSharp.FungeSpace
             m_Origin.ParentMatrix = this;
             m_Nodes.Add(m_Origin);
 
-            _area = FS_THEORETICAL;
+            EnumerationArea = FS_THEORETICAL;
             _matrix_bounds = new FungeSpaceArea(0, 0, 0, 0);
         }
 
@@ -401,8 +396,9 @@ namespace BefungeSharp.FungeSpace
                     }
                 }
             }
+
+            EnumerationArea = FS_THEORETICAL;
             _matrix_bounds = new FungeSpaceArea(0, 0, rows-1, columns-1);
-            _area = FS_THEORETICAL;
         }
 
         /// <summary>
@@ -429,13 +425,13 @@ namespace BefungeSharp.FungeSpace
         /// <returns>The FungeNode if found or null if not found</returns>
         public FungeNode GetNode(int row, int column)
         {
-            System.Diagnostics.Stopwatch watch = System.Diagnostics.Stopwatch.StartNew();
-            _area = new FungeSpaceArea(row, column, int.MaxValue, int.MaxValue);
+            //System.Diagnostics.Stopwatch watch = System.Diagnostics.Stopwatch.StartNew();
+            EnumerationArea = new FungeSpaceArea(row, column, int.MaxValue, int.MaxValue);
             foreach (var node in this)
             {
                 if (node.Data.y == row && node.Data.x == column)
                 {
-                    TimeSpan span = watch.Elapsed;
+              //      TimeSpan span = watch.Elapsed;
                     return node;
                 }
             }
@@ -804,34 +800,34 @@ namespace BefungeSharp.FungeSpace
 
         public IEnumerator<FungeNode> GetEnumerator()
         {
-            FungeSparseMatrixRowEnumerator _row_enumerator = new FungeSparseMatrixRowEnumerator(m_Origin, _area.top, _area.bottom);
+            FungeSparseMatrixRowEnumerator _row_enumerator = new FungeSparseMatrixRowEnumerator(m_Origin, EnumerationArea.top, EnumerationArea.bottom);
             
             while(_row_enumerator.MoveNext() == true)
             {
-                var _column_enumerator = new FungeSparseMatrixColumnEnumerator(_row_enumerator.Current, _area.left, _area.right);
+                var _column_enumerator = new FungeSparseMatrixColumnEnumerator(_row_enumerator.Current, EnumerationArea.left, EnumerationArea.right);
                 while (_column_enumerator.MoveNext() == true)
                 {
                     yield return _column_enumerator.Current;
                 }
             }
 
-            _area = FS_THEORETICAL;
+            EnumerationArea = FS_THEORETICAL;
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            FungeSparseMatrixRowEnumerator _row_enumerator = new FungeSparseMatrixRowEnumerator(m_Origin, _area.top, _area.bottom);
+            FungeSparseMatrixRowEnumerator _row_enumerator = new FungeSparseMatrixRowEnumerator(m_Origin, EnumerationArea.top, EnumerationArea.bottom);
             
             while(_row_enumerator.MoveNext() == true)
             {
-                var _column_enumerator = new FungeSparseMatrixColumnEnumerator(_row_enumerator.Current, _area.left, _area.right);
+                var _column_enumerator = new FungeSparseMatrixColumnEnumerator(_row_enumerator.Current, EnumerationArea.left, EnumerationArea.right);
                 while (_column_enumerator.MoveNext() == true)
                 {
                     yield return _column_enumerator.Current;
                 }
             }
 
-            _area = FS_THEORETICAL;
+            EnumerationArea = FS_THEORETICAL;
         }
 
         /// <summary>

@@ -127,13 +127,13 @@ namespace BefungeSharp.Menus
                 bounds[0].x = 0;
                 bounds[0].y = 0;
 
-                List<string> outStrings = FungeSpace.FungeSpaceUtils.MatrixToStringList(Program.Interpreter.FungeSpace, bounds);
+                List<List<int>> outStrings = FungeSpace.FungeSpaceUtils.MatrixToDynamicArray(Program.Interpreter.FungeSpace, bounds);
                     
                 Console.WriteLine("Attempting to save {0}", path);
-                Exception e = FileUtils.WriteFile(path, outStrings);
+                bool success = FileUtils.WriteFile(path, outStrings, false, true);
 
                 //--General FileMenu content-----
-                if (e != null)
+                if (success == false)
                 {
                     Console.WriteLine("Please try again");
 

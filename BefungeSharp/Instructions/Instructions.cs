@@ -241,7 +241,7 @@ namespace BefungeSharp.Instructions
                         instruction_set.Add(c, new FileIO.InputFileInstruction(c, 0));
                         break;
                     case 'o':
-                        instruction_set.Add(c, new SystemCall.NotImplemented(c, 0));                        
+                        instruction_set.Add(c, new FileIO.OutputFileInstruction(c, 0));                        
                         break;
                     //-----------------
                     //--Data Storage---
@@ -330,8 +330,10 @@ namespace BefungeSharp.Instructions
     /// </summary>
     public interface IRequiresPop
     {
+        //NOTE: Due to the fact we are now using Stack.PopOrDefault this is no longer relavent. However,
+        //, we are going to continue filling this out because who knows, it may be useful at somepoint.
         /// <summary>
-        /// How many cells must be on the stack for it to work
+        /// How many cells must be on the stack for it to work,
         /// </summary>
         int RequiredCells();
     }

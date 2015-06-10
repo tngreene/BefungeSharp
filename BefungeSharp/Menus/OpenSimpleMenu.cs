@@ -122,7 +122,7 @@ namespace BefungeSharp.Menus
                 //then give a warning and ask them what they want to do
                 Console.WriteLine("Attempting to load {0}", path);
                 Console.WriteLine();
-                outputLines = FileUtils.ReadFile(path, false, false);
+                outputLines = FileUtils.ReadFile(path, false, false, true);
                
                 //--General FileMenu content-----
                 if (outputLines == null)
