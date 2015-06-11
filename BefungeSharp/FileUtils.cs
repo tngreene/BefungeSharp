@@ -363,6 +363,7 @@ namespace BefungeSharp
                     .Where(file => allowedExtensions.Any(file.Extension.ToLower().EndsWith))
                     //Sort by the last access time so they appear on the top of the list and will get chosen first
                     .OrderBy(f => f.LastAccessTime)
+                    .Reverse()
                     .ToList();
 
                 if (start_index >= fileList.Count == true)

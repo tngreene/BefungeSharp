@@ -90,7 +90,7 @@ namespace BefungeSharp.Menus
                 if (path == "")
                 {
                     //If we have a last user opened path
-                    path = FileUtils.FullyExpandPath(Directory.GetCurrentDirectory() + '\\' + input);
+                    path = FileUtils.FullyExpandPath(input);
                 }
 
                 if (FileUtils.IsValidPath(path) == false)
@@ -107,6 +107,19 @@ namespace BefungeSharp.Menus
                     continue;
                 }
                 //--End General FileMenu content-
+
+                //File overwrite safeguard
+                if (File.Exists(path) == true)
+                {
+                    Console.WriteLine("{0} already exists, are you sure you want to overwrite file? Y/N", Path.GetFileName(path));
+                    input = Console.ReadKey().KeyChar.ToString().ToLower();
+                    Console.WriteLine();
+                    if (input != "y")
+                    {
+                        Console.WriteLine("Aborting save, please input new file name");
+                        continue;
+                    }
+                }
 
                 Vector2[] bounds = FungeSpace.FungeSpaceUtils.GetMatrixBounds(Program.Interpreter.FungeSpace);
                 //Make sure we're only saving Q1
