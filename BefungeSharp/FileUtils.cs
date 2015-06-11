@@ -194,8 +194,8 @@ namespace BefungeSharp
         /// <returns>Returns true if the path is a valid path</returns>
         public static bool IsValidPath(string path)
         {
-            //We need atleast a drive letter and :\ OR %X%
-            if (path.Count() < 3)
+            //We need atleast "."
+            if (path == "")
             {
                 return false;
             }
@@ -282,72 +282,79 @@ namespace BefungeSharp
         }
 
         /// <summary>
-        /// Tries to run our pretend CD command, 
-        /// without accepting the optional argument for a path to change directories to
+        /// Our CMD-like CD command
         /// </summary>
-        /// <param name="input">The input to test if it is "CD" or "cd"</param>
+        /// <param name="input">What to try to parse for our CD command</param>
         /// <returns>
-        /// Returns true if the input was the CD command,
+        /// Returns true if the input was valid for the CD command,
         /// false if not or if there was a problem
         /// </returns>
         public static bool CDCommand(string input)
         {
-            if ((input.ToLower().StartsWith("cd")) && input.Length == 2)
+            input = input.Trim().ToLower();
+            if (input == "cd")
             {
                 FileUtils.DisplayCurrentDirectory();
                 return true;
             }
+            else if (input.StartsWith("cd ") && input.Length >= 3 + 1)//+1 because it needs to be atleast cd .
+            {
+                string path = "";
+                try
+                {
+                    path = FileUtils.FullyExpandPath(input.Substring(3));
+                    Directory.SetCurrentDirectory(path);
+                    Console.WriteLine();
+                    FileUtils.DisplayCurrentDirectory();
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine(path + " is not a valid path");
+                    Console.WriteLine();
+                    return false;
+                }
+            }
             else
             {
-                return false;
-            }
-        }
-
-        /// <summary>
-        /// Tries to run our pretend CD command, with the path argument
-        /// </summary>
-        /// <param name="input">The input to test if it is the command</param>
-        /// <returns>
-        /// Returns true if the input was the CD command with the path argument,
-        /// false if not or there was a problem
-        /// </returns>
-        public static bool CD_WithPathCommand(string input)
-        {
-            string path = "";
-            try
-            {
-                path = FileUtils.FullyExpandPath(input.Substring(3));
-                Directory.SetCurrentDirectory(path);
+                Console.WriteLine(input + " is not a valid path");
                 Console.WriteLine();
-                FileUtils.DisplayCurrentDirectory();
-            }
-            catch (Exception)
-            {
-                Console.WriteLine(path + " is not a valid path");
-                Console.WriteLine();
-                return false;
             }
             return true;
         }
 
-        /// <summary>
-        /// Tries to run our pretend DIR command,
-        /// printing out a partial list of the most recently used files
-        /// </summary>
-        /// <param name="input">The input to test if it is "DIR" or "dir"</param>
-        /// <returns>
-        /// Returns true if the input was the DIR command,
-        /// false if not
-        /// </returns>
-        public static bool DIRCommand(string input, int start_index = 0, int count = 15)
-        {
-            List<string> outList = new List<string>();
 
+        /// <summary>
+        /// Our CMD-like DIR command.
+        /// Prints out a partial list of the most recently used files
+        /// </summary>
+        /// <param name="input">What to try to parse for our DIR command</param>
+        /// <returns>
+        /// True if the input was valid for the DIR command,
+        /// false if not or if there was a problem
+        /// </returns>
+        public static bool DIRCommand(string input)
+        {
+            int start_index = 0;
+            
+            Match dir_match = Regex.Match(input.Trim().ToLower(), "dir ([0-9]+)$");
+            if (dir_match.Success == true)
+            {
+                start_index = Convert.ToInt32(dir_match.Groups[1].Value);
+            }
+            else
+            {
+                start_index = 0;
+            }
+
+            int count = 10;
+            
+            List<string> outList = new List<string>();
             //TODO:Choose the allowed extentions based on the language
             string[] allowedExtensions;
+            
             //Thanks Marc! http://stackoverflow.com/a/30082323
             allowedExtensions = new string[] { ".bf", ".b93", ".b98", ".tf", ".txt" };
-
+            
             try
             {
                 DirectoryInfo info = new DirectoryInfo(Directory.GetCurrentDirectory());
@@ -358,15 +365,23 @@ namespace BefungeSharp
                     .OrderBy(f => f.LastAccessTime)
                     .ToList();
 
-                Console.WriteLine("Found {0} files, displaying up to {1} starting at index {2}:", fileList.Count, count, start_index);
-                for (int i = start_index; i < fileList.Count || i < count; i++)
+                if (start_index >= fileList.Count == true)
+                {
+                    Console.WriteLine("Found {0} files, start index {1} too high, displaying nothing", fileList.Count, start_index);
+                }
+                else
+                {
+                    Console.WriteLine("Found {0} files, displaying up to {1} starting at index {2}:", fileList.Count, count, start_index);
+                }
+                for (int i = start_index; i < fileList.Count && i < start_index + count; i++)
                 {
                     outList.Add(fileList[i].FullName.Remove(0, Directory.GetCurrentDirectory().Count() + 1));
                 }
             }
             catch (Exception e)
             {
-
+                Console.WriteLine();
+                return false;
             }
 
             foreach (var fileName in outList)
@@ -438,7 +453,16 @@ namespace BefungeSharp
 
         public static void DisplayCurrentDirectory()
         {
-            Console.WriteLine("Currently in " + Directory.GetCurrentDirectory() + '\\');
+            //Takes care of a silly asthetic problem where it would print out 
+            //C:\\ instead of C:\
+            if (Directory.GetCurrentDirectory().Length == 3)
+            {
+                Console.WriteLine("Currently in " + Directory.GetCurrentDirectory());
+            }
+            else
+            {
+                Console.WriteLine("Currently in " + Directory.GetCurrentDirectory() + '\\');
+            }
             Console.WriteLine();
         }
     }

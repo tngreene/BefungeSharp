@@ -23,8 +23,6 @@ namespace BefungeSharp.Menus
 
             Console.Clear();
             Console.WriteLine("*Enter in a file path (relative to current directory)");
-            Console.WriteLine();
-
             Console.WriteLine("*Type help for a list of advanced commands");
 
             Console.WriteLine();
@@ -53,51 +51,39 @@ namespace BefungeSharp.Menus
             do
             {
                 string path = "";
-                input = Console.ReadLine().Trim();
+                input = Console.ReadLine().Trim().ToLower();
 
-                //Attempt to use our commands
-                string testIfCommand = input.ToLower();
-
-                Match dir_match = Regex.Match(testIfCommand, "dir ([0-9]+)$");
-
-                if (testIfCommand == "back")
+                if (input == "back")
                 {
                     return;
                 }
-                //Test if we are using the simple "dir" or one with parameters
-                else if (testIfCommand == "dir")
+                else if (input.StartsWith("dir"))
                 {
-                    FileUtils.DIRCommand(input, 0, 15);
+                    FileUtils.DIRCommand(input);
                     continue;
                 }
-                else if (dir_match.Success == true)
-                {
-                    FileUtils.DIRCommand(input, Convert.ToInt32(dir_match.Groups[1].Value), 15);
-                    continue;
-                }
-                else if ((testIfCommand.StartsWith("cd")) && testIfCommand.Length == 2)
+                else if (input.StartsWith("cd"))
                 {
                     FileUtils.CDCommand(input);
                     continue;
                 }
-                else if (testIfCommand.StartsWith("cd ") && testIfCommand.Length > 3)
-                {
-                    FileUtils.CD_WithPathCommand(input);
-                    continue;
-                }
-                else if (testIfCommand == "help")
+                else if (input == "help")
                 {
                     FileUtils.HelpCommand();
                     continue;
                 }
-                else if (testIfCommand == "last")
+                else if (input == "last")
                 {
                     FileUtils.LastCommand(input);
                     continue;
                 }
-                else if (testIfCommand == "use last")
+                else if (input == "use last")
                 {
                     path = FileUtils.UseLastCommand(input);
+                    if (path == "")
+                    {
+                        continue;
+                    }
                 }
 
                 //If by this point the path has not been assaigned use the input
