@@ -466,6 +466,20 @@ namespace BefungeSharp
                 System.Threading.Thread.Sleep(150);
             }
 
+            if (mode == BoardMode.Edit)
+            {
+                //Resets the board back to its original state
+                bool r = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_R);
+                if (r && alt)
+                {
+                    List<List<int>> originalSource = FileUtils.ReadFile(FileUtils.LastUserOpenedPath, false, true, true);
+                    if (originalSource == null)
+                    {
+                        originalSource = new List<List<int>>();
+                    }
+                    Program.Interpreter = new Interpreter(originalSource);
+                }
+            }
             //TODO:FEATURE? What does Select All mean to us in text editor mode? Do we want this?
             /*bool a = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_A);
             if (a && control)

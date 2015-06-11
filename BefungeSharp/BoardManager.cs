@@ -21,20 +21,9 @@ namespace BefungeSharp
                             Stack<int> initGlobalStack = null, BoardMode mode = BoardMode.Edit)
         {
             Program.Interpreter = new Interpreter(init_board, initGlobalStack, mode);
-
+         
             Program.WindowUI = new WindowUI(Program.Interpreter);
             Program.WindowSideBar = new WindowSideBar(this, Program.Interpreter);
-          
-            Console.CursorVisible = false;
-         
-            //Draw the field and ui and reset the position
-            Program.WindowUI.ClearArea(Program.Interpreter.CurMode);
-            Program.WindowUI.Draw(Program.Interpreter.CurMode);
-
-            Program.WindowSideBar.ClearArea(Program.Interpreter.CurMode);
-            Program.WindowSideBar.Draw(Program.Interpreter.CurMode);
-           
-            ConEx.ConEx_Draw.DrawScreen();
         }
 
         /// <summary>

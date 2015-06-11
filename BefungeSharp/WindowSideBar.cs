@@ -124,6 +124,7 @@ namespace BefungeSharp
                                                     //X indicates the feature has not been implemented
                                                     "║New File - Ctrl + N              ║",
                                                     "║Save - Alt + S                   ║",
+                                                    "║Reload Source - Alt + R          ║",
                                                     "║Run (Step) - F1                  ║",
                                                     "║Run (Real Time) - F2 - F5        ║",//TODO:OPTION["DefaultSpeed"]
                                                     "║Run (Terminal Mode) - F6         ║",

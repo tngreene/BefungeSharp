@@ -18,11 +18,14 @@ namespace BefungeSharp.Menus
         public void OnOpening()
         {
             //--General FileMenu content---------
+            Console.SetCursorPosition(0, 0);
+            Console.CursorVisible = true;
+
             Console.Clear();
-            Console.WriteLine("Enter in a file path (relative to current directory)");
+            Console.WriteLine("*Enter in a file path (relative to current directory)");
             Console.WriteLine();
 
-            Console.WriteLine("Type help for a list of advanced commands");
+            Console.WriteLine("*Type help for a list of advanced commands");
 
             Console.WriteLine();
             FileUtils.DisplayCurrentDirectory();
@@ -31,7 +34,12 @@ namespace BefungeSharp.Menus
 
         public void OnClosing()
         {
-            return;
+            //--General FileMenu content---------
+            Console.WriteLine("Press any key to continue");
+            Console.ReadKey(true);
+            Console.Clear();
+            Console.CursorVisible = false;
+            //--End General FileMenu content-----
         }
 
         public void RunLoop()
@@ -150,11 +158,28 @@ namespace BefungeSharp.Menus
                 return;
             }
 
+            System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            int rows = outputLines.Count;
+            int columns = 0;
+
+            foreach (var list in outputLines)
+            {
+                if (columns < list.Count)
+                {
+                    columns = list.Count;
+                }
+            }
+
+            //TODO:Is this useful to ever show?
+            Console.WriteLine("Creating FungeSpace with a width of {0} and a height of {1}", columns, rows);
+            Console.WriteLine("Please wait");
             Program.BoardManager = new BoardManager(outputLines);
+            stopwatch.Stop();
+            Console.WriteLine("Completed in {0}", stopwatch.Elapsed);
+            OnClosing();
 
             //Truely start the program up!
             Program.BoardManager.UpdateBoard();
-            OnClosing();
         }
     }
 }

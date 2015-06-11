@@ -99,8 +99,6 @@ namespace BefungeSharp
             FS_SAVEABLE = FS_DEFAULT;
             FS_EXTENDED = FS_DEFAULT;
             
-            System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            
             int rows = initial_chars.Count;
             int columns = 0;
 
@@ -111,16 +109,9 @@ namespace BefungeSharp
                     columns = list.Count;
                 }
             }
-            //Create FungeSpace, prefilled with ' '
-            Console.WriteLine("Creating FungeSpace with a width of {0} and a height of {1}", columns, rows);
-            Console.WriteLine("Please wait");
-            _fungeSpace = new FungeSparseMatrix(initial_chars);
-            stopwatch.Stop();
-            Console.WriteLine(stopwatch.Elapsed);
-            Console.WriteLine("Press any key to continue");
-            Console.ReadKey(true);
             
-
+            _fungeSpace = new FungeSparseMatrix(initial_chars);
+            
             _IPs = new List<IP>();
             _editIP = new IP(_fungeSpace.Origin, Vector2.East, Vector2.Zero, new Stack<Stack<int>>(), -1, false);
             

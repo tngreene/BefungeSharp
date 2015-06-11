@@ -14,15 +14,38 @@ namespace BefungeSharp
     /// </summary>
     public static class FileUtils
     {
-        
+        /// <summary>
+        /// The fully rooted last used file path,
+        /// or "" if there was no last used file
+        /// </summary>
         public static string LastUserOpenedPath { get; private set;}
 
-        public static string LastUserOpenedDirectory { get { return Path.GetDirectoryName(LastUserOpenedPath); } }
+        /// <summary>
+        /// The fully rooted directory of the last used file,
+        /// or "" if there was no last used file
+        /// </summary>
+        public static string LastUserOpenedDirectory { 
+            get
+            {
+                if (LastUserOpenedPath == "")
+                {
+                    return "";
+                }
+                else
+                {
+                    return Path.GetDirectoryName(LastUserOpenedPath);
+                }
+            } 
+        }
+
+        /// <summary>
+        /// The file name of the last used file, without the rooted path
+        /// </summary>
         public static string LastUserOpenedFile { get { return Path.GetFileName(LastUserOpenedPath); } }
         
         static FileUtils()
         {
-            LastUserOpenedPath = Environment.GetCommandLineArgs()[0];
+            LastUserOpenedPath = "";// Environment.GetCommandLineArgs()[0];
         }
 
         /// <summary>
@@ -95,7 +118,7 @@ namespace BefungeSharp
                 if (changeLastUsed == true)
                 {
                     //Reset the LastUserOpenedPath to something safe
-                    LastUserOpenedPath = Environment.GetCommandLineArgs()[0];
+                    LastUserOpenedPath = "";
                 }
                 return null;
             }
@@ -139,14 +162,17 @@ namespace BefungeSharp
                     wStream.WriteLine();
 			    }
                 
-                LastUserOpenedPath = Path.GetFullPath(filePath);
+                if (changeLastUsed == true)
+                {
+                    LastUserOpenedPath = Path.GetFullPath(filePath);
+                }
             }
             catch (Exception e)
             {
                 Console.WriteLine("Error reading: " + e.Message);
 
                 //Reset the LastUserOpenedPath to something safe
-                LastUserOpenedPath = Environment.GetCommandLineArgs()[0];
+                LastUserOpenedPath = "";
 
                 return false;
             }
@@ -368,7 +394,7 @@ namespace BefungeSharp
         public static bool LastCommand(string input)
         {
             //We never tell people that we're using the exe as a technicality
-            if (FileUtils.LastUserOpenedPath == Environment.GetCommandLineArgs()[0])
+            if (FileUtils.LastUserOpenedPath == "")
             {
                 Console.WriteLine("No files have been used this session");
                 Console.WriteLine();
@@ -392,7 +418,7 @@ namespace BefungeSharp
         public static string UseLastCommand(string input)
         {
             //We never allow opening the default
-            if (FileUtils.LastUserOpenedPath == Environment.GetCommandLineArgs()[0])
+            if (FileUtils.LastUserOpenedPath == "")
             {
                 Console.WriteLine("No last used file to use");
                 Console.WriteLine();

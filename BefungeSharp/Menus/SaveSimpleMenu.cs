@@ -17,15 +17,15 @@ namespace BefungeSharp.Menus
 
         public void OnOpening()
         {
+            //--General FileMenu content---------
             Console.SetCursorPosition(0, 0);
             Console.CursorVisible = true;
 
-            //--General FileMenu content---------
             Console.Clear();
-            Console.WriteLine("Enter in a file path (relative to current directory)");
+            Console.WriteLine("*Enter in a file path (relative to current directory)");
             Console.WriteLine();
 
-            Console.WriteLine("Type help for a list of advanced commands");
+            Console.WriteLine("*Type help for a list of advanced commands");
 
             Console.WriteLine();
             FileUtils.DisplayCurrentDirectory();
