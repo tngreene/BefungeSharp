@@ -255,19 +255,28 @@ namespace BefungeSharp
             }
 
             //Expands any environment variables
-            string expanded = Environment.ExpandEnvironmentVariables(path);
+            string expanded = "";
 
-            //If it is rooted
-            if (Path.IsPathRooted(expanded) == true)
+            try
             {
-                //Handles cases like . and ..
-                expanded = Path.GetFullPath(expanded);
+                expanded = Environment.ExpandEnvironmentVariables(path);
+
+                //If it is rooted
+                if (Path.IsPathRooted(expanded) == true)
+                {
+                    //Handles cases like . and ..
+                    expanded = Path.GetFullPath(expanded);
+                }
+                else
+                {
+                    //Else we root it ourselfs
+                    expanded = (Directory.GetCurrentDirectory() + '\\' + path);
+                    expanded = Path.GetFullPath(expanded);
+                }
             }
-            else
+            catch (Exception)
             {
-                //Else we root it ourselfs
-                expanded = (Directory.GetCurrentDirectory() + '\\' + path);
-                expanded = Path.GetFullPath(expanded);
+                return "";
             }
             return expanded;
         }
