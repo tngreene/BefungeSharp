@@ -14,6 +14,7 @@ namespace BefungeSharp
     /// </summary>
     public static class FileUtils
     {
+        public static Encoding LastUsedEncoding { get; private set; }
         /// <summary>
         /// The fully rooted last used file path,
         /// or "" if there was no last used file
@@ -46,6 +47,7 @@ namespace BefungeSharp
         static FileUtils()
         {
             LastUserOpenedPath = "";// Environment.GetCommandLineArgs()[0];
+            LastUsedEncoding = Encoding.UTF8;
         }
 
         /// <summary>
@@ -60,52 +62,66 @@ namespace BefungeSharp
         public static List<List<int>> ReadFile(string filePath, bool readAsBinary, bool supressConsoleMessages, bool changeLastUsed)
         {
             //The stream for reading the file
-            StreamReader rStream = null;
-            
+            FileStream fStream = null;
+
             List<List<int>> fileContents = new List<List<int>>();
             fileContents.Add(new List<int>());
 
             try
             {
-                //Create the stream reader from the file path
-                rStream = new StreamReader(filePath);
+                fStream = File.OpenRead(filePath);
 
-                if (readAsBinary == true)
+                //Attempt to read BOM Marks, test them
+                byte[] BOMMarks = new byte[4];
+                fStream.Read(BOMMarks, 0, 4);
+                LastUsedEncoding = DetectBOMBytes(BOMMarks);
+
+                //If we are not using any Unicode Encodings,
+                //assume we are just using ANSI text files
+                if (LastUsedEncoding == null)
                 {
-                    while (rStream.EndOfStream == false)
-                    {
-                        int value = rStream.Read();
-                        fileContents.Last().Add(value);
-                    }
+                    LastUsedEncoding = Encoding.Default;
                 }
-                else
+                
+                fStream.Position = 0;
+                using (StreamReader rStream = new StreamReader(fStream, LastUsedEncoding))
                 {
-                    //While the next character is not null
-                    while (rStream.EndOfStream == false)
+                    if (readAsBinary == true)
                     {
-                        //Read a line and add it
-                        int value = rStream.Read();
-
-                        if (value == '\r' || value == '\n')
+                        while (rStream.EndOfStream == false)
                         {
-                            //If the line ending is \r\n
-                            if (rStream.Peek() == '\n')
-                            {
-                                //advanced past it
-                                rStream.Read();
-                            }
-                            fileContents.Add(new List<int>());
-                        }
-                        else
-                        {
+                            int value = rStream.Read();
                             fileContents.Last().Add(value);
                         }
                     }
-                }
+                    else
+                    {
+                        //While the next character is not null
+                        while (rStream.EndOfStream == false)
+                        {
+                            //Read a line and add it
+                            int value = rStream.Read();
 
-                if (changeLastUsed == true)
-                {
-                    LastUserOpenedPath = Path.GetFullPath(filePath);
+                            if (value == '\r' || value == '\n')
+                            {
+                                //If the line ending is \r\n
+                                if (rStream.Peek() == '\n')
+                                {
+                                    //advanced past it
+                                    rStream.Read();
+                                }
+                                fileContents.Add(new List<int>());
+                            }
+                            else
+                            {
+                                fileContents.Last().Add(value);
+                            }
+                        }
+                    }
+                    if (changeLastUsed == true)
+                    {
+                        LastUserOpenedPath = Path.GetFullPath(filePath);
+                    }
                 }
             }
             catch (Exception e)
@@ -125,9 +141,10 @@ namespace BefungeSharp
             finally
             {
                 //Make sure we close the stream
-                if (rStream != null)
+                if (fStream != null)
                 {
-                    rStream.Close();
+                    fStream.Close();
+                    fStream.Dispose();
                 }
             }
 
@@ -150,7 +167,7 @@ namespace BefungeSharp
             try
             {
                 //Create the stream writer from the file path
-                wStream = new StreamWriter(filePath);
+                wStream = new StreamWriter(filePath, false, LastUsedEncoding);
 
                 for (int r = 0; r < outStrings.Count; r++)
 			    {
@@ -236,6 +253,105 @@ namespace BefungeSharp
             return true;
         }
         
+        //Thank you to http://www.architectshack.com/TextFileEncodingDetector.ashx
+        /*
+         * Simple class to handle text file encoding woes (in a primarily English-speaking tech 
+         *      world).
+         * 
+         *  - This code is fully managed, no shady calls to MLang (the unmanaged codepage
+         *      detection library originally developed for Internet Explorer).
+         * 
+         *  - This class does NOT try to detect arbitrary codepages/charsets, it really only
+         *      aims to differentiate between some of the most common variants of Unicode 
+         *      encoding, and a "default" (western / ascii-based) encoding alternative provided
+         *      by the caller.
+         *      
+         *  - As there is no "Reliable" way to distinguish between UTF-8 (without BOM) and 
+         *      Windows-1252 (in .Net, also incorrectly called "ASCII") encodings, we use a 
+         *      heuristic - so the more of the file we can sample the better the guess. If you 
+         *      are going to read the whole file into memory at some point, then best to pass 
+         *      in the whole byte byte array directly. Otherwise, decide how to trade off 
+         *      reliability against performance / memory usage.
+         *      
+         *  - The UTF-8 detection heuristic only works for western text, as it relies on 
+         *      the presence of UTF-8 encoded accented and other characters found in the upper 
+         *      ranges of the Latin-1 and (particularly) Windows-1252 codepages.
+         *  
+         *  - For more general detection routines, see existing projects / resources:
+         *    - MLang - Microsoft library originally for IE6, available in Windows XP and later APIs now (I think?)
+         *      - MLang .Net bindings: http://www.codeproject.com/KB/recipes/DetectEncoding.aspx
+         *    - CharDet - Mozilla browser's detection routines
+         *      - Ported to Java then .Net: http://www.conceptdevelopment.net/Localization/NCharDet/
+         *      - Ported straight to .Net: http://code.google.com/p/chardetsharp/source/browse
+         *  
+         * Copyright Tao Klerks, 2010-2012, tao@klerks.biz
+         * Licensed under the modified BSD license:
+         * 
+
+        Redistribution and use in source and binary forms, with or without modification, are 
+        permitted provided that the following conditions are met:
+
+         - Redistributions of source code must retain the above copyright notice, this list of 
+        conditions and the following disclaimer.
+         - Redistributions in binary form must reproduce the above copyright notice, this list 
+        of conditions and the following disclaimer in the documentation and/or other materials
+        provided with the distribution.
+         - The name of the author may not be used to endorse or promote products derived from 
+        this software without specific prior written permission.
+
+        THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, 
+        INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR 
+        A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY 
+        DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, 
+        BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR 
+        PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+        WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+        ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY 
+        OF SUCH DAMAGE.
+        */
+        public static Encoding DetectBOMBytes(byte[] BOMBytes)
+        {
+            if (BOMBytes == null)
+                throw new ArgumentNullException("Must provide a valid BOM byte array!", "BOMBytes");
+ 
+            if (BOMBytes.Length < 2)
+                return null;
+ 
+            if (BOMBytes[0] == 0xff 
+                && BOMBytes[1] == 0xfe 
+                && (BOMBytes.Length < 4 
+                    || BOMBytes[2] != 0 
+                    || BOMBytes[3] != 0
+                    )
+                )
+                return Encoding.Unicode;
+ 
+            if (BOMBytes[0] == 0xfe 
+                && BOMBytes[1] == 0xff
+                )
+                return Encoding.BigEndianUnicode;
+ 
+            if (BOMBytes.Length < 3)
+                return null;
+ 
+            if (BOMBytes[0] == 0xef && BOMBytes[1] == 0xbb && BOMBytes[2] == 0xbf)
+                return Encoding.UTF8;
+ 
+            if (BOMBytes[0] == 0x2b && BOMBytes[1] == 0x2f && BOMBytes[2] == 0x76)
+                return Encoding.UTF7;
+ 
+            if (BOMBytes.Length < 4)
+                return null;
+ 
+            if (BOMBytes[0] == 0xff && BOMBytes[1] == 0xfe && BOMBytes[2] == 0 && BOMBytes[3] == 0)
+                return Encoding.UTF32;
+ 
+            if (BOMBytes[0] == 0 && BOMBytes[1] == 0 && BOMBytes[2] == 0xfe && BOMBytes[3] == 0xff)
+                return Encoding.GetEncoding(12001);
+ 
+            return null;
+        }
+
         /// <summary>
         /// Fully expands a path to expand environment variables
         /// and navigate ..'s
@@ -281,6 +397,7 @@ namespace BefungeSharp
             return expanded;
         }
 
+        #region Menu Commands
         /// <summary>
         /// Our CMD-like CD command
         /// </summary>
@@ -321,8 +438,7 @@ namespace BefungeSharp
             }
             return true;
         }
-
-
+        
         /// <summary>
         /// Our CMD-like DIR command.
         /// Prints out a partial list of the most recently used files
@@ -393,12 +509,15 @@ namespace BefungeSharp
             return true;
         }
 
-        //Print out the help text for the commands
+        /// <summary>
+        /// Prints out the help text for using our cmd like commands
+        /// </summary>
+        /// <returns>Returns true always</returns>
         public static bool HelpCommand()
         {
             Console.WriteLine("Commands:");
             Console.WriteLine("back - Goes back to the previous window");
-            Console.WriteLine("dir - Prints out the 15 most recently used files");
+            Console.WriteLine("dir - Prints out some of the most recently used files");
             Console.WriteLine("dir index - Like dir, but allowing you to print out other parts of the list of files. Ex: dir 5");
             Console.WriteLine("cd - Prints the current working directory");
             Console.WriteLine("cd path -  Attempts to set the current working directory to the path argument. Ex: cd C:\\");
@@ -407,16 +526,16 @@ namespace BefungeSharp
             Console.WriteLine("help - Brings up this information");
             return true;
         }
+
         /// <summary>
         /// Tries to run our LAST command,
         /// printing out the last used file path
         /// </summary>
-        /// <param name="input">The input to test if it is "LAST" or "last"</param>
         /// <returns>
         /// Returns true if the input was the last command,
         /// false if not
         /// </returns>
-        public static bool LastCommand(string input)
+        public static bool LastCommand()
         {
             //We never tell people that we're using the exe as a technicality
             if (FileUtils.LastUserOpenedPath == "")
@@ -436,11 +555,10 @@ namespace BefungeSharp
         /// <summary>
         /// Checks if the input is matches the USE LAST command
         /// </summary>
-        /// <param name="input">The input to test if it is "USE LAST" or "use last"</param>
         /// <returns>
         /// Returns the LastUserOpenedPath if it is not the default, or "" if it is the default
         /// </returns>
-        public static string UseLastCommand(string input)
+        public static string UseLastCommand()
         {
             //We never allow opening the default
             if (FileUtils.LastUserOpenedPath == "")
@@ -451,7 +569,8 @@ namespace BefungeSharp
             }
             return FileUtils.LastUserOpenedPath;
         }
-
+        #endregion
+        
         public static void DisplayCurrentDirectory()
         {
             //Takes care of a silly asthetic problem where it would print out 

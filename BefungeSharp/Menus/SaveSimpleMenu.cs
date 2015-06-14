@@ -74,12 +74,12 @@ namespace BefungeSharp.Menus
                 }
                 else if (input == "last")
                 {
-                    FileUtils.LastCommand(input);
+                    FileUtils.LastCommand();
                     continue;
                 }
                 else if (input == "use last")
                 {
-                    path = FileUtils.UseLastCommand(input);
+                    path = FileUtils.UseLastCommand();
                     if (path == "")
                     {
                         continue;
