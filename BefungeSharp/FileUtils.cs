@@ -14,7 +14,11 @@ namespace BefungeSharp
     /// </summary>
     public static class FileUtils
     {
+        /// <summary>
+        /// The last used file's file encoding
+        /// </summary>
         public static Encoding LastUsedEncoding { get; private set; }
+
         /// <summary>
         /// The fully rooted last used file path,
         /// or "" if there was no last used file
@@ -48,6 +52,102 @@ namespace BefungeSharp
         {
             LastUserOpenedPath = "";// Environment.GetCommandLineArgs()[0];
             LastUsedEncoding = Encoding.UTF8;
+        }
+
+        /// <summary>
+        /// Copies the current file about to be written over into the backup directory,
+        /// manages the content of the backup directory
+        /// </summary>
+        /// <param name="filePath">A valid, real, file path of the file we're about to copy</param>
+        /// <param name="supressConsoleMessages">Blocks the printing of console messages (for when not in a terminal like mode)</param>
+        public static void BackupFile(string filePath, bool supressConsoleMessages)
+        {
+            string backupsPath = Directory.GetCurrentDirectory() + "\\Backups";
+            if (Directory.Exists(backupsPath) == false)
+            {
+                try 
+	            {	        
+                    Directory.CreateDirectory(backupsPath);
+	            }
+	            catch (Exception e)
+	            {
+		            if(supressConsoleMessages == false)
+                    {
+                        Console.WriteLine("Backups directory could not be created: " + e.Message);
+                    }
+                    return;
+	            }
+            }
+            try 
+            {
+                //...\Backups\fileName_YYYY_MM_DD_HH_MM_SS.fileExtension.bak
+                StringBuilder sb = new StringBuilder(9);
+                sb.Append(backupsPath);
+                sb.Append("\\");
+                sb.Append(Path.GetFileNameWithoutExtension(filePath));
+                sb.Append("_");
+                sb.Append(DateTime.Now.Year.ToString());
+                sb.Append("_");
+                sb.Append(DateTime.Now.Month.ToString().PadLeft(2, '0'));
+                sb.Append("_");
+                sb.Append(DateTime.Now.Day.ToString().PadLeft(2, '0'));
+                sb.Append("_");
+                sb.Append(DateTime.Now.Hour.ToString().PadLeft(2, '0'));
+                sb.Append("_");
+                sb.Append(DateTime.Now.Minute.ToString().PadLeft(2, '0'));
+                sb.Append("_");
+                sb.Append(DateTime.Now.Second.ToString().PadLeft(2, '0'));
+                sb.Append(Path.GetExtension(filePath));
+                sb.Append(".bak");
+
+                File.Copy(filePath, sb.ToString(),true);
+            }
+	        catch (Exception e)
+	        {
+		        if(supressConsoleMessages == false)
+                {
+                    Console.WriteLine("Could not copy file to Backup folder: " + e.Message);
+                }
+                return;
+	        }
+            try 
+	        {	        
+		        DirectoryInfo info = new DirectoryInfo(backupsPath);
+                
+                //Get all the .bak files that are back ups of the file we're about to save,
+                //in order of newest to oldest
+                List<FileInfo> fileList = info
+                    .GetFiles("*.bak", SearchOption.TopDirectoryOnly)
+                    .Where(
+                        delegate(FileInfo file)
+                        {
+                            string backupFile = Path.GetFileNameWithoutExtension(file.Name);
+                            string fileToCopy = Path.GetFileNameWithoutExtension(filePath);
+
+                            if (backupFile.StartsWith(fileToCopy))
+                            {
+                                return true;
+                            }
+                            else
+                            {
+                                return false;
+                            }   
+                        })
+                    .Reverse()//TODO: This is unneeded
+                    .ToList();
+
+                //Delete all but the most recent n of them
+                int amountToKeep = 3;//TODO:OPTIONS["Amount Of Backups To Save"]
+                for (int i = fileList.Count - 1; i >= amountToKeep; i--)
+                {
+                    File.Delete(fileList[i].FullName);
+                }
+	        }
+	        catch (Exception)
+	        {
+		        //Its okay if the file doesn't delete
+		        return;
+	        }
         }
 
         /// <summary>
@@ -166,6 +266,13 @@ namespace BefungeSharp
             StreamWriter wStream = null;
             try
             {
+                //If the file exists we need to back it up so
+                //just incase we nuke the file they haven't lost everything
+                if (File.Exists(filePath) == true)
+                {
+                    BackupFile(filePath, supressConsoleMessages);
+                }
+
                 //Create the stream writer from the file path
                 wStream = new StreamWriter(filePath, false, LastUsedEncoding);
 
