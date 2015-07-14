@@ -630,6 +630,7 @@ namespace BefungeSharp
             Console.WriteLine("cd path -  Attempts to set the current working directory to the path argument. Ex: cd C:\\");
             Console.WriteLine("last - Prints the last used file, if there is one");
             Console.WriteLine("use last - Attempts to use the last used file");
+            Console.WriteLine("clear last - Clears the last used file, if there is one");
             Console.WriteLine("help - Brings up this information");
             return true;
         }
@@ -657,6 +658,21 @@ namespace BefungeSharp
                 Console.WriteLine();
                 return true;
             }
+        }
+
+        public static void ClearLast()
+        {
+            //This part is just to avoid user confusion
+            if (FileUtils.LastUserOpenedPath == "")
+            {
+                Console.WriteLine("No files have been used this session");
+            }
+            else
+            {
+                Console.WriteLine("Last used file has been cleared");
+            }
+            FileUtils.LastUserOpenedPath = "";
+            Console.WriteLine();
         }
 
         /// <summary>

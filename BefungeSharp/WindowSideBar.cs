@@ -146,7 +146,7 @@ namespace BefungeSharp
                                                     "║Cut Section - Ctrl + X           ║",
                                                     "║Paste Section - Ctrl + V         ║",
                                                     "║Clear area - Delete              ║",
-                                                    "║XReverse line - Alt + R          ║",
+                                                    //"║XReverse line - Alt + R          ║",
                                                     "║Cancel Selection - Any Other Key ║",
                                                     "╚═════════════════════════════════╝"
                                                    };

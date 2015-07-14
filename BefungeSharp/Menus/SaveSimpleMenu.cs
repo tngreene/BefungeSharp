@@ -23,7 +23,14 @@ namespace BefungeSharp.Menus
 
             Console.Clear();
             Console.WriteLine("*Enter in a file path (relative to current directory)");
-            Console.WriteLine("*Type help for a list of advanced commands");
+            Console.Write("*Type ");
+            Console.BackgroundColor = ConsoleColor.White;
+            ConsoleColor old = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Black;
+            Console.Write("help");
+            Console.ForegroundColor = old;
+            Console.BackgroundColor = ConsoleColor.Black;
+            Console.WriteLine(" for a list of advanced commands");
 
             Console.WriteLine();
             FileUtils.DisplayCurrentDirectory();
@@ -75,6 +82,11 @@ namespace BefungeSharp.Menus
                 else if (input == "last")
                 {
                     FileUtils.LastCommand();
+                    continue;
+                }
+                else if (input == "clear last")
+                {
+                    FileUtils.ClearLast();
                     continue;
                 }
                 else if (input == "use last")

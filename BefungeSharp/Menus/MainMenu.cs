@@ -19,8 +19,7 @@ namespace BefungeSharp.Menus
             Console.Clear();
 
             //A silly bit of fun to make the menu look cooler
-            Random rnd = new Random();
-            Console.ForegroundColor = (ConsoleColor)rnd.Next(7, 16);
+            Console.ForegroundColor = (ConsoleColor) new Random().Next(9,15);
 
             //Ask what they would like to do
             Console.WriteLine("Welcome to BefungeSharp! Please select an option:\n");
