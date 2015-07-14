@@ -24,7 +24,7 @@ namespace BefungeSharp
         private int _pageIndex;
         private List<List<string>> _pages;
 
-        public WindowSideBar(BoardManager mgr, Interpreter interp)
+        public WindowSideBar()
         {
             BAR_RIGHT = ConEx.ConEx_Draw.Dimensions.width - 1;
             BAR_BOTTOM = ConEx.ConEx_Draw.Dimensions.height - 1;
@@ -128,7 +128,6 @@ namespace BefungeSharp
                                                     "║Run (Step) - F1                  ║",
                                                     "║Run (Real Time) - F2 - F5        ║",//TODO:OPTION["DefaultSpeed"]
                                                     "║Run (Terminal Mode) - F6         ║",
-                                                    "║XReload source - Ctrl + R        ║",
                                                     "║Main Menu - Esc                  ║",
                                                     "║Set IP Delta - Ctrl + Arrow Key  ║",
                                                     //"║XInsert Snippet - Insert         ║",

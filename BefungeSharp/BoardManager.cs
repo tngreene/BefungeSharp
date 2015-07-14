@@ -21,9 +21,8 @@ namespace BefungeSharp
                             Stack<int> initGlobalStack = null, BoardMode mode = BoardMode.Edit)
         {
             Program.Interpreter = new Interpreter(init_board, initGlobalStack, mode);
-         
-            Program.WindowUI = new WindowUI(Program.Interpreter);
-            Program.WindowSideBar = new WindowSideBar(this, Program.Interpreter);
+            Program.WindowUI = new WindowUI();
+            Program.WindowSideBar = new WindowSideBar();
         }
 
         /// <summary>

@@ -49,7 +49,7 @@ namespace BefungeSharp.Instructions.StackStack
             }
             else if(Math.Sign(n) == -1)
             {
-                //Add n 0's onto the top of the SOSS. The new Stack<int>() is a trick for code reuse
+                //Add n 0's onto the top of the SOSS
                 for (int i = 0; i < Math.Abs(n); i++)
                 {
                     SOSS.Push(0);
@@ -98,12 +98,12 @@ namespace BefungeSharp.Instructions.StackStack
 
             if (Math.Sign(n) == 1 || Math.Sign(n) == 0)
             {
-                //Transfer from the SOSS to the new TOSS
+                //Transfer from the TOSS to the new SOSS
                 StackUtils.TransferCells(TOSS, SOSS, n, false, true);
             }
             else if (Math.Sign(n) == -1)
             {
-                //Add n 0's onto the top of the SOSS. The new Stack<int>() is a trick for code reuse
+                //Removes n 0's from the SOSS
                 for (int i = 0; i < Math.Abs(n); i++)
                 {
                     SOSS.PopOrDefault();

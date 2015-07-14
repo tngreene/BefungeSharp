@@ -9,7 +9,6 @@ namespace BefungeSharp
 {
     public class WindowUI
     {
-        private Interpreter _interpRef;
         /* The board UI area extends from a (currently arbitray/hardcoded area) from row 26 to row 31 and columns 0 through 80
          * except for the space [31,80] which makes it go to a new line
          * 
@@ -48,10 +47,8 @@ namespace BefungeSharp
 
         private Selection _selection;
         public bool SelectionActive { get { return _selection.content.Count > 0; } }
-        public WindowUI(Interpreter interp)
+        public WindowUI()
         {
-            _interpRef = interp;
-
             //All of the rows follow after each other
             _TOSSstackRep = "TS:";
             _TOSSstackRow = UI_TOP;
@@ -90,12 +87,12 @@ namespace BefungeSharp
                 case BoardMode.Run_STEP:
 #region TOSS
                     _TOSSstackRep = "TS:";
-                    if (_interpRef.IPs[0].Stack.Count > 0)
+                    if (Program.Interpreter.IPs[0].Stack.Count > 0)
                     {
                         //Insert a pipe bar inbetween every number
-                        for (int i = _interpRef.IPs[0].Stack.Count-1; i >= 0; i--)
+                        for (int i = Program.Interpreter.IPs[0].Stack.Count-1; i >= 0; i--)
                         {
-                            _TOSSstackRep += _interpRef.IPs[0].Stack.ElementAt(i).ToString() + '|';
+                            _TOSSstackRep += Program.Interpreter.IPs[0].Stack.ElementAt(i).ToString() + '|';
                         }
 
                         //If the size of the stack's representation is more than our screen can handle, present
@@ -379,10 +376,10 @@ namespace BefungeSharp
                                     if (_selection.content.Count == 0)
                                     {
                                         //Set everything to the cell we are currently in
-                                        _selection.dimensions.left = _interpRef.EditIP.Position.Data.x;
-                                        _selection.dimensions.top =  _interpRef.EditIP.Position.Data.y;
-                                        _selection.dimensions.bottom = _interpRef.EditIP.Position.Data.y;
-                                        _selection.dimensions.right =  _interpRef.EditIP.Position.Data.x;
+                                        _selection.dimensions.left = Program.Interpreter.EditIP.Position.Data.x;
+                                        _selection.dimensions.top =  Program.Interpreter.EditIP.Position.Data.y;
+                                        _selection.dimensions.bottom = Program.Interpreter.EditIP.Position.Data.y;
+                                        _selection.dimensions.right =  Program.Interpreter.EditIP.Position.Data.x;
                                     }
                                     UpdateSelection(k);
                                 
@@ -460,7 +457,7 @@ namespace BefungeSharp
             bool v = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_V);
             if (v && control)
             {
-                this._selection = ClipboardTools.FromWindowsClipboard(_interpRef.EditIP.Position.Data);
+                this._selection = ClipboardTools.FromWindowsClipboard(Program.Interpreter.EditIP.Position.Data);
                 PutSelectionContents();
                 //Emergancy sleep so we don't get a whole bunch of operations at once
                 System.Threading.Thread.Sleep(150);
@@ -528,17 +525,17 @@ namespace BefungeSharp
                 }
             }
                         
-            if (_interpRef.EditIP.Delta == Vector2.North || _interpRef.EditIP.Delta == Vector2.West)
+            if (Program.Interpreter.EditIP.Delta == Vector2.North || Program.Interpreter.EditIP.Delta == Vector2.West)
             {
-                _interpRef.EditIP.Move();
+                Program.Interpreter.EditIP.Move();
             }
-            else if(_interpRef.EditIP.Delta == Vector2.East)
+            else if(Program.Interpreter.EditIP.Delta == Vector2.East)
             {
-                _interpRef.EditIP.Move((_selection.dimensions.right-_selection.dimensions.left));
+                Program.Interpreter.EditIP.Move((_selection.dimensions.right-_selection.dimensions.left));
             }
-            else if(_interpRef.EditIP.Delta == Vector2.South)
+            else if(Program.Interpreter.EditIP.Delta == Vector2.South)
             {
-                _interpRef.EditIP.Move((_selection.dimensions.bottom-_selection.dimensions.top));
+                Program.Interpreter.EditIP.Move((_selection.dimensions.bottom-_selection.dimensions.top));
             }
         }
         

@@ -75,8 +75,8 @@ namespace BefungeSharp.Instructions.FileIO
                 //FOR TESTING
                 //outArray[0].AddRange(new int[] { '1', '2', '3', '4', ' ', '\t', ' ', ' ', ' ', ' ', '6', ' ', ' ', '\r', '\n', ' ', ' ', '\r', ' ', ' ', '\n', ' ', ' ' });
            
+                //Enumerate over Va->Vb and all values to outArray[0]
                 ip.Position.ParentMatrix.EnumerationArea = new FungeSpaceArea(Va,Vb);
-                
                 foreach (var node in ip.Position.ParentMatrix)
 	            {
 		            outArray[0].Add(node.Data.value);
@@ -85,6 +85,7 @@ namespace BefungeSharp.Instructions.FileIO
                 bool isGoodSpace = false;
                 List<int> outputFile = new List<int>();
 
+                //Starting from the end investigate if a space or other char should be added to the out array
                 for (int i = outArray[0].Count - 1; i >= 0 ; i--)
 			    {
                     int currentCell = outArray[0][i];  
