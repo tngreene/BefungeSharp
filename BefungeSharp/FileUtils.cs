@@ -47,10 +47,10 @@ namespace BefungeSharp
         /// The file name of the last used file, without the rooted path
         /// </summary>
         public static string LastUserOpenedFile { get { return Path.GetFileName(LastUserOpenedPath); } }
-        
+
         static FileUtils()
         {
-            LastUserOpenedPath = "";// Environment.GetCommandLineArgs()[0];
+            LastUserOpenedPath = "";
             LastUsedEncoding = Encoding.UTF8;
         }
 
@@ -62,7 +62,8 @@ namespace BefungeSharp
         /// <param name="supressConsoleMessages">Blocks the printing of console messages (for when not in a terminal like mode)</param>
         public static void BackupFile(string filePath, bool supressConsoleMessages)
         {
-            string backupsPath = Directory.GetCurrentDirectory() + "\\Backups";
+            string exeLoc = Environment.GetCommandLineArgs()[0];
+            string backupsPath = exeLoc.Remove(exeLoc.Length - Path.GetFileName(exeLoc).Length)+ "Backups";
             if (Directory.Exists(backupsPath) == false)
             {
                 try 
