@@ -31,6 +31,7 @@ namespace BefungeSharp
             OUT,
             IN
         }
+
         //a string to represent the piece of information
         //and the row in which to start drawing it
         private string _TOSSstackRep;
@@ -46,7 +47,17 @@ namespace BefungeSharp
         private int _inputRow;
 
         private Selection _selection;
-        public bool SelectionActive { get { return _selection.content.Count > 0; } }
+
+        /// <summary>
+        /// Returns true if the selection has an area > 0
+        /// </summary>
+        public bool SelectionActive { 
+                                        get
+                                        {
+                                            FungeSpace.FungeSpaceArea area = _selection.GenerateArea();
+                                            return (area.left + area.top + area.right + area.bottom) > 0;
+                                        }
+                                    }
         public WindowUI()
         {
             //All of the rows follow after each other
@@ -65,8 +76,7 @@ namespace BefungeSharp
 
             UI_BOTTOM = ConEx.ConEx_Draw.Dimensions.height - 1;
 
-            _selection.content = new List<string>();
-            _selection.dimensions.top = _selection.dimensions.right = _selection.dimensions.bottom = _selection.dimensions.left =0;
+            ClearSelection();
         }
 
         /// <summary>
@@ -300,37 +310,22 @@ namespace BefungeSharp
 
         private void DrawSelection(BoardMode mode)
         {
-            //Fix the perminate 1 cell in [0,0] bug
-            if (_selection.content.Count == 0)
+            if (this.SelectionActive == false)
             {
                 return;
             }
-
+            FungeSpace.FungeSpaceArea dimensions = _selection.GenerateArea();
             //Draw selection
-            for (int c = _selection.dimensions.left; c <= _selection.dimensions.right; c++)
+            for (int c = dimensions.left; c <= dimensions.right; c++)
             {
-                for (int r = _selection.dimensions.top; r <= _selection.dimensions.bottom; r++)
+                for (int r = dimensions.top; r <= dimensions.bottom; r++)
                 {
-                    int value = 0;
-
-                    FungeSpace.FungeNode lookup = Program.Interpreter.FungeSpace.GetNode(r,c);
-                    if (lookup == null)
-                    {
-                        value = ' ';
-                    }
-                    else
-                    {
-                        value = lookup.Data.value;
-                    }
-
-                    ConsoleColor color = ConsoleColor.White;
-                    
-                    if(value >= ' ' && value <= '~')
-                    {
-                        color = Instructions.InstructionManager.InstructionSet[value].Color;
-                    }
-	                        
-                    ConEx.ConEx_Draw.SetAttributes(r - Program.Interpreter.ViewScreen.top, c - Program.Interpreter.ViewScreen.left, color, ConsoleColor.DarkGreen);
+                    int relative_row = r - Program.Interpreter.ViewScreen.top;
+                    int relative_column = c - Program.Interpreter.ViewScreen.left;
+                    ConEx.ConEx_Draw.SetAttributes(relative_row,
+                                                   relative_column,
+                                                   ConEx.ConEx_Draw.GetForegroundColor(relative_row,relative_column),
+                                                   ConsoleColor.DarkGreen);
                 }
             }
         }
@@ -373,13 +368,10 @@ namespace BefungeSharp
                                 if (ConEx.ConEx_Input.ShiftDown == true)
                                 {
                                     //If we are starting a new selection
-                                    if (_selection.content.Count == 0)
+                                    if (this.SelectionActive == false)
                                     {
                                         //Set everything to the cell we are currently in
-                                        _selection.dimensions.left = Program.Interpreter.EditIP.Position.Data.x;
-                                        _selection.dimensions.top =  Program.Interpreter.EditIP.Position.Data.y;
-                                        _selection.dimensions.bottom = Program.Interpreter.EditIP.Position.Data.y;
-                                        _selection.dimensions.right =  Program.Interpreter.EditIP.Position.Data.x;
+                                        _selection.origin = _selection.handle = Program.Interpreter.EditIP.Position.Data;
                                     }
                                     UpdateSelection(k);
                                 
@@ -388,7 +380,7 @@ namespace BefungeSharp
                                 }
                                 break;
                             case ConsoleKey.Delete:
-                                if (_selection.content.Count != 0)
+                                if (this.SelectionActive == true)
                                 {
                                     DeleteSelection();
                                     keep_selection_active = true;
@@ -396,7 +388,7 @@ namespace BefungeSharp
                                 break;
                            
                             default:
-                                //Explicityly say that any other keystroke will clear the selection
+                                //Explicitly say that any other keystroke will clear the selection
                                 keep_selection_active = false;
                                 break;
                         }
@@ -416,7 +408,6 @@ namespace BefungeSharp
         /// <param name="keysHit">an array of keys hit</param>
         private void HandleModifiers(BoardMode mode, ConsoleKeyInfo[] keysHit)
         {
-            bool created_selection = false;
             //Ensures that the user cannot paste when they out of the window
             if (ConEx.ConEx_Window.IsActive() == false)
             {
@@ -487,7 +478,7 @@ namespace BefungeSharp
             }*/
             return;
         }
-
+        #region Selection
         /// <summary>
         /// Gets the contents of the selection box
         /// </summary>
@@ -495,11 +486,10 @@ namespace BefungeSharp
         public List<string> GetSelectionContents()
         {
             Vector2[] cropping_bounds = new Vector2[2];
-            //cropping_bounds[0] = new Vector2 (0,0);
-            //cropping_bounds[1] = new Vector2 (9,9);
 
-            cropping_bounds[0] = new Vector2(_selection.dimensions.left, _selection.dimensions.top);
-            cropping_bounds[1] = new Vector2(_selection.dimensions.right, _selection.dimensions.bottom);
+            FungeSpace.FungeSpaceArea dimensions = _selection.GenerateArea();
+            cropping_bounds[0] = new Vector2(dimensions.left, dimensions.top);
+            cropping_bounds[1] = new Vector2(dimensions.right, dimensions.bottom);
  
             List<string> outlines = FungeSpace.FungeSpaceUtils.MatrixToStringList(Program.Interpreter.FungeSpace, cropping_bounds);
          
@@ -511,8 +501,9 @@ namespace BefungeSharp
         /// </summary>
         private void PutSelectionContents()
         {
-            int top = _selection.dimensions.top;
-            int left = _selection.dimensions.left;
+            FungeSpace.FungeSpaceArea dimensions = _selection.GenerateArea();
+            int top = dimensions.top;
+            int left = dimensions.left;
 
             //For the rows of the selection
             for (int s_row = 0; s_row < _selection.content.Count; s_row++)
@@ -525,17 +516,21 @@ namespace BefungeSharp
                 }
             }
                         
-            if (Program.Interpreter.EditIP.Delta == Vector2.North || Program.Interpreter.EditIP.Delta == Vector2.West)
+            if (Program.Interpreter.EditIP.Delta == Vector2.North)
             {
-                Program.Interpreter.EditIP.Move();
+                Program.Interpreter.EditIP.Move(-(_selection.origin.y + _selection.handle.y));
             }
             else if(Program.Interpreter.EditIP.Delta == Vector2.East)
             {
-                Program.Interpreter.EditIP.Move((_selection.dimensions.right-_selection.dimensions.left));
+                Program.Interpreter.EditIP.Move((_selection.handle.x -_selection.origin.x));
             }
             else if(Program.Interpreter.EditIP.Delta == Vector2.South)
             {
-                Program.Interpreter.EditIP.Move((_selection.dimensions.bottom-_selection.dimensions.top));
+                Program.Interpreter.EditIP.Move((_selection.handle.y-_selection.origin.y));
+            }
+            else if(Program.Interpreter.EditIP.Delta == Vector2.West)
+            {
+                Program.Interpreter.EditIP.Move(-(_selection.handle.x + _selection.origin.x));
             }
         }
         
@@ -544,46 +539,40 @@ namespace BefungeSharp
         {
             //Finally get to the changing of the directions!
             if (k == ConsoleKey.UpArrow)
-                _selection.dimensions.bottom--;
+                _selection.handle.y--;
             if (k == ConsoleKey.LeftArrow)
-                _selection.dimensions.right--;
+                _selection.handle.x--;
             if (k == ConsoleKey.DownArrow)
-                _selection.dimensions.bottom++;
+                _selection.handle.y++;
             if (k == ConsoleKey.RightArrow)
-                _selection.dimensions.right++;
+                _selection.handle.x++;
 
-            //Now we do a post check to see if we made a bad selection
-            bool error_creating_selection = false;
+            //_selection.content = GetSelectionContents();
 
-            //Test to see if the selection box has warped backwards on itself
-            error_creating_selection |= _selection.dimensions.right < _selection.dimensions.left;
-            error_creating_selection |= _selection.dimensions.bottom < _selection.dimensions.top;
-
-            if (error_creating_selection == true)
+            //If the selection is bigger than the screen will hold move the view screen
+            if (_selection.handle.y < Program.Interpreter.ViewScreen.top)
             {
-                ClearSelection();
+                Program.Interpreter.MoveViewScreen(Vector2.North);
             }
-            else
+            if (_selection.handle.x < Program.Interpreter.ViewScreen.left)
             {
-                _selection.content = GetSelectionContents();
-                //If the selection is bigger than the screen will hold move the view screen
-                if (_selection.dimensions.right > Program.Interpreter.ViewScreen.right)
-                {
-                    Program.Interpreter.MoveViewScreen(Vector2.East);
-                }
-
-                //If the selection is bigger than the screen will hold move the view screen
-                if (_selection.dimensions.bottom > Program.Interpreter.ViewScreen.bottom)
-                {
-                    Program.Interpreter.MoveViewScreen(Vector2.South);
-                }
+                Program.Interpreter.MoveViewScreen(Vector2.West);
             }
+            if (_selection.handle.y > Program.Interpreter.ViewScreen.bottom)
+            {
+                Program.Interpreter.MoveViewScreen(Vector2.South);
+            }
+            if (_selection.handle.x > Program.Interpreter.ViewScreen.right)
+            {
+                Program.Interpreter.MoveViewScreen(Vector2.East);
+            }            
         }
         
         private void DeleteSelection()
         {
-            int top = _selection.dimensions.top;
-            int left = _selection.dimensions.left;
+            FungeSpace.FungeSpaceArea dimensions = _selection.GenerateArea();
+            int top  = dimensions.top;
+            int left = dimensions.left;
 
             //For the rows of the selection
             for (int s_row = 0; s_row < _selection.content.Count; s_row++)
@@ -599,12 +588,10 @@ namespace BefungeSharp
 
         private void ClearSelection()
         {
-            _selection.content.Clear();
-            _selection.dimensions.bottom = 0;
-            _selection.dimensions.left = 0;
-            _selection.dimensions.right = 0;
-            _selection.dimensions.top = 0;
+            _selection.content = new List<string>();
+            _selection.origin = _selection.handle = Vector2.Zero;
         }
+#endregion Selection
 
         public char GetCharacter()
         {

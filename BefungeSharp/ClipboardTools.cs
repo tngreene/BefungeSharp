@@ -9,8 +9,51 @@ namespace BefungeSharp.UI
 {
     public struct Selection
     {
-        public FungeSpace.FungeSpaceArea dimensions;
+        /// <summary>
+        /// The origin of the selection
+        /// </summary>
+        public Vector2 origin;
+
+        /// <summary>
+        /// The moveable handle of the selection
+        /// </summary>
+        public Vector2 handle;
         public List<string> content;
+
+        public FungeSpace.FungeSpaceArea GenerateArea()
+        {
+            //We need to figure out which quadrent our handle has ended up in
+            //and where to choose our top, left, bottom, and right from
+            //3 | 4  
+            //__|___
+            //2 | 1
+            //  |
+
+            //Q1
+            if(handle.x >= origin.x && handle.y >= origin.y)
+            {
+                return new FungeSpace.FungeSpaceArea(origin.y,origin.x,handle.y,handle.x);
+            }
+
+            //Q2
+            if(handle.x < origin.x && handle.y >= origin.y)
+            {
+                return new FungeSpace.FungeSpaceArea(origin.y,handle.x,handle.y,origin.x);
+            }
+
+            //Q3
+            if(handle.x < origin.x && handle.y < origin.y)
+            {
+                return new FungeSpace.FungeSpaceArea(handle.y,handle.x,origin.y,origin.x);
+            }
+
+            //Q4
+            if(handle.x >= origin.x && handle.y < origin.y)
+            {
+                return new FungeSpace.FungeSpaceArea(handle.y,origin.x,origin.y,handle.x);
+            }
+            return new FungeSpace.FungeSpaceArea(0, 0, 0, 0);
+        }
     }
 
     public static class ClipboardTools
@@ -20,8 +63,7 @@ namespace BefungeSharp.UI
             Selection s = new Selection();
             s.content = new List<string>();
             s.content.Add("");
-            s.dimensions.left = s.dimensions.right = (short)origin.x;
-            s.dimensions.top = s.dimensions.bottom = (short)origin.y;
+            s.origin = s.handle = origin;
             
             string input;
 
@@ -46,8 +88,6 @@ namespace BefungeSharp.UI
                 input = input.Remove(input.Length - 1);
             }
             
-            
-
             for (int i = 0; i < input.Length; i++)
             {
                 char c = input[i];
@@ -59,7 +99,7 @@ namespace BefungeSharp.UI
                     //So always add a new line
                     s.content.Add("");
                     //Increase the dimensions
-                    s.dimensions.bottom++;
+                    s.handle.y++;
                 }
                 else
                 {
@@ -73,20 +113,19 @@ namespace BefungeSharp.UI
 
                     s.content[s.content.Count - 1] += c;
                     
-                    int width = s.dimensions.right - s.dimensions.left + 1;
+                    int width = s.handle.x - s.origin.x + 1;
                     //Make sure the bounds of the selection always capture
                     //The longest line
                     if (s.content[s.content.Count - 1].Length > width)
                     {
-                        s.dimensions.right++;
+                        s.handle.x++;
                     }
                 }
-                
             }
             
             return s;
-
         }
+
         public static void ToWindowsClipboard(Selection selection)
         {
             if (selection.content.Count > 0)
