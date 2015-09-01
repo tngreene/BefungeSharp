@@ -21,9 +21,9 @@ namespace BefungeSharp
          * 
          * [31,0]                 [31,80]
          * */
-        const int UI_TOP = 26;
-        const int UI_RIGHT = 80;
-        int UI_BOTTOM = 0;
+        const   int UI_TOP = 26;
+        const   int UI_RIGHT = 80;
+        private int UI_BOTTOM;
 
         public enum Categories
         {
@@ -223,16 +223,9 @@ namespace BefungeSharp
         /// </summary>
         /// <param name="mode">Mode of the program</param>
         private void DrawInfo(BoardMode mode)
-        {
-            string modeStr = "Mode: ";
-            char deltaRep = ' ';
+        {            
             IP selectedIP = null;
-            if (mode == BoardMode.Run_STEP 
-                || mode == BoardMode.Run_SLOW 
-                || mode == BoardMode.Run_MEDIUM 
-                || mode == BoardMode.Run_MAX 
-                || mode == BoardMode.Run_FAST 
-                || mode == BoardMode.Run_TERMINAL)
+            if (mode != BoardMode.Edit)
             {
                 selectedIP = Program.Interpreter.IPs[0];
             }
@@ -240,71 +233,75 @@ namespace BefungeSharp
             {
                 selectedIP = Program.Interpreter.EditIP;
             }
+            StringBuilder sb = new StringBuilder();
+            sb.Append("Mode: ");
             switch (mode)
             {
                 //All strings padded so their right side is all uniform
                 case BoardMode.Run_MAX:
-                    modeStr += "Max";
+                    sb.Append("Max");
                     break;
                 case BoardMode.Run_FAST:
-                    modeStr += "Fast";
+                    sb.Append("Fast");
                     break;
                 case BoardMode.Run_MEDIUM:
-                    modeStr += "Medium";
+                    sb.Append("Medium");
                     break;
                 case BoardMode.Run_SLOW:
-                    modeStr += "Slow";
+                    sb.Append("Slow");
                     break;
                 case BoardMode.Run_STEP:
-                    modeStr += "Step";
+                    sb.Append("Step");
                     break;
                 case BoardMode.Edit:
-                    modeStr += "Edit";
-                    
-                    //Based on the direction of the IP set the delta rep to it
-                    //This was the delta representative is only availble in Edit or edit like modes
-                    if (selectedIP.Delta == Vector2.North)
-                    {
-                        deltaRep = (char)9516;
-                    }
-                    else if (selectedIP.Delta == Vector2.East)
-                    {
-                        deltaRep = (char)9508;
-                    }
-                    else if (selectedIP.Delta == Vector2.South)
-                    {
-                        deltaRep = (char)9524;
-                    }
-                    else if (selectedIP.Delta == Vector2.West)
-                    {
-                        deltaRep = (char)9500;
-                    }
-                    else
-                    {
-                        //TODO - Choose a different symbol
-                        deltaRep = '?';
-                    }
+                    sb.Append("Edit");
                     break;
             }
+            sb.Append(" ");
 
-            //Generates a strings which is always five chars wide, with the number stuck to the ','
-            //Like " 0,8 " , "17,5 " , "10,10", " 8,49"
-            string IP_Pos = "";
-            Vector2 vec_pos = selectedIP.Position.Data;
-            IP_Pos += vec_pos.x.ToString().Length == 1 ? ' ' : vec_pos.x.ToString()[0];
-            IP_Pos += vec_pos.x.ToString().Length == 1 ? vec_pos.x.ToString()[0] : vec_pos.x.ToString()[1];
-            IP_Pos += ',';
-            IP_Pos += vec_pos.y.ToString().Length == 1 ? vec_pos.y.ToString()[0] : vec_pos.y.ToString()[0];
-            IP_Pos += vec_pos.y.ToString().Length == 1 ? ' ' : vec_pos.y.ToString()[1];
-
-            ConEx.ConEx_Draw.InsertCharacter(deltaRep, UI_BOTTOM, (UI_RIGHT - 1) - IP_Pos.Length - 1, ConsoleColor.Cyan);
-            ConEx.ConEx_Draw.InsertString(IP_Pos, UI_BOTTOM, (UI_RIGHT - 1) - IP_Pos.Length, false);
-            ConEx.ConEx_Draw.InsertString(modeStr, UI_BOTTOM, (UI_RIGHT - 1) - (IP_Pos.Length) - (1) - (12/*Maximum Possible Length for modeStr*/), false);
-            
-            for (int i = 0; i < IP_Pos.Length; i++)
+            //Based on the IP's delta show it's delta as a unicode arrow/symbol
+            if (selectedIP.Delta == Vector2.North)
             {
-                int col = (UI_RIGHT - 1) - (IP_Pos.Length + i);
-                ConEx.ConEx_Draw.SetAttributes(UI_BOTTOM, (UI_RIGHT - 1) - (IP_Pos.Length - i), ConsoleColor.Cyan, ConsoleColor.Black);//Color should be the same as movement color    
+                sb.Append((char)9516);
+            }
+            else if (selectedIP.Delta == Vector2.East)
+            {
+                sb.Append((char)9508);
+            }
+            else if (selectedIP.Delta == Vector2.South)
+            {
+                sb.Append((char)9524);
+            }
+            else if (selectedIP.Delta == Vector2.West)
+            {
+                sb.Append((char)9500);
+            }
+            else
+            {
+                //TODO - Choose a different symbol
+                sb.Append('?');
+            }
+
+            //Save where in the string our delta representative is
+            int deltaRepIndex = sb.Length - 1;
+
+            sb.Append(" ");
+            
+            //Append
+            if (mode == BoardMode.Edit && SelectionActive == true)
+            {
+                sb.Append(_selection.handle);
+            }
+            else
+            {
+                sb.Append((Vector2)selectedIP.Position.Data);
+            }
+
+            ConEx.ConEx_Draw.InsertString(sb.ToString(), UI_BOTTOM, 0, false);
+            
+            for (int c = deltaRepIndex; c < sb.ToString().Length; c++)
+            {
+                ConEx.ConEx_Draw.SetAttributes(UI_BOTTOM, c, ConsoleColor.Cyan, ConsoleColor.Black);//Color should be the same as movement color    
             }
         }
 
@@ -322,10 +319,15 @@ namespace BefungeSharp
                 {
                     int relative_row = r - Program.Interpreter.ViewScreen.top;
                     int relative_column = c - Program.Interpreter.ViewScreen.left;
-                    ConEx.ConEx_Draw.SetAttributes(relative_row,
-                                                   relative_column,
-                                                   ConEx.ConEx_Draw.GetForegroundColor(relative_row,relative_column),
-                                                   ConsoleColor.DarkGreen);
+
+                    //Ensures that we will never draw inside the UI or Sidebar Pane
+                    if (relative_row < Program.Interpreter.ViewScreen.Height && relative_column < Program.Interpreter.ViewScreen.Width)
+                    {
+                        ConEx.ConEx_Draw.SetAttributes(relative_row,
+                                                       relative_column,
+                                                       ConEx.ConEx_Draw.GetForegroundColor(relative_row, relative_column),
+                                                       ConsoleColor.DarkGreen);
+                    }
                 }
             }
         }

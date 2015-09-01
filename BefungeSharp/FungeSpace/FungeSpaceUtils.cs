@@ -281,7 +281,6 @@ namespace BefungeSharp.FungeSpace
         /// Move's an object's position node to a specific place, creating a node there if need be
         /// </summary>
         /// <param name="position">The position node of an object</param>
-        /// <param name="matrix">The matrix in which the FungeNode lives</param>
         /// <param name="row">The intented row to go to</param>
         /// <param name="column">The intended column to go to</param>
         /// <return>The new position of the FungeNode</return>
@@ -411,11 +410,18 @@ namespace BefungeSharp.FungeSpace
 
                 char character = (char)traverse.Data.value;
 
-                //
-                ConEx.ConEx_Draw.InsertCharacter(character,
-                                                    traverse.Data.y - drawable_bounds.top,
-                                                    traverse.Data.x - drawable_bounds.left,
-                                                    color, ConsoleColor.Black);//.DarkGray);//Change if you want to debug where FungeSpaceCells have been inserted
+                int row    = traverse.Data.y - drawable_bounds.top;
+                int column = traverse.Data.x - drawable_bounds.left;
+                
+                //Ensures that we'll never draw inside the sidebar
+                if (row < drawable_bounds.Height && column < drawable_bounds.Width)
+                {
+                    ConEx.ConEx_Draw.InsertCharacter(character,
+                                                     row,
+                                                     column,
+                                                     color,
+                                                     ConsoleColor.Black);//ConsoleColor.DarkGray);//Change if you want to debug where FungeSpaceCells have been inserted
+                }
             }
         }
         
