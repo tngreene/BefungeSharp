@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BefungeSharp.UI;
+using BefungeSharp.FungeSpace;
 
 namespace BefungeSharp
 {
@@ -54,7 +55,7 @@ namespace BefungeSharp
         public bool SelectionActive { 
                                         get
                                         {
-                                            FungeSpace.FungeSpaceArea area = _selection.GenerateArea();
+                                            FungeSpaceArea area = _selection.GenerateArea();
                                             return (area.left + area.top + area.right + area.bottom) > 0;
                                         }
                                     }
@@ -76,7 +77,7 @@ namespace BefungeSharp
 
             UI_BOTTOM = ConEx.ConEx_Draw.Dimensions.height - 1;
 
-            ClearSelection();
+            _selection.Clear();
         }
 
         /// <summary>
@@ -300,7 +301,6 @@ namespace BefungeSharp
             ConEx.ConEx_Draw.InsertString(IP_Pos, UI_BOTTOM, (UI_RIGHT - 1) - IP_Pos.Length, false);
             ConEx.ConEx_Draw.InsertString(modeStr, UI_BOTTOM, (UI_RIGHT - 1) - (IP_Pos.Length) - (1) - (12/*Maximum Possible Length for modeStr*/), false);
             
-
             for (int i = 0; i < IP_Pos.Length; i++)
             {
                 int col = (UI_RIGHT - 1) - (IP_Pos.Length + i);
@@ -314,7 +314,7 @@ namespace BefungeSharp
             {
                 return;
             }
-            FungeSpace.FungeSpaceArea dimensions = _selection.GenerateArea();
+            FungeSpaceArea dimensions = _selection.GenerateArea();
             //Draw selection
             for (int c = dimensions.left; c <= dimensions.right; c++)
             {
@@ -375,7 +375,7 @@ namespace BefungeSharp
                                     }
                                     UpdateSelection(k);
                                 
-                                    //Clear if we used an arrow key without shift
+                                    //Don't clear if we used an arrow key with shift
                                     keep_selection_active = true;
                                 }
                                 break;
@@ -392,9 +392,9 @@ namespace BefungeSharp
                                 keep_selection_active = false;
                                 break;
                         }
-                        if (keep_selection_active == false)// && _selection.active == false)
+                        if (keep_selection_active == false)
                         {
-                            ClearSelection();
+                            _selection.Clear();
                         }
                     }
                     break;
@@ -478,7 +478,7 @@ namespace BefungeSharp
             }*/
             return;
         }
-        #region Selection
+#region Selection
         /// <summary>
         /// Gets the contents of the selection box
         /// </summary>
@@ -487,11 +487,11 @@ namespace BefungeSharp
         {
             Vector2[] cropping_bounds = new Vector2[2];
 
-            FungeSpace.FungeSpaceArea dimensions = _selection.GenerateArea();
+            FungeSpaceArea dimensions = _selection.GenerateArea();
             cropping_bounds[0] = new Vector2(dimensions.left, dimensions.top);
             cropping_bounds[1] = new Vector2(dimensions.right, dimensions.bottom);
  
-            List<string> outlines = FungeSpace.FungeSpaceUtils.MatrixToStringList(Program.Interpreter.FungeSpace, cropping_bounds);
+            List<string> outlines = FungeSpaceUtils.MatrixToStringList(Program.Interpreter.FungeSpace, cropping_bounds);
          
             return outlines;
         }
@@ -501,7 +501,7 @@ namespace BefungeSharp
         /// </summary>
         private void PutSelectionContents()
         {
-            FungeSpace.FungeSpaceArea dimensions = _selection.GenerateArea();
+            FungeSpaceArea dimensions = _selection.GenerateArea();
             int top = dimensions.top;
             int left = dimensions.left;
 
@@ -512,29 +512,37 @@ namespace BefungeSharp
                 for (int s_column = 0; s_column < _selection.content[s_row].Length; s_column++)
                 {
                     //Put the character in the "real" location + the selection offset
-                    Program.Interpreter.FungeSpace.InsertCell(new FungeSpace.FungeCell(left + s_column, top + s_row, _selection.content[s_row][s_column]));
+                    Program.Interpreter.FungeSpace.InsertCell(new FungeCell(left + s_column, top + s_row, _selection.content[s_row][s_column]));
                 }
             }
-                        
+
+            Vector2 moveDelta = Program.Interpreter.EditIP.Delta;
+            FungeNode currentPosition = Program.Interpreter.EditIP.Position;
+            
             if (Program.Interpreter.EditIP.Delta == Vector2.North)
             {
-                Program.Interpreter.EditIP.Move(-(_selection.origin.y + _selection.handle.y));
+                Program.Interpreter.EditIP.Position = FungeSpaceUtils.MoveTo(currentPosition, currentPosition.Data.y - (dimensions.Height), currentPosition.Data.x);
             }
             else if(Program.Interpreter.EditIP.Delta == Vector2.East)
             {
-                Program.Interpreter.EditIP.Move((_selection.handle.x -_selection.origin.x));
+                Program.Interpreter.EditIP.Position = FungeSpaceUtils.MoveTo(currentPosition, currentPosition.Data.y, currentPosition.Data.x + (dimensions.Width));
             }
             else if(Program.Interpreter.EditIP.Delta == Vector2.South)
             {
-                Program.Interpreter.EditIP.Move((_selection.handle.y-_selection.origin.y));
+                Program.Interpreter.EditIP.Position = FungeSpaceUtils.MoveTo(currentPosition, currentPosition.Data.y + (dimensions.Height), currentPosition.Data.x);
             }
             else if(Program.Interpreter.EditIP.Delta == Vector2.West)
             {
-                Program.Interpreter.EditIP.Move(-(_selection.handle.x + _selection.origin.x));
+                Program.Interpreter.EditIP.Position = FungeSpaceUtils.MoveTo(currentPosition, currentPosition.Data.y, currentPosition.Data.x - (dimensions.Width));
             }
+            
+            _selection.Clear();
         }
         
-
+        /// <summary>
+        /// Update the selection bounds based on 
+        /// </summary>
+        /// <param name="k"></param>
         private void UpdateSelection(ConsoleKey k)
         {
             //Finally get to the changing of the directions!
@@ -546,8 +554,6 @@ namespace BefungeSharp
                 _selection.handle.y++;
             if (k == ConsoleKey.RightArrow)
                 _selection.handle.x++;
-
-            //_selection.content = GetSelectionContents();
 
             //If the selection is bigger than the screen will hold move the view screen
             if (_selection.handle.y < Program.Interpreter.ViewScreen.top)
@@ -565,12 +571,12 @@ namespace BefungeSharp
             if (_selection.handle.x > Program.Interpreter.ViewScreen.right)
             {
                 Program.Interpreter.MoveViewScreen(Vector2.East);
-            }            
+            }
         }
         
         private void DeleteSelection()
         {
-            FungeSpace.FungeSpaceArea dimensions = _selection.GenerateArea();
+            FungeSpaceArea dimensions = _selection.GenerateArea();
             int top  = dimensions.top;
             int left = dimensions.left;
 
@@ -581,15 +587,9 @@ namespace BefungeSharp
                 for (int s_column = 0; s_column < _selection.content[s_row].Length; s_column++)
                 {
                     //Put the character in the "real" location + the selection offset
-                    Program.Interpreter.FungeSpace.InsertCell(new FungeSpace.FungeCell(left + s_column, top + s_row, ' '));
+                    Program.Interpreter.FungeSpace.InsertCell(left + s_column, top + s_row, ' ');
                 }
             }
-        }
-
-        private void ClearSelection()
-        {
-            _selection.content = new List<string>();
-            _selection.origin = _selection.handle = Vector2.Zero;
         }
 #endregion Selection
 

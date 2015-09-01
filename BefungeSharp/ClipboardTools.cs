@@ -18,8 +18,16 @@ namespace BefungeSharp.UI
         /// The moveable handle of the selection
         /// </summary>
         public Vector2 handle;
+
+        /// <summary>
+        /// The cached content of the selection
+        /// </summary>
         public List<string> content;
 
+        /// <summary>
+        /// Create a FungeSpaceArea from the selection
+        /// </summary>
+        /// <returns>The generated FungeSpaceArea</returns>
         public FungeSpace.FungeSpaceArea GenerateArea()
         {
             //We need to figure out which quadrent our handle has ended up in
@@ -53,6 +61,15 @@ namespace BefungeSharp.UI
                 return new FungeSpace.FungeSpaceArea(handle.y,origin.x,origin.y,handle.x);
             }
             return new FungeSpace.FungeSpaceArea(0, 0, 0, 0);
+        }
+
+        /// <summary>
+        /// Resets the selection
+        /// </summary>
+        public void Clear()
+        {
+            origin = handle = Vector2.Zero;
+            content = new List<string>();
         }
     }
 
