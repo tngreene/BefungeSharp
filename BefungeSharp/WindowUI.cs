@@ -578,19 +578,10 @@ namespace BefungeSharp
         
         private void DeleteSelection()
         {
-            FungeSpaceArea dimensions = _selection.GenerateArea();
-            int top  = dimensions.top;
-            int left = dimensions.left;
-
-            //For the rows of the selection
-            for (int s_row = 0; s_row < _selection.content.Count; s_row++)
+            Program.Interpreter.FungeSpace.EnumerationArea = _selection.GenerateArea();
+            foreach (var node in Program.Interpreter.FungeSpace)
             {
-                //For every letter in each row
-                for (int s_column = 0; s_column < _selection.content[s_row].Length; s_column++)
-                {
-                    //Put the character in the "real" location + the selection offset
-                    Program.Interpreter.FungeSpace.InsertCell(left + s_column, top + s_row, ' ');
-                }
+                node.Data = new FungeCell(node.Data.x, node.Data.y, ' ');
             }
         }
 #endregion Selection
