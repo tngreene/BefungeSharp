@@ -13,7 +13,7 @@ namespace BefungeSharp.Instructions.Stack
         /// </summary>
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
-        public StackInstruction(char inName, int minimum_flags) : base(inName, CommandType.StackManipulation, ConsoleColor.DarkYellow, minimum_flags) { }
+        public StackInstruction(char inName, int minimum_flags) : base(inName, CommandType.StackManipulation, minimum_flags) { }
     }
 
     /// <summary>

@@ -10,24 +10,23 @@ namespace BefungeSharp.Instructions
     public enum CommandType
     {
         //These are not necissarily complete lists
-        Movement,//>v^<?
-        FlowControl,//#@;jqk
-        Logic,//!_|`
-
         Arithmetic,//Operators like +-*/
-        Numbers,//0-9,a-f that will be pushed onto the stack
-        StackManipulation,//:$\
-        StackStackManipulation,//{}u
-        DataStorage,//gp
-        StdIO,//&~,.
-        FileIO,//io
-        System,//=y
-        StopExecution,//@
-        String,//"
         Concurrent,//t
+        DataStorage,//gp
+        FlowControl,//#@;jqk
+        FileIO,//io
+        Logic,//!_|`
+        Movement,//>v^<?
+        Nop,//z and ' '
+        NotImplemented,
+        Number,//0-9,a-f that will be pushed onto the stack
+        StackManipulation,//:$\
+		StackStackManipulation,//{}u
+        StopExecution,//@
+        StdIO,//&~,.
+        String,//"
+        System,//=y
         Trefunge,//hlm
-        NotImplemented,//Many of the Funge-98 instructions. For now! - 12/31/2014
-        Nop//z and ' '
     }
 
     public abstract class Instruction
@@ -57,12 +56,13 @@ namespace BefungeSharp.Instructions
         /// </summary>
         public int MinimumFlags { get { return flags; } }
         
-        public Instruction(char inName, CommandType inType, ConsoleColor inColor, int minimum_flags)
+        public Instruction(char inName, CommandType inType, int minimum_flags)
         {
             this.name = inName;
             this.type = inType;
-            this.color = inColor;
+            this.color = OptionsManager.SessionOptions["Visualizer"]["COLOR_" + Enum.GetName(typeof(CommandType), inType)].GetValueTyped<ConsoleColor>();
             this.flags = minimum_flags;
+            
         }
 
         public abstract bool Preform(IP ip);

@@ -8,7 +8,7 @@ namespace BefungeSharp.Instructions.StdIO
 {
     public abstract class StandardIOInstruction : Instruction
     {
-        public StandardIOInstruction(char inName, int minimum_flags) : base(inName, CommandType.StdIO, ConsoleColor.DarkGray, minimum_flags) { }
+        public StandardIOInstruction(char inName, int minimum_flags) : base(inName, CommandType.StdIO, minimum_flags) { }
     }
 
     public class InputCharacterInstruction : StandardIOInstruction

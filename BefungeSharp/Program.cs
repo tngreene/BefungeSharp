@@ -32,7 +32,7 @@ namespace BefungeSharp
         {
             //Size of field + border + width_of_sidebar
             int width_of_sidebar = 36;//Seems right?
-            
+            var k = OptionsManager.DefaultOptions;
             Console.Title = "BefungeSharp, the Premier Funge-98 IDE for Windows";
             ConEx.ConEx_Draw.Init(80 + 1 + width_of_sidebar, 32);
             

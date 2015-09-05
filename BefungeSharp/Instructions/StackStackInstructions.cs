@@ -13,7 +13,7 @@ namespace BefungeSharp.Instructions.StackStack
         /// </summary>
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
-        public StackStackInstruction(char inName, int minimum_flags) : base(inName, CommandType.StackStackManipulation, ConsoleColor.Yellow, minimum_flags) { }
+        public StackStackInstruction(char inName, int minimum_flags) : base(inName, CommandType.StackStackManipulation, minimum_flags) { }
     }
 
     public class BeginBlockInstruction : StackStackInstruction, IRequiresPop

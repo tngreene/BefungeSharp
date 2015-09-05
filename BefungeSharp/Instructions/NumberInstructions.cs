@@ -22,7 +22,7 @@ namespace BefungeSharp.Instructions.Number
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
         /// <param name="value">The value this instruction adds onto the stack</param>
-        public NumberInstruction(char inName, int minimum_flags, int value) : base (inName, CommandType.Numbers, ConsoleColor.Magenta, 0)
+        public NumberInstruction(char inName, int minimum_flags, int value) : base (inName, CommandType.Number, 0)
         {
             this.value = value;
         }

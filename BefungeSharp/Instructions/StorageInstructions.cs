@@ -14,7 +14,7 @@ namespace BefungeSharp.Instructions.Storage
         /// </summary>
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
-        public StorageInstruction(char inName, int minimum_flags) : base(inName, CommandType.DataStorage, ConsoleColor.Green, minimum_flags) { }
+        public StorageInstruction(char inName, int minimum_flags) : base(inName, CommandType.DataStorage, minimum_flags) { }
     }
 
     public class GetInstruction : StorageInstruction, IRequiresPush, IRequiresPop

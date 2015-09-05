@@ -16,7 +16,7 @@ namespace BefungeSharp.Instructions.Arithmetic
     */
     public abstract class ArithmeticInstruction : Instruction, IRequiresPop
     {
-        public ArithmeticInstruction(char inName, int minimum_flags) : base(inName, CommandType.Arithmetic, ConsoleColor.Green, minimum_flags) { }
+        public ArithmeticInstruction(char inName, int minimum_flags) : base(inName, CommandType.Arithmetic, minimum_flags) { }
 
         /// <summary>
         /// Implements IStackAltering

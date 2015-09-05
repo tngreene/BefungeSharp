@@ -9,7 +9,7 @@ namespace BefungeSharp.Instructions.FileIO
 {
     public abstract class FileIOInstruction : Instruction
     {
-        public FileIOInstruction(char inName, int minimum_flags) : base(inName, CommandType.FileIO, ConsoleColor.Gray, minimum_flags) { }
+        public FileIOInstruction(char inName, int minimum_flags) : base(inName, CommandType.FileIO, minimum_flags) { }
     }
 
     public class InputFileInstruction : FileIOInstruction, IRequiresPop, IFungeSpaceAltering

@@ -20,7 +20,7 @@ namespace BefungeSharp.Instructions.Delta
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
         /// <param name="value">The new delta which will be applied to the IP</param>
-        public DeltaInstruction(char inName, int minimum_flags) : base(inName, CommandType.Movement, ConsoleColor.Cyan, minimum_flags) { }
+        public DeltaInstruction(char inName, int minimum_flags) : base(inName, CommandType.Movement, minimum_flags) { }
     }
 
     /// <summary>

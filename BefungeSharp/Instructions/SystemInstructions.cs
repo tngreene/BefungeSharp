@@ -9,7 +9,7 @@ namespace BefungeSharp.Instructions.SystemCall
 {
     public abstract class SystemInstruction : Instruction
     {
-        public SystemInstruction(char inName, int minimum_flags) : base(inName, CommandType.System, ConsoleColor.DarkMagenta, minimum_flags) { }
+        public SystemInstruction(char inName, int minimum_flags) : base(inName, CommandType.System, minimum_flags) { }
     }
 
     public class ExecuteInstruction : SystemInstruction, IRequiresPop

@@ -18,7 +18,7 @@ namespace BefungeSharp.Instructions.Logic
     public abstract class LogicInstruction : Instruction, IRequiresPop
     {
         protected int requiredCells;
-        public LogicInstruction(char inName, int minimum_flags) : base(inName, CommandType.Logic, ConsoleColor.DarkGreen, minimum_flags) { }
+        public LogicInstruction(char inName, int minimum_flags) : base(inName, CommandType.Logic, minimum_flags) { }
 
         public int RequiredCells()
         {
