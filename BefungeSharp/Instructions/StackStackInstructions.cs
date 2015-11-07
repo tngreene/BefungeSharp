@@ -13,7 +13,7 @@ namespace BefungeSharp.Instructions.StackStack
         /// </summary>
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
-        public StackStackInstruction(char inName, int minimum_flags) : base(inName, CommandType.StackStackManipulation, minimum_flags) { }
+        public StackStackInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, CommandType.StackStackManipulation, minimum_flags) { }
     }
 
     public class BeginBlockInstruction : StackStackInstruction, IRequiresPop
@@ -24,7 +24,7 @@ namespace BefungeSharp.Instructions.StackStack
         /// </summary>
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
-        public BeginBlockInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public BeginBlockInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
         
         public override bool Preform(IP ip)
         {
@@ -74,7 +74,7 @@ namespace BefungeSharp.Instructions.StackStack
         /// </summary>
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
-        public EndBlockInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public EndBlockInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -127,7 +127,7 @@ namespace BefungeSharp.Instructions.StackStack
         /// </summary>
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
-        public StackUnderStackInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public StackUnderStackInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {

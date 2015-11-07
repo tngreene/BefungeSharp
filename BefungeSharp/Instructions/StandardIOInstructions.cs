@@ -8,12 +8,12 @@ namespace BefungeSharp.Instructions.StdIO
 {
     public abstract class StandardIOInstruction : Instruction
     {
-        public StandardIOInstruction(char inName, int minimum_flags) : base(inName, CommandType.StdIO, minimum_flags) { }
+        public StandardIOInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, CommandType.StdIO, minimum_flags) { }
     }
 
     public class InputCharacterInstruction : StandardIOInstruction
     {
-        public InputCharacterInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public InputCharacterInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -25,7 +25,7 @@ namespace BefungeSharp.Instructions.StdIO
 
     public class InputDecimalInstruction : StandardIOInstruction
     {
-        public InputDecimalInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public InputDecimalInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -37,7 +37,7 @@ namespace BefungeSharp.Instructions.StdIO
 
     public class OutputCharacterInstruction : StandardIOInstruction, IRequiresPop
     {
-        public OutputCharacterInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public OutputCharacterInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -56,7 +56,7 @@ namespace BefungeSharp.Instructions.StdIO
 
     public class OutputDecimalInstruction : StandardIOInstruction, IRequiresPop
     {
-        public OutputDecimalInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public OutputDecimalInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {

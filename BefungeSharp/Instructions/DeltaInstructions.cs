@@ -20,7 +20,7 @@ namespace BefungeSharp.Instructions.Delta
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
         /// <param name="value">The new delta which will be applied to the IP</param>
-        public DeltaInstruction(char inName, int minimum_flags) : base(inName, CommandType.Movement, minimum_flags) { }
+        public DeltaInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, CommandType.Movement, minimum_flags) { }
     }
 
     /// <summary>
@@ -34,7 +34,7 @@ namespace BefungeSharp.Instructions.Delta
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
         /// <param name="value">Must be North, East, South, or West or an exception will be throw</param>
-        public CardinalInstruction(char inName, int minimum_flags, Vector2 delta) : base(inName, minimum_flags) 
+        public CardinalInstruction(char inName, RuntimeFeatures minimum_flags, Vector2 delta) : base(inName, minimum_flags) 
         {
             if (delta != Vector2.North &&
                 delta != Vector2.East &&
@@ -61,7 +61,7 @@ namespace BefungeSharp.Instructions.Delta
     /// </summary>
     public class RandomDeltaInstruction : DeltaInstruction
     {
-        public RandomDeltaInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public RandomDeltaInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -76,7 +76,7 @@ namespace BefungeSharp.Instructions.Delta
     /// </summary>
     public class SetDeltaInstruction : DeltaInstruction, IRequiresPop
     {
-        public SetDeltaInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public SetDeltaInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -104,7 +104,7 @@ namespace BefungeSharp.Instructions.Delta
     /// </summary>
     public class ReverseDeltaInstruction : DeltaInstruction
     {
-        public ReverseDeltaInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public ReverseDeltaInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -122,7 +122,7 @@ namespace BefungeSharp.Instructions.Delta
     /// </summary>
     public class TurnLeftInstruction : DeltaInstruction//, IPartnerSwappable
     {
-        public TurnLeftInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }     
+        public TurnLeftInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }     
         
         public override bool Preform(IP ip)
         {
@@ -137,7 +137,7 @@ namespace BefungeSharp.Instructions.Delta
     /// </summary>
     public class TurnRightInstruction : DeltaInstruction//, IPartnerSwappable
     {
-        public TurnRightInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }      
+        public TurnRightInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }      
         
         public override bool Preform(IP ip)
         {

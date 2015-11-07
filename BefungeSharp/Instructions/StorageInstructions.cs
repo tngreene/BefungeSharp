@@ -14,12 +14,12 @@ namespace BefungeSharp.Instructions.Storage
         /// </summary>
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
-        public StorageInstruction(char inName, int minimum_flags) : base(inName, CommandType.DataStorage, minimum_flags) { }
+        public StorageInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, CommandType.DataStorage, minimum_flags) { }
     }
 
     public class GetInstruction : StorageInstruction, IRequiresPush, IRequiresPop
     {
-        public GetInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public GetInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
         
         public override bool Preform(IP ip)
         {
@@ -53,7 +53,7 @@ namespace BefungeSharp.Instructions.Storage
 
     public class PutInstruction : StorageInstruction, IRequiresPop
     {
-        public PutInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public PutInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
         
         public override bool Preform(IP ip)
         {

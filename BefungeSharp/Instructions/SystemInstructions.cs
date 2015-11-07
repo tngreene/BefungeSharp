@@ -9,12 +9,12 @@ namespace BefungeSharp.Instructions.SystemCall
 {
     public abstract class SystemInstruction : Instruction
     {
-        public SystemInstruction(char inName, int minimum_flags) : base(inName, CommandType.System, minimum_flags) { }
+        public SystemInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, CommandType.System, minimum_flags) { }
     }
 
     public class ExecuteInstruction : SystemInstruction, IRequiresPop
     {
-        public ExecuteInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public ExecuteInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -60,7 +60,7 @@ namespace BefungeSharp.Instructions.SystemCall
 
     public class GetSysInfo : SystemInstruction, IRequiresPop
     {
-        public GetSysInfo(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public GetSysInfo(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -349,7 +349,7 @@ namespace BefungeSharp.Instructions.SystemCall
 
     public class NotImplemented : SystemInstruction
     {
-        public NotImplemented(char inName, int minimum_flags) : base(inName, minimum_flags) { color = ConsoleColor.DarkRed; }
+        public NotImplemented(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { Color = ConsoleColor.DarkRed; }
 
         public override bool Preform(IP ip)
         {
@@ -363,7 +363,7 @@ namespace BefungeSharp.Instructions.SystemCall
 
     public class Breakpoint : SystemInstruction, IAffectsRunningMode
     {
-        public Breakpoint(char inName, int minimum_flags) : base(inName, minimum_flags) { color = ConsoleColor.Red; }
+        public Breakpoint(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { Color = ConsoleColor.Red; }
 
         public override bool Preform(IP ip)
         {

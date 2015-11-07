@@ -20,7 +20,7 @@ namespace BefungeSharp
         Run_SLOW = 200,//Program delayed by 200ms. IP and stack changes are slow enough to follow on paper
         Run_STEP = 101,//Program delayed until user presses the "Next Step" Key
         Edit = 0,//Program is running in edit mode
-        Debug = 2
+        Debug = 2//The program is running in debug mode
     }
 
     /// <summary>
@@ -75,7 +75,6 @@ namespace BefungeSharp
         /// The instruction pointer list, 
         /// _IPs[0] is essentially the IP for Unfunge through non concurrent Funge-98 and non-concurrent Tre-Funge
         /// _IPs[1 + n != _IPs.Last()] are only created when using BF98-C
-        /// _IPs.Last() is the special "Edit cursor"
         /// </summary>
         public List<IP> IPs { get { return _IPs; } }
 
@@ -85,6 +84,8 @@ namespace BefungeSharp
         /// The Instruction Pointer representing the editor cursor
         /// </summary>
         public IP EditIP { get { return _editIP; } }
+
+        public RuntimeFeatures EnvFlags { get; private set; }
 
         /// <summary>
         /// Controls the intepretation and execution of commands
@@ -117,8 +118,11 @@ namespace BefungeSharp
             
             _curMode = mode;
 
-            Instructions.InstructionManager.BuildInstructionSet();
-            
+            foreach (var setting in OptionsManager.SessionOptions["Interpreter"])
+            {
+                this.EnvFlags |= setting.GetValueTyped<RuntimeFeatures>();
+            }
+          
             if (mode == BoardMode.Edit || mode == BoardMode.Debug)
             {
                 PauseExecution();
@@ -130,6 +134,8 @@ namespace BefungeSharp
         /// </summary>
         private void BeginExecution(BoardMode mode)
         {
+            //Rebuild the instruction set to clear out any saved states
+            Instructions.InstructionManager.BuildInstructionSet();
             _curMode = mode;
 
             fs_view_screen = FS_93;
@@ -263,10 +269,7 @@ namespace BefungeSharp
                         {
                             /*Arrow Keys
                              * Tab   + Arrow Key moves view screen
-                             * Shift + Arrow Key changes IP direction
-                             * Arrow Key press:
-                             * MoveTo
-                             * Ignore future movement
+                             * Ctrl + Arrow Key changes IP direction
                              * 
                              * This system makes sure we still use our generalizations and
                              * allows for neat editing tricks
