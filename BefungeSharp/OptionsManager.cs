@@ -11,28 +11,30 @@ namespace BefungeSharp
     [Flags]
     public enum RuntimeFeatures : int
     {
-        NULL =             0x000,
-        
+        NULL = 0x000,
+
         //Referenced in the language spec
         CONCURRENT_FUNGE = 0x001,
-        FILE_INPUT =       0x002,
-        FILE_OUTPUT =      0x004,
-        EXECUTE =          0x008,
-        UNBUFFERED_IO =    0x010,
-        
+        FILE_INPUT = 0x002,
+        FILE_OUTPUT = 0x004,
+        EXECUTE = 0x008,
+        UNBUFFERED_IO = 0x010,
+
         //Other language features (not referenced in the spec)
-        NETWORKING =       0x020,
+        NETWORKING = 0x020,
 
         //Language and spec version selection, default to _98
-        UF =               0x040, //1D Funge-98
-        BF =               0x080, //2D Funge-98
-        TF =               0x100, //3D Funge-98
-        VERSION_93 =       0x200, //Befunge-93 compatability mode
-        VERSION_98 =       0x400  //IDE default
+        UF = 0x040, //1D Funge-98
+        BF = 0x080, //2D Funge-98
+        TF = 0x100, //3D Funge-98
+        VERSION_93 = 0x200, //Befunge-93 compatability mode
+        VERSION_98 = 0x400  //IDE default
     }
+
 
     public static class OptionsManager
     {
+        
         /// <summary>
         /// The global program options chosen for this session
         /// </summary>
@@ -95,8 +97,8 @@ namespace BefungeSharp
             //  GRID_XOFFSET - int, width of snapping grid in cells
             //  GRID_YOFFSET - int, height of snapping grid in cells
             //Interpreter - Executing Funge instructions and running the language
-            //  LANGUAGE - string (UF,BF93,F98,TF), sets many presets of other options
-            //  SANDBOX_ENABLED - int, if RuntimeFeatures. i,o,= and the like are disabled
+            //  LANGUAGE AND FEATURES - string (UF,BF93,F98,TF), sets many presets of other options
+            //  FUNGESPACE SETTINGS - for optimization and sizes
             //Debugger
             Configuration defaultOptions = new Configuration();
             
@@ -104,7 +106,7 @@ namespace BefungeSharp
             defaultOptions["General"]["DEFAULT_ENCODING"].SetValue<string>("UTF8");
             defaultOptions["General"]["DEFAULT_ENCODING"].Comment = new Comment("string, Encoding of the program",';');
             
-            defaultOptions["Editor"].Comment = new Comment("Settings that affect edit mode",'#');
+            defaultOptions["Editor"].Comment = new Comment("Settings that affect edit mode",';');
             defaultOptions["Editor"]["SNIPPET"].SetValue<string>(">:\\#,_");
             defaultOptions["Editor"]["SNIPPET"].Comment = new Comment("string, a single line of Funge code",';');
 
@@ -140,31 +142,47 @@ namespace BefungeSharp
             defaultOptions["Visualizer"]["GRID_YOFFSET"].SetValue<int>(5);
             defaultOptions["Visualizer"]["GRID_YOFFSET"].Comment = new Comment("The number of cells to shift when shifting the view port vertically, should be a multiple of 5", ';');
 
-            defaultOptions["Interpreter"].Comment = new Comment("The following turn on or off support for features",';');
-            defaultOptions["Interpreter"]["CONCURRENT_FUNGE"].SetValue<RuntimeFeatures>(RuntimeFeatures.CONCURRENT_FUNGE);
-            defaultOptions["Interpreter"]["CONCURRENT_FUNGE"].Comment = new Comment("Enables the 't' instruction", ';');
-            defaultOptions["Interpreter"]["FILE_INPUT"].SetValue<RuntimeFeatures>(RuntimeFeatures.FILE_INPUT);
-            defaultOptions["Interpreter"]["FILE_INPUT"].Comment = new Comment("Enables the 'i' instruction. Potentially unsafe", ';');
-            defaultOptions["Interpreter"]["FILE_OUTPUT"].SetValue<RuntimeFeatures>(RuntimeFeatures.FILE_OUTPUT);
-            defaultOptions["Interpreter"]["FILE_OUTPUT"].Comment = new Comment("Enables the 'o' instruction. Potentially unsafe", ';');
-            defaultOptions["Interpreter"]["EXECUTE"].SetValue<RuntimeFeatures>(RuntimeFeatures.EXECUTE);
-            defaultOptions["Interpreter"]["EXECUTE"].Comment = new Comment("Enables the 't' instruction. Potentially unsafe", ';');
-            defaultOptions["Interpreter"]["UNBUFFED_IO"].SetValue<RuntimeFeatures>(RuntimeFeatures.UNBUFFERED_IO);
-            defaultOptions["Interpreter"]["UNBUFFED_IO"].Comment = new Comment("If true, io is unbuffered", ';');
-            defaultOptions["Interpreter"]["NETWORKING"].SetValue<RuntimeFeatures>(RuntimeFeatures.NULL);
-            defaultOptions["Interpreter"]["NETWORKING"].Comment = new Comment("Enables BefungeSharp to make Network connections. Currently unimplemented", ';');
-            defaultOptions["Interpreter"]["UF"].SetValue<RuntimeFeatures>(RuntimeFeatures.UF);
-            defaultOptions["Interpreter"]["UF"].Comment = new Comment("Unfunge, 1D funge, is supported", ';');
-            defaultOptions["Interpreter"]["BF"].SetValue<RuntimeFeatures>(RuntimeFeatures.BF);
-            defaultOptions["Interpreter"]["BF"].Comment = new Comment("Befunge, 2D funge, is supported", ';');
-            defaultOptions["Interpreter"]["TF"].SetValue<RuntimeFeatures>(RuntimeFeatures.NULL);//One day...
-            defaultOptions["Interpreter"]["TF"].Comment = new Comment("Trefunge, 3D funge, is currently not supported", ';');
-            defaultOptions["Interpreter"]["VERSION_93"].SetValue<RuntimeFeatures>(RuntimeFeatures.NULL);
-            defaultOptions["Interpreter"]["VERSION_93"].Comment = new Comment("Befunge-93 spec compatability mode is currently not implemented", ';');
-            defaultOptions["Interpreter"]["VERSION_98"].SetValue<RuntimeFeatures>(RuntimeFeatures.VERSION_98);
-            defaultOptions["Interpreter"]["VERSION_98"].Comment = new Comment("The Funge-98 spec, it is partially implemented", ';');
-            //defaultOptions["Interpreter"]["INFINITE_LOOP_DETECTION_STYLE"]
-            //defaultOptions["Interpreter"]["SECONDS_BEFORE_TIMEOUT"].SetValue<int>(
+            
+            defaultOptions["Interpreter"].Comment = new Comment("Settings for the interpreter to use at runtime\r\n" +
+                                                                "\t\t\t  ;Only enable a single dimension and a single version",';');
+                                                                                                            
+            //LF stands for Languages and Features, a sort of namespace-ing
+            defaultOptions["Interpreter"]["LF_CONCURRENT_FUNGE"].SetValue<bool>(true);
+            defaultOptions["Interpreter"]["LF_CONCURRENT_FUNGE"].Comment = new Comment("Enables the 't' instruction", ';');
+            defaultOptions["Interpreter"]["LF_FILE_INPUT"].SetValue<bool>(true);
+            defaultOptions["Interpreter"]["LF_FILE_INPUT"].Comment = new Comment("Enables the 'i' instruction. Potentially unsafe", ';');
+            defaultOptions["Interpreter"]["LF_FILE_OUTPUT"].SetValue<bool>(true);
+            defaultOptions["Interpreter"]["LF_FILE_OUTPUT"].Comment = new Comment("Enables the 'o' instruction. Potentially unsafe", ';');
+            defaultOptions["Interpreter"]["LF_EXECUTE_STYLE"].SetValue<int>(1);
+            defaultOptions["Interpreter"]["LF_EXECUTE_STYLE"].Comment = new Comment("0 for none, 1 for system() calls, 2 specific programs, 3 for this running shell. Currently using 1",';');
+            defaultOptions["Interpreter"]["LF_STD_INPUT_STYLE"].SetValue<int>(1);
+            defaultOptions["Interpreter"]["LF_STD_INPUT_STYLE"].Comment = new Comment("0 for unbuffered, 1 for buffered. For now use 1", ';');
+            defaultOptions["Interpreter"]["LF_STD_OUTPUT_STYLE"].SetValue<int>(0);
+            defaultOptions["Interpreter"]["LF_STD_OUTPUT_STYLE"].Comment = new Comment("0 for unbuffered, 1 for buffered. For now use 0", ';');
+            defaultOptions["Interpreter"]["LF_NETWORKING"].SetValue<bool>(false);
+            defaultOptions["Interpreter"]["LF_NETWORKING"].Comment = new Comment("Enables BefungeSharp to make Network connections. Currently unimplemented", ';');
+            
+            defaultOptions["Interpreter"]["LF_UF"].SetValue<bool>(true);
+            defaultOptions["Interpreter"]["LF_UF"].Comment = new Comment("Unfunge, 1D funge, is supported", ';');
+            defaultOptions["Interpreter"]["LF_BF"].SetValue<bool>(true);
+            defaultOptions["Interpreter"]["LF_BF"].Comment = new Comment("Befunge, 2D funge, is supported", ';');
+            defaultOptions["Interpreter"]["LF_TF"].SetValue<bool>(false);//One day...
+            defaultOptions["Interpreter"]["LF_TF"].Comment = new Comment("Trefunge, 3D funge, is currently not supported", ';');
+            defaultOptions["Interpreter"]["LF_DIMENSIONS"].SetValue<int>(2);
+
+            //Choose 93 or 98, not both
+            defaultOptions["Interpreter"]["LF_SPEC_VERSION"].SetValue<int>(98);
+            defaultOptions["Interpreter"]["LF_SPEC_VERSION"].Comment = new Comment("Possible values are 93 or 98. \"93\" is a Befunge-93 compatability mode", ';');
+
+            //RT_ is out Runtime options
+            defaultOptions["Interpreter"]["RT_DEFAULT_MODE"].SetValue<BoardMode>(BoardMode.Edit);
+            
+            //FS_ is our FungeSpace option namespace
+            defaultOptions["Interpreter"]["FS_DEFAULT_AREA_WIDTH"].SetValue<int>(80);
+            defaultOptions["Interpreter"]["FS_DEFAULT_AREA_WIDTH"].Comment = new Comment("The default width of pre-allocated FungeSpace, must be atleast 80 and a multiple of 16", ';');
+            defaultOptions["Interpreter"]["FS_DEFAULT_AREA_HEIGHT"].SetValue<int>(25);
+            defaultOptions["Interpreter"]["FS_DEFAULT_AREA_WIDTH"].Comment = new Comment("The default width of pre-allocated FungeSpace, must be atleast 25 and a multiple of 5", ';');
+            
             return defaultOptions;
         }
     }

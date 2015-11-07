@@ -5,9 +5,109 @@ using System.Text;
 using System.Threading.Tasks;
 
 using BefungeSharp.FungeSpace;
+
 namespace BefungeSharp
 {
-    
+    public class InterpreterSettings
+    {
+        /// <summary>
+        /// If concurrent Funge-98 is enabled
+        /// </summary>
+        public bool ConcurrentEnabled { get; set; }
+
+        /// <summary>
+        /// If files can be read from the HDD
+        /// </summary>
+        public bool FileInputEnabled { get; set; }
+
+        /// <summary>
+        /// If files can be written to the HDD
+        /// </summary>
+        public bool FileOutputEnabled { get; set; }
+
+        /// <summary>
+        /// From the spec
+        /// 
+        /// 0 = Unavailable
+        /// 1 = C-language system() call behaviour
+        /// 2 = A specific shell or program
+        /// 3 = Equivalent to interpretation by the same shell as started this Funge interpreter, if applicable
+        /// </summary>
+        public int ExecuteStyle { get; set; }
+
+        /// <summary>
+        /// From the spec
+        /// 
+        /// 0 = buffered input (like scanf("%c"))
+        /// 1 = unbuffered input (like getch())
+        /// Currently, input is unbuffered for getting characters, buffered for getting numbers - 11/7/15
+        /// </summary>
+        public int StdInputStyle { get; set; }
+
+        /// <summary>
+        /// From the spec
+        /// 
+        /// 0 = buffered output
+        /// 1 = unbuffered output
+        /// Currently all output goes to the standard output stream - 11/7/15
+        /// </summary>
+        public int StdOutputStyle { get; set; }
+
+        /// <summary>
+        /// If BefungeSharp is allowed to use internet protocols
+        /// </summary>
+        public bool NetworkConnectionsEnabled { get; set; }
+
+        /// <summary>
+        /// The number of dimensions (1,2, or 3)
+        /// </summary>
+        public int Dimensions { get; set; }
+
+        /// <summary>
+        /// Possible values are 93 or 98
+        /// </summary>
+        public int SpecVersionNumber { get; set; }
+
+        //Derived from SpecVersionNumber
+        /// <summary>
+        /// SGML space handling dictates all spaces
+        /// are consumed as one space
+        /// </summary>
+        public bool SGML_Spaces { get; set; }
+
+        //Derived from RT_BoardMode
+        /// <summary>
+        /// How much delay between clock ticks there is, in milliseconds
+        /// </summary>
+        public int ClockDelay { get; set; }
+    }
+
+    public static class BoardModeExtensions
+    {
+        public static int ModeToClockTick(this BoardMode mode)
+        {
+            switch (mode)
+            {
+                case BoardMode.Run_MAX:
+                    return 0;
+                case BoardMode.Run_TERMINAL:
+                    return 0;
+                case BoardMode.Run_FAST:
+                    return 50;
+                case BoardMode.Run_MEDIUM:
+                    return 100;
+                case BoardMode.Run_SLOW:
+                    return 200;
+                case BoardMode.Run_STEP:
+                    return 100;
+                case BoardMode.Edit:
+                case BoardMode.Debug:
+                    return 0;
+                default:
+                    throw new Exception("The board mode: " + mode + " is an unknown value!");
+            }
+        }
+    }
     /// <summary>
     /// An enum of how the board should behave while running
     /// </summary>
@@ -21,6 +121,8 @@ namespace BefungeSharp
         Run_STEP = 101,//Program delayed until user presses the "Next Step" Key
         Edit = 0,//Program is running in edit mode
         Debug = 2//The program is running in debug mode
+
+        
     }
 
     /// <summary>
@@ -53,17 +155,18 @@ namespace BefungeSharp
         /// </summary>
         private FungeSpaceArea fs_view_screen;
         public FungeSpaceArea ViewScreen { get { return fs_view_screen; } }
+
         /// <summary>
         /// A subset of FS_DEFAULT which the program uses for deciding what portion of FungeSpace is
         /// savable/loadable and what is beyond the ability to. Saving one row of Theoretical FungeSpace results in a 4.3 GB file
         /// Thus we must put a limit at some point. We set it to the default, but it can be changed
         /// </summary>
-        private readonly FungeSpaceArea FS_SAVEABLE;
+        //Not yet implemented private readonly FungeSpaceArea FS_SAVEABLE;
         
         /// <summary>
         /// Extended FungeSpace, the space the interpreter uses. It is sparse, fully addressable, and fully travelable.
         /// </summary>
-        private FungeSpaceArea FS_EXTENDED;
+        //Not yet implemented private FungeSpaceArea FS_EXTENDED;
 
         //The current mode of the board
         private BoardMode _curMode;
@@ -85,7 +188,7 @@ namespace BefungeSharp
         /// </summary>
         public IP EditIP { get { return _editIP; } }
 
-        public RuntimeFeatures EnvFlags { get; private set; }
+        public InterpreterSettings Settings { get; private set; }
 
         /// <summary>
         /// Controls the intepretation and execution of commands
@@ -95,10 +198,10 @@ namespace BefungeSharp
         {
             //Set up the area's the program will refer to
             FS_93 = new FungeSpaceArea(0, 0, 24, 79);
-            FS_DEFAULT = new FungeSpaceArea(0, 0, 24, 79);
+            FS_DEFAULT =  new FungeSpaceArea(0, 0, OptionsManager.SessionOptions["Interpreter"]["FS_DEFAULT_AREA_HEIGHT"].GetValueTyped<int>()-1, OptionsManager.SessionOptions["Interpreter"]["FS_DEFAULT_AREA_WIDTH"].GetValueTyped<int>()-1);
             fs_view_screen = FS_93;
-            FS_SAVEABLE = FS_DEFAULT;
-            FS_EXTENDED = FS_DEFAULT;
+            //FS_SAVEABLE = FS_DEFAULT;
+            //FS_EXTENDED = FS_DEFAULT;
             
             int rows = initial_chars.Count;
             int columns = 0;
@@ -118,11 +221,9 @@ namespace BefungeSharp
             
             _curMode = mode;
 
-            foreach (var setting in OptionsManager.SessionOptions["Interpreter"])
-            {
-                this.EnvFlags |= setting.GetValueTyped<RuntimeFeatures>();
-            }
-          
+            this.Settings = Interpreter.GetSettingsFromOptions();
+            Instructions.InstructionManager.BuildInstructionSet();
+            
             if (mode == BoardMode.Edit || mode == BoardMode.Debug)
             {
                 PauseExecution();
@@ -134,8 +235,6 @@ namespace BefungeSharp
         /// </summary>
         private void BeginExecution(BoardMode mode)
         {
-            //Rebuild the instruction set to clear out any saved states
-            Instructions.InstructionManager.BuildInstructionSet();
             _curMode = mode;
 
             fs_view_screen = FS_93;
@@ -147,9 +246,6 @@ namespace BefungeSharp
             _IPs.Add(new IP());
             _IPs[0].Active = true;
             _IPs[0].Position = _fungeSpace.Origin;
-
-            //Rebuild the instruction set
-            Instructions.InstructionManager.BuildInstructionSet();
         }
 
         /// <summary>
@@ -423,6 +519,12 @@ namespace BefungeSharp
                     moveDirection = Vector2.West;
                 }
 
+                //Keep moving the view screen until the IP we are following is inside it
+                while (followingIPPosition.x < fs_view_screen.left || followingIPPosition.x > fs_view_screen.right)
+                {
+                    MoveViewScreen(moveDirection);
+                }
+
                 if (followingIPPosition.y > fs_view_screen.bottom)
                 {
                     moveDirection = Vector2.South;
@@ -433,7 +535,7 @@ namespace BefungeSharp
                 }
                 
                 //Keep moving the view screen until the IP we are following is inside it
-                while (fs_view_screen.Contains(followingIPPosition.x, followingIPPosition.y) == false)
+                while (followingIPPosition.y < fs_view_screen.top || followingIPPosition.y > fs_view_screen.bottom)
                 {
                     MoveViewScreen(moveDirection);
                 }
@@ -533,15 +635,16 @@ namespace BefungeSharp
                 fs_view_screen.top -= yOffset;
                 fs_view_screen.bottom =  fs_view_screen.top + (FS_93.Height - 1);
             }
-            else if(direction == Vector2.East)
-            {
-                fs_view_screen.left += xOffset;
-                fs_view_screen.right = fs_view_screen.left + (FS_93.Width - 1);
-            }
             else if(direction == Vector2.South)
             {
                 fs_view_screen.top += yOffset;
                 fs_view_screen.bottom =  fs_view_screen.top + (FS_93.Height - 1);
+            }
+            
+            if (direction == Vector2.East)
+            {
+                fs_view_screen.left += xOffset;
+                fs_view_screen.right = fs_view_screen.left + (FS_93.Width - 1);
             }
             else if(direction == Vector2.West)
             {
@@ -641,6 +744,32 @@ namespace BefungeSharp
             }
 
             return Instructions.CommandType.NotImplemented;//TODO - Needs a better idea
+        }
+
+        /// <summary>
+        /// Builds the set of settings from the Options Manager,
+        /// it is static because of the way the instructions manager is set up.
+        /// It is a necissary hack to reduce complexity or data redunency
+        /// </summary>
+        /// <returns></returns>
+        public static InterpreterSettings GetSettingsFromOptions()
+        {
+            InterpreterSettings settings = new InterpreterSettings();
+            SharpConfig.Section interpreter = OptionsManager.SessionOptions["Interpreter"];
+
+            settings.ConcurrentEnabled          = interpreter["LF_CONCURRENT_FUNGE"].GetValueTyped<bool>();
+            settings.FileInputEnabled           = interpreter["LF_FILE_INPUT"].GetValueTyped<bool>();
+            settings.FileOutputEnabled          = interpreter["LF_FILE_OUTPUT"].GetValueTyped<bool>();
+            settings.ExecuteStyle               = interpreter["LF_EXECUTE_STYLE"].GetValueTyped<int>();
+            settings.StdInputStyle              = interpreter["LF_STD_INPUT_STYLE"].GetValueTyped<int>();
+            settings.StdOutputStyle             = interpreter["LF_STD_OUTPUT_STYLE"].GetValueTyped<int>();
+            settings.NetworkConnectionsEnabled  = interpreter["LF_NETWORKING"].GetValueTyped<bool>();
+            settings.Dimensions                 = interpreter["LF_DIMENSIONS"].GetValueTyped<int>();
+            settings.SpecVersionNumber          = interpreter["LF_SPEC_VERSION"].GetValueTyped<int>();
+            settings.SGML_Spaces                = settings.SpecVersionNumber == 98 ? true : false;
+            settings.ClockDelay                 = interpreter["RT_DEFAULT_MODE"].GetValueTyped<BoardMode>().ModeToClockTick();
+
+            return settings;
         }
     }
 }

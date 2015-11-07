@@ -107,7 +107,7 @@ namespace BefungeSharp
                 }
                 double mm = watch.ElapsedMilliseconds;
                 //Based on the mode sleep the program so it does not scream by
-                System.Threading.Thread.Sleep((int) Program.Interpreter.CurMode);
+                System.Threading.Thread.Sleep(Program.Interpreter.CurMode.ModeToClockTick());
             }//while(true)
         }//Update()
         
