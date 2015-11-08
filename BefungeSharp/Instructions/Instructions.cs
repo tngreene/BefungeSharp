@@ -58,7 +58,7 @@ namespace BefungeSharp.Instructions
         {
             this.Name = inName;
             this.Type = inType;
-            this.Color = OptionsManager.SessionOptions["Visualizer"]["COLOR_" + Enum.GetName(typeof(CommandType), inType)].GetValueTyped<ConsoleColor>();
+            this.Color = OptionsManager.Get<ConsoleColor>("Visualizer","COLOR_" + Enum.GetName(typeof(CommandType), inType));
             this.MinimumFlags = minimum_flags;
         }
         

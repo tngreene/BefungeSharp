@@ -53,8 +53,6 @@ namespace BefungeSharp
             try
             {
                 //SessionOptions = SharpConfig.Configuration.LoadFromFile("options.ini");
-
-
             }
             catch (Exception e)
             {
@@ -63,23 +61,66 @@ namespace BefungeSharp
             finally
             {
                 SessionOptions.SaveToStream(File.Create("options.ini"));
-            }
-            
-            
-            //If the options file does not exist
-            if (SessionOptions == null)
-            {
-                //Create options.ini
-                
-            }
-            else
-            {
-                //2. Read, validate, and store the existing file rules
-                //  - Use default (for this session) in any place
-                
-            }           
+            }      
         }
 
+        /// <summary>
+        /// Attempts to get the value of a setting based on the string,
+        /// Searches through SessionOptions, then Default Options
+        /// </summary>
+        /// <typeparam name="T">The data type you expect to get back</typeparam>
+        /// <param name="section">The name of the section</param>
+        /// <param name="name">The name of the setting</param>
+        /// <returns>The data inside of the setting</returns>
+        public static T Get<T>(string section, string name)
+        {
+            //If the section and setting exists, return it
+            //otherwise, try finding it in the defaults
+            if (SessionOptions.Contains(section) == true)
+            {
+                if (SessionOptions[section].Contains(name) == true)
+                {
+                    return SessionOptions[section][name].GetValueTyped<T>();
+                }
+            }
+            else if (DefaultOptions.Contains(section) == true)
+            {
+                if (DefaultOptions[section].Contains(name) == true)
+                {
+                    return DefaultOptions[section][name].GetValueTyped<T>();
+                }
+            }
+
+            //We're in trouble.
+            throw new Exception("Section: " + section + " Setting: " + name + " not found!");
+            
+            //Technically we'll never reach here, but VS doesn't know that for sure
+            return default(T);
+        }
+
+        /// <summary>
+        /// Attempts to set a setting with a particular value
+        /// </summary>
+        /// <typeparam name="T">The data type to set</typeparam>
+        /// <param name="section">The name of the section</param>
+        /// <param name="name">The name of the setting</param>
+        /// <param name="value">The new value to give the setting</param>
+        public static void Set<T>(string section, string name, T value)
+        {
+            string exceptionString = "";
+            if (SessionOptions.Contains(section) == true)
+            {
+                if (SessionOptions[section].Contains(name) == true)
+                {
+                    SessionOptions[section][name].SetValue<T>(value);
+                    return;
+                }
+                exceptionString += "Setting: " + name + " does not exist!";
+                return;
+            }
+            exceptionString.Insert(0, "Section: " + section + " ");
+            throw new Exception(exceptionString);
+        }
         /// <summary>
         /// Creates the default options configuration
         /// </summary>
@@ -88,28 +129,32 @@ namespace BefungeSharp
         /// </returns>
         private static Configuration CreateDefaultOptions()
         {
-            //General - Whole Program Settings
-            //  DEFAULT_ENCODING
-            //Editor - For code editing, saving, and opening
-            //  SNIPPET - string, a snipped of code that can be inserted
-            //Visualizer - Showing FungeSpace and WindowUI to the user
-            //  SYNTAX_HIGHLIGHT_<instruction_type> - int, corresponding to color
-            //  GRID_XOFFSET - int, width of snapping grid in cells
-            //  GRID_YOFFSET - int, height of snapping grid in cells
-            //Interpreter - Executing Funge instructions and running the language
-            //  LANGUAGE AND FEATURES - string (UF,BF93,F98,TF), sets many presets of other options
-            //  FUNGESPACE SETTINGS - for optimization and sizes
-            //Debugger
+            //Settings namespaces
+            //General
+            //  FILE - General File System settings
+            //Editor
+            //  UI - Editor User Interface
+            //Visualizer - Visualizer
+            //  COLOR - Syntax Highlighting
+            //  GRID - Viewport Movement along a grid
+            //INTP - Interpreter
+            //  LF - Languages and Features
+            //  RT - Runtime Behaviors
+            //  FS - FungeSpace settings
             Configuration defaultOptions = new Configuration();
             
             defaultOptions["General"].Comment = new Comment("Settings that affect the whole program",';');
-            defaultOptions["General"]["DEFAULT_ENCODING"].SetValue<string>("UTF8");
-            defaultOptions["General"]["DEFAULT_ENCODING"].Comment = new Comment("string, Encoding of the program",';');
-            
+            //FS_ file system
+            defaultOptions["General"]["FILE_BACKUPS_FOLDER"].SetValue<string>("Backups");
+            defaultOptions["General"]["FILE_MAX_BACKUPS"].SetValue<int>(3);
+            defaultOptions["General"]["FILE_ENCODING"].SetValue<Encoding>(Encoding.UTF8);
+            defaultOptions["General"]["FILE_ENCODING"].Comment = new Comment("string, Encoding of the program", ';');
+            defaultOptions["General"]["FILE_LAST_USED"].SetValue<string>("");
             defaultOptions["Editor"].Comment = new Comment("Settings that affect edit mode",';');
-            defaultOptions["Editor"]["SNIPPET"].SetValue<string>(">:\\#,_");
-            defaultOptions["Editor"]["SNIPPET"].Comment = new Comment("string, a single line of Funge code",';');
-
+            //Our editor namespace ED_
+            defaultOptions["Editor"]["UI_SNIPPET"].SetValue<string>(">:#,_");
+            defaultOptions["Editor"]["UI_SNIPPET"].Comment = new Comment("string, a single line of Funge code",';');
+            
             defaultOptions["Visualizer"].Comment = new Comment("Settings the control how FungeSpace and data is visualized", ';');
             Setting[] code_highlights = new Setting[] { 
                 new Setting("COLOR_Arithmetic",             "Green"),
@@ -137,10 +182,10 @@ namespace BefungeSharp
             }
 
             defaultOptions["Visualizer"]["GRID_XOFFSET"].SetValue<int>(16);
-            defaultOptions["Visualizer"]["GRID_XOFFSET"].Comment = new Comment("The number of cells to shift when shifting the view port horizontally, should be a multiple of RuntimeFeatures.6", ';');
+            defaultOptions["Visualizer"]["GRID_XOFFSET"].Comment = new Comment("The number of cells to shift when shifting the view port horizontally, should be a multiple of 16, or 1", ';');
             
             defaultOptions["Visualizer"]["GRID_YOFFSET"].SetValue<int>(5);
-            defaultOptions["Visualizer"]["GRID_YOFFSET"].Comment = new Comment("The number of cells to shift when shifting the view port vertically, should be a multiple of 5", ';');
+            defaultOptions["Visualizer"]["GRID_YOFFSET"].Comment = new Comment("The number of cells to shift when shifting the view port vertically, should be a multiple of 5, or 1", ';');
 
             
             defaultOptions["Interpreter"].Comment = new Comment("Settings for the interpreter to use at runtime\r\n" +
@@ -175,13 +220,13 @@ namespace BefungeSharp
             defaultOptions["Interpreter"]["LF_SPEC_VERSION"].Comment = new Comment("Possible values are 93 or 98. \"93\" is a Befunge-93 compatability mode", ';');
 
             //RT_ is out Runtime options
-            defaultOptions["Interpreter"]["RT_DEFAULT_MODE"].SetValue<BoardMode>(BoardMode.Edit);
+            defaultOptions["Interpreter"]["RT_MODE"].SetValue<BoardMode>(BoardMode.Edit);
             
             //FS_ is our FungeSpace option namespace
             defaultOptions["Interpreter"]["FS_DEFAULT_AREA_WIDTH"].SetValue<int>(80);
             defaultOptions["Interpreter"]["FS_DEFAULT_AREA_WIDTH"].Comment = new Comment("The default width of pre-allocated FungeSpace, must be atleast 80 and a multiple of 16", ';');
             defaultOptions["Interpreter"]["FS_DEFAULT_AREA_HEIGHT"].SetValue<int>(25);
-            defaultOptions["Interpreter"]["FS_DEFAULT_AREA_WIDTH"].Comment = new Comment("The default width of pre-allocated FungeSpace, must be atleast 25 and a multiple of 5", ';');
+            defaultOptions["Interpreter"]["FS_DEFAULT_AREA_HEIGHT"].Comment = new Comment("The default width of pre-allocated FungeSpace, must be atleast 25 and a multiple of 5", ';');
             
             return defaultOptions;
         }

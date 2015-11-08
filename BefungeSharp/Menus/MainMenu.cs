@@ -66,7 +66,7 @@ namespace BefungeSharp.Menus
                         //s.Add(@"""dlroW olleH"">:#,_@");
                         //s.Add(@"12341234");
                         //s_board_manager = new BoardManager(25, 80, s);
-                        Program.BoardManager = new BoardManager(s);
+                        Program.BoardManager = new BoardManager(s,null,OptionsManager.Get<BoardMode>("Interpreter","RT_MODE"));
                         Program.BoardManager.UpdateBoard();
                     break;
                 case 2://Open File

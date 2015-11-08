@@ -17,13 +17,33 @@ namespace BefungeSharp
         /// <summary>
         /// The last used file's file encoding
         /// </summary>
-        public static Encoding LastUsedEncoding { get; private set; }
+        public static Encoding LastUsedEncoding
+        {
+            get
+            {
+                return OptionsManager.Get<Encoding>("General", "FILE_ENCODING");
+            }
+            private set
+            {
+                OptionsManager.Set<Encoding>("General", "FILE_ENCODING", value);
+            }
+        }
 
         /// <summary>
         /// The fully rooted last used file path,
         /// or "" if there was no last used file
         /// </summary>
-        public static string LastUserOpenedPath { get; private set;}
+        public static string LastUserOpenedPath
+        {
+            get
+            {
+                return OptionsManager.Get<string>("General", "FILE_LAST_USED");
+            }
+            private set
+            {
+                OptionsManager.Set<string>("General", "FILE_LAST_USED", value);
+            }
+        }
 
         /// <summary>
         /// The fully rooted directory of the last used file,
@@ -48,11 +68,10 @@ namespace BefungeSharp
         /// </summary>
         public static string LastUserOpenedFile { get { return Path.GetFileName(LastUserOpenedPath); } }
 
-        static FileUtils()
+        /*static FileUtils()
         {
-            LastUserOpenedPath = "";
-            LastUsedEncoding = Encoding.UTF8;
-        }
+           
+        }*/
 
         /// <summary>
         /// Copies the current file about to be written over into the backup directory,
@@ -62,8 +81,8 @@ namespace BefungeSharp
         /// <param name="supressConsoleMessages">Blocks the printing of console messages (for when not in a terminal like mode)</param>
         public static void BackupFile(string filePath, bool supressConsoleMessages)
         {
-            string exeLoc = Environment.GetCommandLineArgs()[0];
-            string backupsPath = exeLoc.Remove(exeLoc.Length - Path.GetFileName(exeLoc).Length)+ "Backups";
+            string backupsPath = Path.GetDirectoryName(Environment.GetCommandLineArgs()[0]) + "\\" +
+                                                        OptionsManager.Get<string>("General", "FILE_BACKUPS_FOLDER");
             if (Directory.Exists(backupsPath) == false)
             {
                 try 
@@ -138,7 +157,7 @@ namespace BefungeSharp
                     .ToList();
 
                 //Delete all but the most recent n of them
-                int amountToKeep = 3;//TODO:OPTIONS["Amount Of Backups To Save"]
+                int amountToKeep = OptionsManager.Get<int>("General", "FILE_MAX_BACKUPS");
                 for (int i = fileList.Count - 1; i >= amountToKeep; i--)
                 {
                     File.Delete(fileList[i].FullName);

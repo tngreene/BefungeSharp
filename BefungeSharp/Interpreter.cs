@@ -8,6 +8,11 @@ using BefungeSharp.FungeSpace;
 
 namespace BefungeSharp
 {
+    /// <summary>
+    /// A collection of settings for the interpreter,
+    /// including language and feature settings as well as
+    /// other runtime behaviors
+    /// </summary>
     public class InterpreterSettings
     {
         /// <summary>
@@ -75,54 +80,59 @@ namespace BefungeSharp
         /// </summary>
         public bool SGML_Spaces { get; set; }
 
-        //Derived from RT_BoardMode
+        /// <summary>
+        /// The current mode the interpreter is in
+        /// Warning: Do not switch to Edit, Debug, or Run_TERMINAL at the wrong time!
+        /// </summary>
+        public BoardMode CurrentMode { get; internal set; }
+
+        //Derived from RT_MODE
         /// <summary>
         /// How much delay between clock ticks there is, in milliseconds
         /// </summary>
-        public int ClockDelay { get; set; }
-    }
-
-    public static class BoardModeExtensions
-    {
-        public static int ModeToClockTick(this BoardMode mode)
+        public int ClockDelay
         {
-            switch (mode)
+            get
             {
-                case BoardMode.Run_MAX:
-                    return 0;
-                case BoardMode.Run_TERMINAL:
-                    return 0;
-                case BoardMode.Run_FAST:
-                    return 50;
-                case BoardMode.Run_MEDIUM:
-                    return 100;
-                case BoardMode.Run_SLOW:
-                    return 200;
-                case BoardMode.Run_STEP:
-                    return 100;
-                case BoardMode.Edit:
-                case BoardMode.Debug:
-                    return 0;
-                default:
-                    throw new Exception("The board mode: " + mode + " is an unknown value!");
+                //Translate between the current number and desired number of
+                //milliseconds. Milliseconds 50,100,200 were chosen because
+                //they seemed to work well
+                switch (this.CurrentMode)
+                {
+                    case BoardMode.Run_MAX:
+                        return 0;
+                    case BoardMode.Run_TERMINAL:
+                        return 0;
+                    case BoardMode.Run_FAST:
+                        return 50;
+                    case BoardMode.Run_MEDIUM:
+                        return 100;
+                    case BoardMode.Run_SLOW:
+                        return 200;
+                    case BoardMode.Run_STEP:
+                        return 100;
+                    case BoardMode.Edit:
+                    case BoardMode.Debug:
+                    default:
+                        return 0;
+                }
             }
         }
     }
+    
     /// <summary>
-    /// An enum of how the board should behave while running
+    /// An enum of how the interpreter should behave while running
     /// </summary>
     public enum BoardMode
     {
-        Run_MAX = 1,//Program runs instantanously, user will mostlikely not be able to see the IP or The stacks changing
-        Run_TERMINAL = 3,
-        Run_FAST = 50,//Program delayed by 50ms. The IP and stacks will move rapidly but visibly
-        Run_MEDIUM = 100,//Program delayed by 100ms. IP and stack changes are more easy to follow
-        Run_SLOW = 200,//Program delayed by 200ms. IP and stack changes are slow enough to follow on paper
-        Run_STEP = 101,//Program delayed until user presses the "Next Step" Key
-        Edit = 0,//Program is running in edit mode
-        Debug = 2//The program is running in debug mode
-
-        
+        Run_MAX,//Program runs instantanously, user will mostlikely not be able to see the IP or The stacks changing
+        Run_TERMINAL,
+        Run_FAST,//Program delayed by 50ms. The IP and stacks will move rapidly but visibly
+        Run_MEDIUM,//Program delayed by 100ms. IP and stack changes are more easy to follow
+        Run_SLOW,//Program delayed by 200ms. IP and stack changes are slow enough to follow on paper
+        Run_STEP,//Program delayed until user presses the "Next Step" Key
+        Edit,//Program is running in edit mode
+        Debug//The program is running in debug mode
     }
 
     /// <summary>
@@ -169,8 +179,17 @@ namespace BefungeSharp
         //Not yet implemented private FungeSpaceArea FS_EXTENDED;
 
         //The current mode of the board
-        private BoardMode _curMode;
-        public BoardMode CurMode { get { return _curMode; } }
+        public BoardMode CurMode {
+                                    get 
+                                    {
+                                        return this.Settings.CurrentMode; 
+                                    }
+                                   
+                                    private set
+                                    {
+                                        this.Settings.CurrentMode = value;
+                                    }
+                                 }
 
         private List<IP> _IPs;
 
@@ -196,9 +215,11 @@ namespace BefungeSharp
         /// <param name="mgr">A reference to the manager</param>
         public Interpreter(List<List<int>> initial_chars, Stack<int> stack = null, BoardMode mode = BoardMode.Edit)
         {
+            this.Settings = Interpreter.GetSettingsFromOptions();
+         
             //Set up the area's the program will refer to
             FS_93 = new FungeSpaceArea(0, 0, 24, 79);
-            FS_DEFAULT =  new FungeSpaceArea(0, 0, OptionsManager.SessionOptions["Interpreter"]["FS_DEFAULT_AREA_HEIGHT"].GetValueTyped<int>()-1, OptionsManager.SessionOptions["Interpreter"]["FS_DEFAULT_AREA_WIDTH"].GetValueTyped<int>()-1);
+            FS_DEFAULT =  new FungeSpaceArea(0, 0, OptionsManager.Get<int>("Interpreter","FS_DEFAULT_AREA_HEIGHT") - 1,  OptionsManager.Get<int>("Interpreter","FS_DEFAULT_AREA_HEIGHT") - 1);
             fs_view_screen = FS_93;
             //FS_SAVEABLE = FS_DEFAULT;
             //FS_EXTENDED = FS_DEFAULT;
@@ -219,9 +240,8 @@ namespace BefungeSharp
             _IPs = new List<IP>();
             _editIP = new IP(_fungeSpace.Origin, Vector2.East, Vector2.Zero, new Stack<Stack<int>>(), -1, false);
             
-            _curMode = mode;
+            CurMode = mode;
 
-            this.Settings = Interpreter.GetSettingsFromOptions();
             Instructions.InstructionManager.BuildInstructionSet();
             
             if (mode == BoardMode.Edit || mode == BoardMode.Debug)
@@ -235,7 +255,7 @@ namespace BefungeSharp
         /// </summary>
         private void BeginExecution(BoardMode mode)
         {
-            _curMode = mode;
+            CurMode = mode;
 
             fs_view_screen = FS_93;
             //Reset the IP system
@@ -276,9 +296,9 @@ namespace BefungeSharp
 
         public void ChangeMode(Instructions.IAffectsRunningMode affecter)
         {
-            _curMode = affecter.NewMode;
+            CurMode = affecter.NewMode;
 
-            if (_curMode == BoardMode.Edit)
+            if (CurMode == BoardMode.Edit)
             {
                 EndExecution();
             }
@@ -302,7 +322,7 @@ namespace BefungeSharp
                 case BoardMode.Run_STEP:
                 case BoardMode.Run_TERMINAL:
                     //If we're not in stepping mode take a step
-                    if (_curMode != BoardMode.Run_STEP)
+                    if (CurMode != BoardMode.Run_STEP)
                     {
                         type = TakeStep();
                     }
@@ -314,22 +334,22 @@ namespace BefungeSharp
                         {
                             //1-5 adjusts execution speed
                             case ConsoleKey.F1:
-                                _curMode = BoardMode.Run_STEP;
+                                CurMode = BoardMode.Run_STEP;
                                 break;
                             case ConsoleKey.F2:
-                                _curMode = BoardMode.Run_SLOW;
+                                CurMode = BoardMode.Run_SLOW;
                                 break;
                             case ConsoleKey.F3:
-                                _curMode = BoardMode.Run_MEDIUM;
+                                CurMode = BoardMode.Run_MEDIUM;
                                 break;
                             case ConsoleKey.F4:
-                                _curMode = BoardMode.Run_FAST;
+                                CurMode = BoardMode.Run_FAST;
                                 break;
                             case ConsoleKey.F5:
-                                _curMode = BoardMode.Run_MAX;
+                                CurMode = BoardMode.Run_MAX;
                                 break;
                             case ConsoleKey.F6:
-                                _curMode = BoardMode.Run_TERMINAL;
+                                CurMode = BoardMode.Run_TERMINAL;
                                 ConEx.ConEx_Draw.FillScreen(' ');
                                 ConEx.ConEx_Draw.DrawScreen();
                                 Console.CursorLeft = 0;
@@ -339,11 +359,11 @@ namespace BefungeSharp
                             //Takes us back to editor mode
                             case ConsoleKey.F12:
                                 EndExecution();
-                                _curMode = BoardMode.Edit;
+                                CurMode = BoardMode.Edit;
                                 break;
                             //Takes the next step
                             case ConsoleKey.RightArrow:
-                                if (_curMode == BoardMode.Run_STEP)
+                                if (CurMode == BoardMode.Run_STEP)
                                 {
                                     type = TakeStep();
                                 }
@@ -441,6 +461,20 @@ namespace BefungeSharp
                                     FungeSpaceUtils.ChangeData(EditIP.Position, ' ');
                                 }
                                 break;
+                            case ConsoleKey.Insert:
+                                {
+                                    string snippet = OptionsManager.Get<string>("Editor", "UI_SNIPPET");
+                                    for (int snippet_index = 0; snippet_index < snippet.Length; snippet_index++)
+                                    {
+                                        EditIP.Position = _fungeSpace.InsertCell(EditIP.Position.Data.x, EditIP.Position.Data.y, snippet[snippet_index]);
+
+                                        int nextX = EditIP.Position.Data.x + EditIP.Delta.x;
+                                        int nextY = EditIP.Position.Data.y + EditIP.Delta.y;
+                                    
+                                        EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, nextY, nextX);
+                                    }
+                                }
+                                break;
                             case ConsoleKey.F1:
                                 BeginExecution(BoardMode.Run_STEP);
                                 break;
@@ -482,7 +516,7 @@ namespace BefungeSharp
                         }
                     }
                     
-                    if (_curMode == BoardMode.Edit || _curMode == BoardMode.Debug)
+                    if (CurMode == BoardMode.Edit || CurMode == BoardMode.Debug)
                     {
                         Vector2 confirmedPosition = WrapEditIPViewScreen(EditIP.Position.Data.x, EditIP.Position.Data.y);
                         if (confirmedPosition != EditIP.Position.Data)
@@ -502,7 +536,7 @@ namespace BefungeSharp
         {
             DrawFungeSpace();
 
-            if (_curMode != BoardMode.Edit && _curMode != BoardMode.Debug)
+            if (CurMode != BoardMode.Edit && CurMode != BoardMode.Debug)
             {
                 //If we are going to draw the IP we are following we must ask,
                 //if it has gone out of the view screen, past which bound did it go?
@@ -740,7 +774,7 @@ namespace BefungeSharp
             //If there are no more active IP's left then set us back to edit mode
             if (IPs.Exists(item => item.Active == true) == false)
             {
-                _curMode = BoardMode.Edit;
+                CurMode = BoardMode.Edit;
             }
 
             return Instructions.CommandType.NotImplemented;//TODO - Needs a better idea
@@ -767,7 +801,7 @@ namespace BefungeSharp
             settings.Dimensions                 = interpreter["LF_DIMENSIONS"].GetValueTyped<int>();
             settings.SpecVersionNumber          = interpreter["LF_SPEC_VERSION"].GetValueTyped<int>();
             settings.SGML_Spaces                = settings.SpecVersionNumber == 98 ? true : false;
-            settings.ClockDelay                 = interpreter["RT_DEFAULT_MODE"].GetValueTyped<BoardMode>().ModeToClockTick();
+            settings.CurrentMode                 = interpreter["RT_MODE"].GetValueTyped<BoardMode>();
 
             return settings;
         }
