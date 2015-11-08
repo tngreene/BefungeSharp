@@ -17,15 +17,15 @@ namespace BefungeSharp
         /// <summary>
         /// The last used file's file encoding
         /// </summary>
-        public static Encoding LastUsedEncoding
+        public static string LastUsedEncoding
         {
             get
             {
-                return OptionsManager.Get<Encoding>("General", "FILE_ENCODING");
+                return OptionsManager.Get<string>("General", "FILE_ENCODING");
             }
             private set
             {
-                OptionsManager.Set<Encoding>("General", "FILE_ENCODING", value);
+                OptionsManager.Set<string>("General", "FILE_ENCODING", value);
             }
         }
 
@@ -189,25 +189,36 @@ namespace BefungeSharp
 
             try
             {
+                //Read open the file
                 fStream = File.OpenRead(filePath);
 
                 //Attempt to read BOM Marks, test them
                 byte[] BOMMarks = new byte[4];
                 fStream.Read(BOMMarks, 0, 4);
-                LastUsedEncoding = DetectBOMBytes(BOMMarks);
-
+                Encoding encoding = DetectBOMBytes(BOMMarks);
+                
                 //If we are not using any Unicode Encodings,
                 //assume we are just using ANSI text files
-                if (LastUsedEncoding == null)
+                if (encoding == null)
                 {
-                    LastUsedEncoding = Encoding.Default;
+                    //Save the last encoding we're using
+                    LastUsedEncoding = Encoding.Default.BodyName;
+                    encoding = Encoding.Default;
+                }
+                else
+                {
+                    LastUsedEncoding = encoding.BodyName;
                 }
                 
+                //Reset the file position and open up a stream reader
                 fStream.Position = 0;
-                using (StreamReader rStream = new StreamReader(fStream, LastUsedEncoding))
+                using (StreamReader rStream = new StreamReader(fStream, Encoding.GetEncoding(LastUsedEncoding)))
                 {
+                    //If we're reading as binary files
+                    //from the 'i' instruction probably
                     if (readAsBinary == true)
                     {
+                        //Read all of the stream at once and you're done
                         while (rStream.EndOfStream == false)
                         {
                             int value = rStream.Read();
@@ -227,7 +238,6 @@ namespace BefungeSharp
                                 //If the line ending is \r\n
                                 if (rStream.Peek() == '\n')
                                 {
-                                    //advanced past it
                                     rStream.Read();
                                 }
                                 fileContents.Add(new List<int>());
@@ -238,6 +248,9 @@ namespace BefungeSharp
                             }
                         }
                     }
+
+                    //If we're opening a file with the menu system
+                    //Change the last user opened path
                     if (changeLastUsed == true)
                     {
                         LastUserOpenedPath = Path.GetFullPath(filePath);
@@ -294,7 +307,7 @@ namespace BefungeSharp
                 }
 
                 //Create the stream writer from the file path
-                wStream = new StreamWriter(filePath, false, LastUsedEncoding);
+                wStream = new StreamWriter(filePath, false, Encoding.GetEncoding(LastUsedEncoding));
 
                 for (int r = 0; r < outStrings.Count; r++)
 			    {
@@ -714,6 +727,9 @@ namespace BefungeSharp
         }
         #endregion
         
+        /// <summary>
+        /// Displays the current directory
+        /// </summary>
         public static void DisplayCurrentDirectory()
         {
             //Takes care of a silly asthetic problem where it would print out 
