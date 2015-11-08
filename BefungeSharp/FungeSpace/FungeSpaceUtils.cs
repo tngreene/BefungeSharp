@@ -278,6 +278,40 @@ namespace BefungeSharp.FungeSpace
         }
 
         /// <summary>
+        /// Changes a range of Fungespace
+        /// </summary>
+        /// <param name="position">The position to start at</param>
+        /// <param name="string">The values to place</param>
+        /// <param name="delta">The direction to lay them down in</param>
+        /// <returns>The final position where the last value was placed</returns>
+        public static FungeNode ChangeDataRange(FungeNode position, string new_values, Vector2 delta)
+        {
+            //For every new value to insert, insert it, then move
+            for (int i = 0; i < new_values.Length; i++)
+            {
+                position = position.ParentMatrix.InsertCell(position.Data.x, position.Data.y, new_values[i]);
+                position = FungeSpaceUtils.MoveTo(position, delta);
+            }
+            return position;
+        }
+
+        /// <summary>
+        /// Changes a range of Fungespace
+        /// </summary>
+        /// <param name="position">The position to start at</param>
+        /// <param name="new_values">The values to place</param>
+        /// <param name="delta">The direction to lay them down in</param>
+        /// <returns>The final position where the last value was placed</returns>
+        public static FungeNode ChangeDataRange(FungeNode position, List<int> new_values, Vector2 delta)
+        {
+            for (int i = 0; i < new_values.Count; i++)
+            {
+                position = position.ParentMatrix.InsertCell(position.Data.x, position.Data.y, new_values[i]);
+                position = FungeSpaceUtils.MoveTo(position, delta);
+            }
+            return position;
+        }
+        /// <summary>
         /// Move's an object's position node to a specific place, creating a node there if need be
         /// </summary>
         /// <param name="position">The position node of an object</param>
@@ -298,6 +332,10 @@ namespace BefungeSharp.FungeSpace
             return position;
         }
 
+        public static FungeNode MoveTo(FungeNode position, Vector2 delta)
+        {
+            return MoveTo(position, position.Data.y + delta.y, position.Data.x + delta.x);
+        }
         /// <summary>
         /// MoveBy is an IP's move and wrap function
         /// </summary>

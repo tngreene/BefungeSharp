@@ -52,6 +52,7 @@ namespace BefungeSharp
             //1. Attempt to open the options file
             try
             {
+                //Disabled for testing
                 //SessionOptions = SharpConfig.Configuration.LoadFromFile("options.ini");
             }
             catch (Exception e)
@@ -61,7 +62,7 @@ namespace BefungeSharp
             finally
             {
                 SessionOptions.SaveToStream(File.Create("options.ini"));
-            }      
+            }
         }
 
         /// <summary>
@@ -147,13 +148,19 @@ namespace BefungeSharp
             //FS_ file system
             defaultOptions["General"]["FILE_BACKUPS_FOLDER"].SetValue<string>("Backups");
             defaultOptions["General"]["FILE_MAX_BACKUPS"].SetValue<int>(3);
-            defaultOptions["General"]["FILE_ENCODING"].SetValue<Encoding>(Encoding.UTF8);
-            defaultOptions["General"]["FILE_ENCODING"].Comment = new Comment("string, Encoding of the program", ';');
+            defaultOptions["General"]["FILE_ENCODING"].SetValue<string>("utf-8 ");
+            defaultOptions["General"]["FILE_ENCODING"].Comment = new Comment("See https://msdn.microsoft.com/en-us/library/system.text.encoding%28v=vs.110%29.aspx for possible values", ';');
             defaultOptions["General"]["FILE_LAST_USED"].SetValue<string>("");
             defaultOptions["Editor"].Comment = new Comment("Settings that affect edit mode",';');
             //Our editor namespace ED_
-            defaultOptions["Editor"]["UI_SNIPPET"].SetValue<string>(">:#,_");
-            defaultOptions["Editor"]["UI_SNIPPET"].Comment = new Comment("string, a single line of Funge code",';');
+            defaultOptions["Editor"]["UI_SNIPPET_N"].SetValue<string>("^:# !#,|");
+            defaultOptions["Editor"]["UI_SNIPPET_N"].Comment = new Comment("string, a single line of Funge code, chosen when the IP's delta is north",';');
+            defaultOptions["Editor"]["UI_SNIPPET_E"].SetValue<string>(">:#,_");
+            defaultOptions["Editor"]["UI_SNIPPET_E"].Comment = new Comment("string, a single line of Funge code, chosen when the IP's delta is east", ';');
+            defaultOptions["Editor"]["UI_SNIPPET_S"].SetValue<string>("v:#,|");
+            defaultOptions["Editor"]["UI_SNIPPET_S"].Comment = new Comment("string, a single line of Funge code, chosen when the IP's delta is south", ';');
+            defaultOptions["Editor"]["UI_SNIPPET_W"].SetValue<string>("<:# !#,_");
+            defaultOptions["Editor"]["UI_SNIPPET_W"].Comment = new Comment("string, a single line of Funge code, chosen when the IP's delta is west", ';');
             
             defaultOptions["Visualizer"].Comment = new Comment("Settings the control how FungeSpace and data is visualized", ';');
             Setting[] code_highlights = new Setting[] { 

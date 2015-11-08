@@ -463,16 +463,26 @@ namespace BefungeSharp
                                 break;
                             case ConsoleKey.Insert:
                                 {
-                                    string snippet = OptionsManager.Get<string>("Editor", "UI_SNIPPET");
-                                    for (int snippet_index = 0; snippet_index < snippet.Length; snippet_index++)
-                                    {
-                                        EditIP.Position = _fungeSpace.InsertCell(EditIP.Position.Data.x, EditIP.Position.Data.y, snippet[snippet_index]);
-
-                                        int nextX = EditIP.Position.Data.x + EditIP.Delta.x;
-                                        int nextY = EditIP.Position.Data.y + EditIP.Delta.y;
+                                    string snippet = "UI_SNIPPET_";
                                     
-                                        EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, nextY, nextX);
+                                    if(EditIP.Delta == Vector2.North)
+                                    {
+                                        snippet += "N";
                                     }
+                                    else if(EditIP.Delta == Vector2.East)
+                                    {
+                                        snippet += "E";
+                                    }
+                                    else if(EditIP.Delta == Vector2.South)
+                                    {
+                                        snippet += "S";
+                                    }
+                                    else if(EditIP.Delta == Vector2.West)
+                                    {
+                                        snippet += "W";
+                                    }
+                                                                        
+                                    EditIP.Position = FungeSpaceUtils.ChangeDataRange(EditIP.Position,  OptionsManager.Get<string>("Editor", snippet), EditIP.Delta);
                                 }
                                 break;
                             case ConsoleKey.F1:
