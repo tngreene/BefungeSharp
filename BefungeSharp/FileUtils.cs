@@ -81,7 +81,7 @@ namespace BefungeSharp
         /// <param name="supressConsoleMessages">Blocks the printing of console messages (for when not in a terminal like mode)</param>
         public static void BackupFile(string filePath, bool supressConsoleMessages)
         {
-            string backupsPath = Path.GetDirectoryName(Environment.GetCommandLineArgs()[0]) + "\\" +
+            string backupsPath = Path.GetDirectoryName(Path.GetDirectoryName(Environment.GetCommandLineArgs()[0])) + "\\" +
                                                         OptionsManager.Get<string>("General", "FILE_BACKUPS_FOLDER");
             if (Directory.Exists(backupsPath) == false)
             {
@@ -326,7 +326,7 @@ namespace BefungeSharp
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error reading: " + e.Message);
+                Console.WriteLine("Error writing: " + e.Message);
 
                 //Reset the LastUserOpenedPath to something safe
                 LastUserOpenedPath = "";
@@ -606,10 +606,12 @@ namespace BefungeSharp
             
             List<string> outList = new List<string>();
             //TODO:Choose the allowed extentions based on the language
-            string[] allowedExtensions;
             
+            
+            //if(OptionsManager.Get<string>("Interpreter","FS_
+
             //Thanks Marc! http://stackoverflow.com/a/30082323
-            allowedExtensions = new string[] { ".bf", ".b93", ".b98", ".tf", ".txt" };
+            string[] allowedExtensions = new string[] { ".bf", ".b93", ".b98", ".tf", ".txt" };
             
             try
             {

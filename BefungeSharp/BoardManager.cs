@@ -86,7 +86,7 @@ namespace BefungeSharp
                                 case ConsoleKey.F4:
                                     if(ConEx.ConEx_Input.AltDown)
                                     {
-                                        Environment.Exit(1);//End the program
+                                        Program.QuitProgram(0);
                                     }
                                     break;
                                 default:

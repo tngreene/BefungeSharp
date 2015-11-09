@@ -28,11 +28,10 @@ namespace BefungeSharp
         }
 
         [STAThread]
-        static int Main(string[] args)
+        public static void Main(string[] args)
         {
             //Size of field + border + width_of_sidebar
             int width_of_sidebar = 36;//Seems right?
-            var k = OptionsManager.DefaultOptions;
             Console.Title = "BefungeSharp, the Premier Funge-98 IDE for Windows";
             ConEx.ConEx_Draw.Init(80 + 1 + width_of_sidebar, 32);
             
@@ -41,7 +40,40 @@ namespace BefungeSharp
 
             Menus.MainMenu mainMenu = new Menus.MainMenu();
             mainMenu.RunLoop();
-            return 0;
+            QuitProgram(0);
         }//Main(string[]args)
+
+        //TODO:Is this necissarly the best solution or is it a hack?
+        //Feels like a little bit of a hack
+        /// <summary>
+        /// Quits the program early,
+        /// allowing for any last minute clean-up or actions to be run
+        /// </summary>
+        /// <param name="exit_code">What code you want to program to exit with</param>
+        public static void QuitProgram(int exit_code)
+        {
+            //Clear the screen
+            ConEx.ConEx_Draw.FillScreen(' ');
+            ConEx.ConEx_Draw.DrawScreen();
+            
+            if (OptionsManager.SessionOptionsChanged == true)
+            {
+                Console.WriteLine("Save changed options? Y/N");
+                char input = Console.ReadKey().KeyChar.ToString().ToLower()[0];
+                Console.WriteLine();
+                if (input == 'y')
+                {
+                    try
+                    {
+                        OptionsManager.SessionOptions.SaveToFile("options.ini", Encoding.UTF8);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine("Could not save options: " + e.Message);
+                    }
+                }
+            }
+            Environment.Exit(exit_code);
+        }
     }//class Program
 }//Namespace BefungeSharp

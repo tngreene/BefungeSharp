@@ -672,8 +672,8 @@ namespace BefungeSharp
         public void MoveViewScreen(Vector2 direction)
         {
             //TODO:MAJOR!MoveViewScreen does not do well when not moving in a + sign
-            int xOffset = 16;//TODO:Options["xOffset"]
-            int yOffset = 5;
+            int xOffset = OptionsManager.Get<int>("Visualizer","GRID_XOFFSET");
+            int yOffset = OptionsManager.Get<int>("Visualizer","GRID_YOFFSET");
             if(direction == Vector2.North)
             {
                 fs_view_screen.top -= yOffset;
@@ -811,7 +811,7 @@ namespace BefungeSharp
             settings.Dimensions                 = interpreter["LF_DIMENSIONS"].GetValueTyped<int>();
             settings.SpecVersionNumber          = interpreter["LF_SPEC_VERSION"].GetValueTyped<int>();
             settings.SGML_Spaces                = settings.SpecVersionNumber == 98 ? true : false;
-            settings.CurrentMode                 = interpreter["RT_MODE"].GetValueTyped<BoardMode>();
+            settings.CurrentMode                = interpreter["RT_DEFAULT_MODE"].GetValueTyped<BoardMode>();
 
             return settings;
         }

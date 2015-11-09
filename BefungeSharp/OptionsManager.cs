@@ -34,6 +34,10 @@ namespace BefungeSharp
 
     public static class OptionsManager
     {
+        /// <summary>
+        /// True if session options has unsaved changes
+        /// </summary>
+        public static bool SessionOptionsChanged { get; private set; }
         
         /// <summary>
         /// The global program options chosen for this session
@@ -41,19 +45,28 @@ namespace BefungeSharp
         public static SharpConfig.Configuration SessionOptions { get; private set; }
         
         /// <summary>
-        /// The global program option defaults
+        /// The defaults options for the program.
+        /// The property is not connected to anything with state
         /// </summary>
-        public static SharpConfig.Configuration DefaultOptions { get; private set; }
+        public static SharpConfig.Configuration DefaultOptions { get { return CreateDefaultOptions(); } private set; }
         
         static OptionsManager()
         {
             //0. Create the default options dictionary
-            DefaultOptions = SessionOptions = CreateDefaultOptions();
+            SessionOptions = DefaultOptions;
+            
             //1. Attempt to open the options file
             try
             {
-                //Disabled for testing
-                //SessionOptions = SharpConfig.Configuration.LoadFromFile("options.ini");
+                Directory.SetCurrentDirectory(Path.GetDirectoryName(Environment.GetCommandLineArgs()[0]) + "\\");
+
+                //Can be disabled for testing
+                SessionOptions = SharpConfig.Configuration.LoadFromFile("options.ini");
+            }
+            catch (FileNotFoundException e)
+            {
+                Console.WriteLine("options.ini could not be found, creating new copy from defaults");
+                SessionOptions.SaveToStream(File.Create("options.ini"));
             }
             catch (Exception e)
             {
@@ -61,7 +74,8 @@ namespace BefungeSharp
             }
             finally
             {
-                SessionOptions.SaveToStream(File.Create("options.ini"));
+                
+                
             }
         }
 
@@ -114,6 +128,7 @@ namespace BefungeSharp
                 if (SessionOptions[section].Contains(name) == true)
                 {
                     SessionOptions[section][name].SetValue<T>(value);
+                    SessionOptionsChanged = true;
                     return;
                 }
                 exceptionString += "Setting: " + name + " does not exist!";
@@ -121,6 +136,22 @@ namespace BefungeSharp
             }
             exceptionString.Insert(0, "Section: " + section + " ");
             throw new Exception(exceptionString);
+        }
+
+        /// <summary>
+        /// A much needed wrapper around adding a setting to a configuration
+        /// </summary>
+        /// <typeparam name="T">The type of data to store</typeparam>
+        /// <param name="config">The configuration to apply it to</param>
+        /// <param name="section">The section name</param>
+        /// <param name="name">The setting name</param>
+        /// <param name="value">The value to store</param>
+        /// <param name="comment">The comment for the setting (default value of "")</param>
+        /// <param name="symbol">The comment symbol for the comment (default value of ';'</param>
+        private static void AddSetting<T>(this Configuration config, string section, string name, T value, string comment = "", char symbol = ';')
+        {
+            config[section][name].SetValue<T>(value);
+            config[section][name].Comment = new Comment(comment, symbol);
         }
         /// <summary>
         /// Creates the default options configuration
@@ -142,27 +173,23 @@ namespace BefungeSharp
             //  LF - Languages and Features
             //  RT - Runtime Behaviors
             //  FS - FungeSpace settings
-            Configuration defaultOptions = new Configuration();
+            Configuration config = new Configuration();
+            config["General"].Comment = new Comment("Settings that affect the whole program", ';');
+            config.AddSetting<string>("General","FILE_BACKUPS_FOLDER","Backups");
+            config.AddSetting<int>   ("General","FILE_MAX_BACKUPS",3);
+            config.AddSetting<string>("General","FILE_ENCODING","utf-8","See https://msdn.microsoft.com/en-us/library/system.text.encoding%28v=vs.110%29.aspx for possible values");
+            config.AddSetting<string>("General","FILE_LAST_USED","","Settings that affect edit mode");
+
+            config["Editor"].Comment = new Comment("Settings that affect edit mode", ';');
+            config.AddSetting<string>("Editor","UI_SNIPPET_N","^:# !#,|"," a single line of Funge code, chosen when the IP's delta is north");
+            config.AddSetting<string>("Editor","UI_SNIPPET_E",">:#,_"," a single line of Funge code, chosen when the IP's delta is east");
+            config.AddSetting<string>("Editor","UI_SNIPPET_S","v:#,|"," a single line of Funge code, chosen when the IP's delta is south");
+            config.AddSetting<string>("Editor","UI_SNIPPET_W","<:# !#,_"," a single line of Funge code, chosen when the IP's delta is west");
+            config.AddSetting<bool>  ("Editor","UI_INVERSE_SCROLLING",false,"While moving around FungeSpace in Edit mode the controls are reversed");
             
-            defaultOptions["General"].Comment = new Comment("Settings that affect the whole program",';');
-            //FS_ file system
-            defaultOptions["General"]["FILE_BACKUPS_FOLDER"].SetValue<string>("Backups");
-            defaultOptions["General"]["FILE_MAX_BACKUPS"].SetValue<int>(3);
-            defaultOptions["General"]["FILE_ENCODING"].SetValue<string>("utf-8 ");
-            defaultOptions["General"]["FILE_ENCODING"].Comment = new Comment("See https://msdn.microsoft.com/en-us/library/system.text.encoding%28v=vs.110%29.aspx for possible values", ';');
-            defaultOptions["General"]["FILE_LAST_USED"].SetValue<string>("");
-            defaultOptions["Editor"].Comment = new Comment("Settings that affect edit mode",';');
-            //Our editor namespace ED_
-            defaultOptions["Editor"]["UI_SNIPPET_N"].SetValue<string>("^:# !#,|");
-            defaultOptions["Editor"]["UI_SNIPPET_N"].Comment = new Comment("string, a single line of Funge code, chosen when the IP's delta is north",';');
-            defaultOptions["Editor"]["UI_SNIPPET_E"].SetValue<string>(">:#,_");
-            defaultOptions["Editor"]["UI_SNIPPET_E"].Comment = new Comment("string, a single line of Funge code, chosen when the IP's delta is east", ';');
-            defaultOptions["Editor"]["UI_SNIPPET_S"].SetValue<string>("v:#,|");
-            defaultOptions["Editor"]["UI_SNIPPET_S"].Comment = new Comment("string, a single line of Funge code, chosen when the IP's delta is south", ';');
-            defaultOptions["Editor"]["UI_SNIPPET_W"].SetValue<string>("<:# !#,_");
-            defaultOptions["Editor"]["UI_SNIPPET_W"].Comment = new Comment("string, a single line of Funge code, chosen when the IP's delta is west", ';');
+            config["Visualizer"].Comment = new Comment("Settings the control how FungeSpace and data is visualized\r\n"+
+                                                       "\t\t\t  ; Only ConsoleColors are supported", ';');
             
-            defaultOptions["Visualizer"].Comment = new Comment("Settings the control how FungeSpace and data is visualized", ';');
             Setting[] code_highlights = new Setting[] { 
                 new Setting("COLOR_Arithmetic",             "Green"),
                 new Setting("COLOR_Concurrent",             "Blue"),
@@ -184,58 +211,34 @@ namespace BefungeSharp
             };
 
             foreach (var setting in code_highlights)
-            {               
-                defaultOptions["Visualizer"].Add(setting); 
+            {
+                config["Visualizer"].Add(setting);
             }
+            config.AddSetting<int>("Visualizer","GRID_XOFFSET",16,"The number of cells to shift the view port horizontally. Should be a multiple of 16, or 1");
+            config.AddSetting<int>("Visualizer","GRID_YOFFSET", 5,"The number of cells to shift the view port vertically. Should be a multiple of 5, or 1");
+            
+            config["Interpreter"].Comment = new Comment("Settings for the interpreter to use at runtime\r\n" +
+                                                    "\t\t\t  ; Only enable a single dimension and a single version", ';');
 
-            defaultOptions["Visualizer"]["GRID_XOFFSET"].SetValue<int>(16);
-            defaultOptions["Visualizer"]["GRID_XOFFSET"].Comment = new Comment("The number of cells to shift when shifting the view port horizontally, should be a multiple of 16, or 1", ';');
-            
-            defaultOptions["Visualizer"]["GRID_YOFFSET"].SetValue<int>(5);
-            defaultOptions["Visualizer"]["GRID_YOFFSET"].Comment = new Comment("The number of cells to shift when shifting the view port vertically, should be a multiple of 5, or 1", ';');
-
-            
-            defaultOptions["Interpreter"].Comment = new Comment("Settings for the interpreter to use at runtime\r\n" +
-                                                                "\t\t\t  ;Only enable a single dimension and a single version",';');
-                                                                                                            
-            //LF stands for Languages and Features, a sort of namespace-ing
-            defaultOptions["Interpreter"]["LF_CONCURRENT_FUNGE"].SetValue<bool>(true);
-            defaultOptions["Interpreter"]["LF_CONCURRENT_FUNGE"].Comment = new Comment("Enables the 't' instruction", ';');
-            defaultOptions["Interpreter"]["LF_FILE_INPUT"].SetValue<bool>(true);
-            defaultOptions["Interpreter"]["LF_FILE_INPUT"].Comment = new Comment("Enables the 'i' instruction. Potentially unsafe", ';');
-            defaultOptions["Interpreter"]["LF_FILE_OUTPUT"].SetValue<bool>(true);
-            defaultOptions["Interpreter"]["LF_FILE_OUTPUT"].Comment = new Comment("Enables the 'o' instruction. Potentially unsafe", ';');
-            defaultOptions["Interpreter"]["LF_EXECUTE_STYLE"].SetValue<int>(1);
-            defaultOptions["Interpreter"]["LF_EXECUTE_STYLE"].Comment = new Comment("0 for none, 1 for system() calls, 2 specific programs, 3 for this running shell. Currently using 1",';');
-            defaultOptions["Interpreter"]["LF_STD_INPUT_STYLE"].SetValue<int>(1);
-            defaultOptions["Interpreter"]["LF_STD_INPUT_STYLE"].Comment = new Comment("0 for unbuffered, 1 for buffered. For now use 1", ';');
-            defaultOptions["Interpreter"]["LF_STD_OUTPUT_STYLE"].SetValue<int>(0);
-            defaultOptions["Interpreter"]["LF_STD_OUTPUT_STYLE"].Comment = new Comment("0 for unbuffered, 1 for buffered. For now use 0", ';');
-            defaultOptions["Interpreter"]["LF_NETWORKING"].SetValue<bool>(false);
-            defaultOptions["Interpreter"]["LF_NETWORKING"].Comment = new Comment("Enables BefungeSharp to make Network connections. Currently unimplemented", ';');
-            
-            defaultOptions["Interpreter"]["LF_UF"].SetValue<bool>(true);
-            defaultOptions["Interpreter"]["LF_UF"].Comment = new Comment("Unfunge, 1D funge, is supported", ';');
-            defaultOptions["Interpreter"]["LF_BF"].SetValue<bool>(true);
-            defaultOptions["Interpreter"]["LF_BF"].Comment = new Comment("Befunge, 2D funge, is supported", ';');
-            defaultOptions["Interpreter"]["LF_TF"].SetValue<bool>(false);//One day...
-            defaultOptions["Interpreter"]["LF_TF"].Comment = new Comment("Trefunge, 3D funge, is currently not supported", ';');
-            defaultOptions["Interpreter"]["LF_DIMENSIONS"].SetValue<int>(2);
-
-            //Choose 93 or 98, not both
-            defaultOptions["Interpreter"]["LF_SPEC_VERSION"].SetValue<int>(98);
-            defaultOptions["Interpreter"]["LF_SPEC_VERSION"].Comment = new Comment("Possible values are 93 or 98. \"93\" is a Befunge-93 compatability mode", ';');
-
-            //RT_ is out Runtime options
-            defaultOptions["Interpreter"]["RT_MODE"].SetValue<BoardMode>(BoardMode.Edit);
-            
-            //FS_ is our FungeSpace option namespace
-            defaultOptions["Interpreter"]["FS_DEFAULT_AREA_WIDTH"].SetValue<int>(80);
-            defaultOptions["Interpreter"]["FS_DEFAULT_AREA_WIDTH"].Comment = new Comment("The default width of pre-allocated FungeSpace, must be atleast 80 and a multiple of 16", ';');
-            defaultOptions["Interpreter"]["FS_DEFAULT_AREA_HEIGHT"].SetValue<int>(25);
-            defaultOptions["Interpreter"]["FS_DEFAULT_AREA_HEIGHT"].Comment = new Comment("The default width of pre-allocated FungeSpace, must be atleast 25 and a multiple of 5", ';');
-            
-            return defaultOptions;
+            //LF stands for languages and features
+            config.AddSetting<bool>     ("Interpreter","LF_CONCURRENT_FUNGE",true,"Enables the 't' instruction");
+            config.AddSetting<bool>     ("Interpreter","LF_FILE_INPUT",true,"Enables the 'i' instruction. Potentially unsafe");
+            config.AddSetting<bool>     ("Interpreter","LF_FILE_OUTPUT",true,"Enables the 'o' instruction. Potentially unsafe");
+            config.AddSetting<int>      ("Interpreter","LF_EXECUTE_STYLE",1,"0 for none, 1 for system() calls, 2 specific programs, 3 for this running shell. Currently using 1");
+            config.AddSetting<int>      ("Interpreter","LF_STD_INPUT_STYLE",1,"0 for unbuffered, 1 for buffered. For now use 1");
+            config.AddSetting<int>      ("Interpreter","LF_STD_OUTPUT_STYLE",0,"0 for unbuffered, 1 for buffered. For now use 0");
+            config.AddSetting<bool>     ("Interpreter","LF_NETWORKING",false,"Enables BefungeSharp to make Network connections. Currently unimplemented");
+            config.AddSetting<bool>     ("Interpreter","LF_UF",true,"1D funge, Unfunge is supported");
+            config.AddSetting<bool>     ("Interpreter","LF_BF",true,"2D funge, Befunge is supported");
+            config.AddSetting<bool>     ("Interpreter","LF_TF",false,"3D funge, Trefunge is currently not supported");
+            config.AddSetting<int>      ("Interpreter","LF_DIMENSIONS",2);
+            config.AddSetting<int>      ("Interpreter","LF_SPEC_VERSION",98,"Possible values are 93 or 98. \"93\" is a Befunge-93 compatability mode");
+            //RT stands for runtime behaviors
+            config.AddSetting<BoardMode>("Interpreter","RT_DEFAULT_MODE",BoardMode.Edit,"The default mode the program goes into after opening a file");
+            //FS stands for FungeSpace
+            config.AddSetting<int>      ("Interpreter","FS_DEFAULT_AREA_WIDTH",80,"The default width of pre-allocated FungeSpace, must be atleast 80 and a multiple of 16");
+            config.AddSetting<int>      ("Interpreter","FS_DEFAULT_AREA_HEIGHT",25,"The default width of pre-allocated FungeSpace, must be atleast 25 and a multiple of 5");
+            return config;
         }
     }
 }
