@@ -604,21 +604,51 @@ namespace BefungeSharp
 
             int count = 10;
             
-            List<string> outList = new List<string>();
-            //TODO:Choose the allowed extentions based on the language
             
-            
-            //if(OptionsManager.Get<string>("Interpreter","FS_
+            List<string> allowedExtensions = new List<string>();
+            allowedExtensions.Add(".txt");
+            int dimensions = OptionsManager.Get<int>("Interpreter","LF_DIMENSIONS");
+            bool UF_SUPPORT = OptionsManager.Get<bool>("Interpreter", "LF_UF_SUPPORT") == true && dimensions >= 1;
+            if(UF_SUPPORT)
+            {
+                allowedExtensions.Add(".uf");
+            }
 
-            //Thanks Marc! http://stackoverflow.com/a/30082323
-            string[] allowedExtensions = new string[] { ".bf", ".b93", ".b98", ".tf", ".txt" };
+            bool BF93_SUPPORT = OptionsManager.Get<bool>("Interpreter", "LF_BF93_SUPPORT") && dimensions >= 2;
+            bool BF98_SUPPORT = OptionsManager.Get<bool>("Interpreter", "LF_BF98_SUPPORT") && dimensions >= 2;
             
+            //If either befunge is turned on
+            if(BF93_SUPPORT || BF98_SUPPORT)
+            {
+                //Add the general .bf file extentions
+                allowedExtensions.Add(".bf");
+
+                //Test for individual support
+                if(BF93_SUPPORT)
+                {
+                    allowedExtensions.Add(".b93");
+                }
+                if(BF98_SUPPORT)
+                {
+                    allowedExtensions.Add(".b98");
+                }
+            }
+
+            bool TF_SUPPORT = OptionsManager.Get<bool>("Interpreter", "LF_TF_SUPPORT") && dimensions >= 3;
+
+            if(TF_SUPPORT)
+            {
+                allowedExtensions.Add(".tf");
+            }
+
+            List<string> outList = new List<string>();
+            //Thanks Marc! http://stackoverflow.com/a/30082323
             try
             {
                 DirectoryInfo info = new DirectoryInfo(Directory.GetCurrentDirectory());
                 List<FileInfo> fileList = info
                     .GetFiles("*", SearchOption.AllDirectories) //Get all the files with the allowed extensions,
-                    .Where(file => allowedExtensions.Any(file.Extension.ToLower().EndsWith))
+                    .Where(file => allowedExtensions.Any(file.Extension.ToLower().EndsWith) || file.Extension == "")
                     //Sort by the last access time so they appear on the top of the list and will get chosen first
                     .OrderBy(f => f.LastAccessTime)
                     .Reverse()

@@ -48,7 +48,7 @@ namespace BefungeSharp
         /// The defaults options for the program.
         /// The property is not connected to anything with state
         /// </summary>
-        public static SharpConfig.Configuration DefaultOptions { get { return CreateDefaultOptions(); } private set; }
+        public static SharpConfig.Configuration DefaultOptions { get { return CreateDefaultOptions(); } }
         
         static OptionsManager()
         {
@@ -61,7 +61,7 @@ namespace BefungeSharp
                 Directory.SetCurrentDirectory(Path.GetDirectoryName(Environment.GetCommandLineArgs()[0]) + "\\");
 
                 //Can be disabled for testing
-                SessionOptions = SharpConfig.Configuration.LoadFromFile("options.ini");
+                //SessionOptions = SharpConfig.Configuration.LoadFromFile("options.ini");
             }
             catch (FileNotFoundException e)
             {
@@ -71,11 +71,6 @@ namespace BefungeSharp
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-            }
-            finally
-            {
-                
-                
             }
         }
 
@@ -221,22 +216,24 @@ namespace BefungeSharp
                                                     "\t\t\t  ; Only enable a single dimension and a single version", ';');
 
             //LF stands for languages and features
-            config.AddSetting<bool>     ("Interpreter","LF_CONCURRENT_FUNGE",true,"Enables the 't' instruction");
-            config.AddSetting<bool>     ("Interpreter","LF_FILE_INPUT",true,"Enables the 'i' instruction. Potentially unsafe");
-            config.AddSetting<bool>     ("Interpreter","LF_FILE_OUTPUT",true,"Enables the 'o' instruction. Potentially unsafe");
-            config.AddSetting<int>      ("Interpreter","LF_EXECUTE_STYLE",1,"0 for none, 1 for system() calls, 2 specific programs, 3 for this running shell. Currently using 1");
-            config.AddSetting<int>      ("Interpreter","LF_STD_INPUT_STYLE",1,"0 for unbuffered, 1 for buffered. For now use 1");
-            config.AddSetting<int>      ("Interpreter","LF_STD_OUTPUT_STYLE",0,"0 for unbuffered, 1 for buffered. For now use 0");
-            config.AddSetting<bool>     ("Interpreter","LF_NETWORKING",false,"Enables BefungeSharp to make Network connections. Currently unimplemented");
-            config.AddSetting<bool>     ("Interpreter","LF_UF",true,"1D funge, Unfunge is supported");
-            config.AddSetting<bool>     ("Interpreter","LF_BF",true,"2D funge, Befunge is supported");
-            config.AddSetting<bool>     ("Interpreter","LF_TF",false,"3D funge, Trefunge is currently not supported");
-            config.AddSetting<int>      ("Interpreter","LF_DIMENSIONS",2);
-            config.AddSetting<int>      ("Interpreter","LF_SPEC_VERSION",98,"Possible values are 93 or 98. \"93\" is a Befunge-93 compatability mode");
+            config.AddSetting<bool>("Interpreter","LF_CONCURRENT_FUNGE",true,"Enables the 't' instruction");
+            config.AddSetting<bool>("Interpreter","LF_FILE_INPUT",      true,"Enables the 'i' instruction. Potentially unsafe");
+            config.AddSetting<bool>("Interpreter","LF_FILE_OUTPUT",     true,"Enables the 'o' instruction. Potentially unsafe");
+            config.AddSetting<int> ("Interpreter","LF_EXECUTE_STYLE",      1,"0 for none, 1 for system() calls, 2 specific programs, 3 for this running shell. Currently using 1");
+            config.AddSetting<int> ("Interpreter","LF_STD_INPUT_STYLE",    1,"0 for unbuffered, 1 for buffered. For now use 1");
+            config.AddSetting<int> ("Interpreter","LF_STD_OUTPUT_STYLE",   0,"0 for unbuffered, 1 for buffered. For now use 0");
+            config.AddSetting<bool>("Interpreter","LF_NETWORKING",     false,"Enables BefungeSharp to make Network connections. Currently unimplemented");
+            config.AddSetting<bool>("Interpreter","LF_UF_SUPPORT",              true,"Unfunge is supported");
+            config.AddSetting<bool>("Interpreter","LF_BF93_SUPPORT", false, "Befunge-93 is not supported");
+            config.AddSetting<bool>("Interpreter","LF_BF98_SUPPORT", true, "Befunge is supported");
+            config.AddSetting<bool>("Interpreter","LF_TF_SUPPORT",             false,"Trefunge is not supported");
+            config.AddSetting<int> ("Interpreter","LF_DIMENSIONS",         2,"The current number of dimensions to use");
+            config.AddSetting<int> ("Interpreter","LF_SPEC_VERSION",      98,"The current spec to use, must be supported");
+            
             //RT stands for runtime behaviors
             config.AddSetting<BoardMode>("Interpreter","RT_DEFAULT_MODE",BoardMode.Edit,"The default mode the program goes into after opening a file");
             //FS stands for FungeSpace
-            config.AddSetting<int>      ("Interpreter","FS_DEFAULT_AREA_WIDTH",80,"The default width of pre-allocated FungeSpace, must be atleast 80 and a multiple of 16");
+            config.AddSetting<int>      ("Interpreter","FS_DEFAULT_AREA_WIDTH", 80,"The default width of pre-allocated FungeSpace, must be atleast 80 and a multiple of 16");
             config.AddSetting<int>      ("Interpreter","FS_DEFAULT_AREA_HEIGHT",25,"The default width of pre-allocated FungeSpace, must be atleast 25 and a multiple of 5");
             return config;
         }
