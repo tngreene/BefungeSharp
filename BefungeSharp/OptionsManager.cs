@@ -61,7 +61,7 @@ namespace BefungeSharp
                 Directory.SetCurrentDirectory(Path.GetDirectoryName(Environment.GetCommandLineArgs()[0]) + "\\");
 
                 //Can be disabled for testing
-                //SessionOptions = SharpConfig.Configuration.LoadFromFile("options.ini");
+                SessionOptions = SharpConfig.Configuration.LoadFromFile("options.ini");
             }
             catch (FileNotFoundException e)
             {
@@ -216,17 +216,17 @@ namespace BefungeSharp
                                                     "\t\t\t  ; Only enable a single dimension and a single version", ';');
 
             //LF stands for languages and features
-            config.AddSetting<bool>("Interpreter","LF_CONCURRENT_FUNGE",true,"Enables the 't' instruction");
+            config.AddSetting<bool>("Interpreter","LF_CONCURRENCY",     true,"Enables the 't' instruction");
             config.AddSetting<bool>("Interpreter","LF_FILE_INPUT",      true,"Enables the 'i' instruction. Potentially unsafe");
             config.AddSetting<bool>("Interpreter","LF_FILE_OUTPUT",     true,"Enables the 'o' instruction. Potentially unsafe");
             config.AddSetting<int> ("Interpreter","LF_EXECUTE_STYLE",      1,"0 for none, 1 for system() calls, 2 specific programs, 3 for this running shell. Currently using 1");
             config.AddSetting<int> ("Interpreter","LF_STD_INPUT_STYLE",    1,"0 for unbuffered, 1 for buffered. For now use 1");
             config.AddSetting<int> ("Interpreter","LF_STD_OUTPUT_STYLE",   0,"0 for unbuffered, 1 for buffered. For now use 0");
             config.AddSetting<bool>("Interpreter","LF_NETWORKING",     false,"Enables BefungeSharp to make Network connections. Currently unimplemented");
-            config.AddSetting<bool>("Interpreter","LF_UF_SUPPORT",              true,"Unfunge is supported");
-            config.AddSetting<bool>("Interpreter","LF_BF93_SUPPORT", false, "Befunge-93 is not supported");
-            config.AddSetting<bool>("Interpreter","LF_BF98_SUPPORT", true, "Befunge is supported");
-            config.AddSetting<bool>("Interpreter","LF_TF_SUPPORT",             false,"Trefunge is not supported");
+            config.AddSetting<bool>("Interpreter","LF_UF_SUPPORT",      true,"Unfunge is supported");
+            config.AddSetting<bool>("Interpreter","LF_BF93_SUPPORT",   false, "Befunge-93 is not supported");
+            config.AddSetting<bool>("Interpreter","LF_BF98_SUPPORT",    true, "Befunge is supported");
+            config.AddSetting<bool>("Interpreter","LF_TF_SUPPORT",     false,"Trefunge is not supported");
             config.AddSetting<int> ("Interpreter","LF_DIMENSIONS",         2,"The current number of dimensions to use");
             config.AddSetting<int> ("Interpreter","LF_SPEC_VERSION",      98,"The current spec to use, must be supported");
             

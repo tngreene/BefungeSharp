@@ -62,6 +62,11 @@ namespace BefungeSharp.Instructions
             this.MinimumFlags = minimum_flags;
         }
         
+        /// <summary>
+        /// A factory method for making instructions
+        /// </summary>
+        /// <param name="c">The character that represents the instruction</param>
+        /// <returns>A created instruction or null if it was unable to do so</returns>
         public static Instruction MakeInstruction(char c)
         {
             //Instruction works for all languages, all versions
@@ -79,14 +84,15 @@ namespace BefungeSharp.Instructions
 
             RuntimeFeatures UF_93 = RuntimeFeatures.UF | RuntimeFeatures.VERSION_93;
             Instruction outInstruction = null;
-            InterpreterSettings settings = Interpreter.GetSettingsFromOptions();
-            
+
+            int dimensions = OptionsManager.Get<int>("Interpreter", "LF_DIMENSIONS");
+            int spec_version = OptionsManager.Get<int>("Interpreter", "LF_SPEC_VERSION");
             //Based on the character, if it follows the necessary rules
             switch (c)
             {
                 //--Delta Changing-
                 case '^':
-                    if(settings.Dimensions > 1)
+                    if(dimensions> 1)
                     {    
                         outInstruction = new Delta.CardinalInstruction(c, NO_UNFUNGE, Vector2.North);
                     }
@@ -95,7 +101,7 @@ namespace BefungeSharp.Instructions
                     outInstruction = new Delta.CardinalInstruction(c, RuntimeFeatures.NULL, Vector2.East);
                     break;
                 case 'v':
-                    if (settings.Dimensions > 1)
+                    if (dimensions> 1)
                     {
                         outInstruction = new Delta.CardinalInstruction(c, NO_UNFUNGE, Vector2.South);
                     }
@@ -107,25 +113,25 @@ namespace BefungeSharp.Instructions
                     outInstruction = new Delta.RandomDeltaInstruction(c, RuntimeFeatures.NULL);
                     break;
                 case '[':
-                    if (settings.Dimensions > 1 &&  settings.SpecVersionNumber > 93)
+                    if (dimensions> 1 &&  spec_version > 93)
                     {
                         outInstruction = new Delta.TurnLeftInstruction(c, (RuntimeFeatures.BF | RuntimeFeatures.TF | RuntimeFeatures.VERSION_98));
                     }
                     break;
                 case ']':
-                    if (settings.Dimensions > 1 && settings.SpecVersionNumber > 93)
+                    if (dimensions> 1 && spec_version > 93)
                     {
                         outInstruction = new Delta.TurnRightInstruction(c, (RuntimeFeatures.BF | RuntimeFeatures.TF | RuntimeFeatures.VERSION_98));
                     }
                     break;
                 case 'x':
-                    if (settings.SpecVersionNumber > 93)
+                    if (spec_version > 93)
                     {
                         outInstruction = new Delta.SetDeltaInstruction(c, NO_93_COMPATIBILITY);
                     }
                     break;
                 case 'r':
-                    if (settings.SpecVersionNumber > 93)
+                    if (spec_version > 93)
                     {
                         outInstruction = new Delta.ReverseDeltaInstruction(c, NO_93_COMPATIBILITY);
                     }
@@ -136,7 +142,7 @@ namespace BefungeSharp.Instructions
                     outInstruction = new FlowControl.TrampolineInstruction(c, RuntimeFeatures.NULL);
                     break;
                 case ';':
-                    if (settings.SpecVersionNumber > 93)
+                    if (spec_version > 93)
                     {
                         outInstruction = new FlowControl.JumpOverInstruction(c, NO_93_COMPATIBILITY);
                     }
@@ -148,13 +154,13 @@ namespace BefungeSharp.Instructions
                     outInstruction = new FlowControl.StopInstruction(c, RuntimeFeatures.NULL);
                     break;
                 case 'q':
-                    if (settings.SpecVersionNumber > 93)
+                    if (spec_version > 93)
                     {
                         outInstruction = new FlowControl.QuitInstruction(c, NO_93_COMPATIBILITY);
                     }
                     break;
                 case 'k':
-                    if (settings.SpecVersionNumber > 93)
+                    if (spec_version > 93)
                     {
                         outInstruction = new FlowControl.IterateInstruction(c, NO_93_COMPATIBILITY);
                     }
@@ -174,7 +180,7 @@ namespace BefungeSharp.Instructions
                     outInstruction = new Logic.GreaterThanInstruction(c, RuntimeFeatures.NULL);
                     break;
                 case 'w':
-                    if (settings.Dimensions > 1 && settings.SpecVersionNumber > 93)
+                    if (dimensions> 1 && spec_version > 93)
                     {
                         outInstruction = new Logic.CompareInstruction(c, (RuntimeFeatures.BF | RuntimeFeatures.TF | RuntimeFeatures.VERSION_98));
                     }
@@ -199,7 +205,7 @@ namespace BefungeSharp.Instructions
                 case 'd':
                 case 'e':
                 case 'f':
-                    if (settings.SpecVersionNumber > 93)
+                    if (spec_version > 93)
                     {
                         outInstruction = new Number.NumberInstruction(c, NO_93_COMPATIBILITY, (int)c - ('a' - 10));
                     }
@@ -227,13 +233,13 @@ namespace BefungeSharp.Instructions
                     outInstruction = new String.ToggleStringModeInstruction(c, RuntimeFeatures.NULL);
                     break;
                 case '\''://This is the ' character, aka fetch
-                    if (settings.SpecVersionNumber > 93)
+                    if (spec_version > 93)
                     {
                         outInstruction = new String.FetchCharacterInstruction(c, NO_93_COMPATIBILITY);
                     }
                     break;
                 case 's':
-                    if (settings.SpecVersionNumber > 93)
+                    if (spec_version > 93)
                     {
                         outInstruction = new String.StoreCharacterInstruction(c, NO_93_COMPATIBILITY);
                     }
@@ -250,7 +256,7 @@ namespace BefungeSharp.Instructions
                     outInstruction = new Stack.SwapInstruction(c, RuntimeFeatures.NULL);
                     break;
                 case 'n':
-                    if (settings.SpecVersionNumber > 93)
+                    if (spec_version > 93)
                     {
                         outInstruction = new Stack.ClearStackInstruction(c, NO_93_COMPATIBILITY);
                     }
@@ -258,19 +264,19 @@ namespace BefungeSharp.Instructions
                 //-----------------
                 //--StackStack Manipulation
                 case '{':
-                    if (settings.SpecVersionNumber > 93)
+                    if (spec_version > 93)
                     {
                         outInstruction = new StackStack.BeginBlockInstruction(c, NO_93_COMPATIBILITY);
                     }
                     break;
                 case '}':
-                    if (settings.SpecVersionNumber > 93)
+                    if (spec_version > 93)
                     {
                         outInstruction = new StackStack.EndBlockInstruction(c, NO_93_COMPATIBILITY);
                     }
                     break;
                 case 'u':
-                    if (settings.SpecVersionNumber > 93)
+                    if (spec_version > 93)
                     {
                         outInstruction = new StackStack.StackUnderStackInstruction(c, NO_93_COMPATIBILITY);
                     }
@@ -292,13 +298,13 @@ namespace BefungeSharp.Instructions
                 //-----------------
                 //--FileIO---------
                 case 'i':
-                    if (settings.FileInputEnabled == true && settings.SpecVersionNumber > 93)
+                    if (OptionsManager.Get<bool>("Interpreter","LF_FILE_INPUT") == true && spec_version > 93)
                     {
                         outInstruction = new FileIO.InputFileInstruction(c, (RuntimeFeatures.FILE_INPUT | NO_93_COMPATIBILITY));
                     }
                     break;
                 case 'o':
-                    if (settings.FileOutputEnabled == true && settings.SpecVersionNumber > 93)
+                    if (OptionsManager.Get<bool>("Interpreter", "LF_FILE_OUTPUT") == true && spec_version > 93)
                     {
                         outInstruction = new FileIO.OutputFileInstruction(c, (RuntimeFeatures.FILE_OUTPUT | NO_93_COMPATIBILITY));
                     }
@@ -314,7 +320,7 @@ namespace BefungeSharp.Instructions
                 //-----------------
                 //--Concurrent-----
                 case 't':
-                    if (settings.ConcurrentEnabled == true && settings.SpecVersionNumber > 93)
+                    if (OptionsManager.Get<bool>("Interpreter", "LF_CONCURRENCY") == true && spec_version > 93)
                     {
                         outInstruction = new Concurrent.SplitInstruction(c, (RuntimeFeatures.CONCURRENT_FUNGE | NO_93_COMPATIBILITY));
                     }
@@ -322,13 +328,13 @@ namespace BefungeSharp.Instructions
                 //-----------------
                 //--System---------
                 case '=':
-                    if (settings.ExecuteStyle > 0 && settings.SpecVersionNumber > 93)
+                    if (OptionsManager.Get<int>("Interpreter", "LF_EXECUTE_STYLE") > 0 && spec_version > 93)
                     {
                         outInstruction = new SystemCall.ExecuteInstruction(c, (RuntimeFeatures.EXECUTE | NO_93_COMPATIBILITY));
                     }
                     break;
                 case 'y':
-                    if (settings.SpecVersionNumber > 93)
+                    if (spec_version > 93)
                     {
                         outInstruction = new SystemCall.GetSysInfo(c, NO_93_COMPATIBILITY);
                     }
@@ -363,7 +369,7 @@ namespace BefungeSharp.Instructions
                 case 'X':
                 case 'Y':
                 case 'Z':
-                    if (settings.SpecVersionNumber > 93)
+                    if (spec_version > 93)
                     {
                         outInstruction = new SystemCall.NotImplemented(c, NO_93_COMPATIBILITY);
                     }
@@ -373,7 +379,7 @@ namespace BefungeSharp.Instructions
                 case 'h'://Go high, 3D movement
                 case 'l'://Go low, 3D movement
                 case 'm'://3D if statment
-                    if (settings.SpecVersionNumber > 93 && settings.Dimensions == 3)
+                    if (spec_version > 93 && dimensions == 3)
                     {
                         //For now Footprint and Trefunge all get "Not Implemented", which acts like 'r'
                         outInstruction = new SystemCall.NotImplemented(c, (RuntimeFeatures.TF | RuntimeFeatures.VERSION_98));
@@ -385,7 +391,7 @@ namespace BefungeSharp.Instructions
                     outInstruction = new Nop.SpaceInstruction(c, RuntimeFeatures.NULL);
                     break;
                 case 'z':
-                    if (settings.SpecVersionNumber > 93)
+                    if (spec_version > 93)
                     {
                         outInstruction = new Nop.ExplicitNopInstruction(c, NO_93_COMPATIBILITY);
                     }
@@ -425,7 +431,14 @@ namespace BefungeSharp.Instructions
                 }
                 else
                 {
-                    InstructionSet.Add(c, new Nop.ExplicitNopInstruction(c, RuntimeFeatures.NULL));
+                    if (OptionsManager.Get<int>("Interpreter","LF_SPEC_VERSION") == 98)
+                    {
+                        InstructionSet.Add(c, new SystemCall.NotImplemented(c, RuntimeFeatures.NULL));
+                    }
+                    else if (OptionsManager.Get<int>("Interpreter","LF_SPEC_VERSION") == 93)
+                    {
+                        InstructionSet.Add(c, new Nop.ExplicitNopInstruction(c, RuntimeFeatures.NULL));
+                    }
                 }
             }
         }

@@ -7,119 +7,7 @@ using System.Threading.Tasks;
 using BefungeSharp.FungeSpace;
 
 namespace BefungeSharp
-{
-    /// <summary>
-    /// A collection of settings for the interpreter,
-    /// including language and feature settings as well as
-    /// other runtime behaviors
-    /// </summary>
-    public class InterpreterSettings
-    {
-        /// <summary>
-        /// If concurrent Funge-98 is enabled
-        /// </summary>
-        public bool ConcurrentEnabled { get; set; }
-
-        /// <summary>
-        /// If files can be read from the HDD
-        /// </summary>
-        public bool FileInputEnabled { get; set; }
-
-        /// <summary>
-        /// If files can be written to the HDD
-        /// </summary>
-        public bool FileOutputEnabled { get; set; }
-
-        /// <summary>
-        /// From the spec
-        /// 
-        /// 0 = Unavailable
-        /// 1 = C-language system() call behaviour
-        /// 2 = A specific shell or program
-        /// 3 = Equivalent to interpretation by the same shell as started this Funge interpreter, if applicable
-        /// </summary>
-        public int ExecuteStyle { get; set; }
-
-        /// <summary>
-        /// From the spec
-        /// 
-        /// 0 = buffered input (like scanf("%c"))
-        /// 1 = unbuffered input (like getch())
-        /// Currently, input is unbuffered for getting characters, buffered for getting numbers - 11/7/15
-        /// </summary>
-        public int StdInputStyle { get; set; }
-
-        /// <summary>
-        /// From the spec
-        /// 
-        /// 0 = buffered output
-        /// 1 = unbuffered output
-        /// Currently all output goes to the standard output stream - 11/7/15
-        /// </summary>
-        public int StdOutputStyle { get; set; }
-
-        /// <summary>
-        /// If BefungeSharp is allowed to use internet protocols
-        /// </summary>
-        public bool NetworkConnectionsEnabled { get; set; }
-
-        /// <summary>
-        /// The number of dimensions (1,2, or 3)
-        /// </summary>
-        public int Dimensions { get; set; }
-
-        /// <summary>
-        /// Possible values are 93 or 98
-        /// </summary>
-        public int SpecVersionNumber { get; set; }
-
-        //Derived from SpecVersionNumber
-        /// <summary>
-        /// SGML space handling dictates all spaces
-        /// are consumed as one space
-        /// </summary>
-        public bool SGML_Spaces { get; set; }
-
-        /// <summary>
-        /// The current mode the interpreter is in
-        /// Warning: Do not switch to Edit, Debug, or Run_TERMINAL at the wrong time!
-        /// </summary>
-        public BoardMode CurrentMode { get; internal set; }
-
-        //Derived from RT_MODE
-        /// <summary>
-        /// How much delay between clock ticks there is, in milliseconds
-        /// </summary>
-        public int ClockDelay
-        {
-            get
-            {
-                //Translate between the current number and desired number of
-                //milliseconds. Milliseconds 50,100,200 were chosen because
-                //they seemed to work well
-                switch (this.CurrentMode)
-                {
-                    case BoardMode.Run_MAX:
-                        return 0;
-                    case BoardMode.Run_TERMINAL:
-                        return 0;
-                    case BoardMode.Run_FAST:
-                        return 50;
-                    case BoardMode.Run_MEDIUM:
-                        return 100;
-                    case BoardMode.Run_SLOW:
-                        return 200;
-                    case BoardMode.Run_STEP:
-                        return 100;
-                    case BoardMode.Edit:
-                    case BoardMode.Debug:
-                    default:
-                        return 0;
-                }
-            }
-        }
-    }
-    
+{    
     /// <summary>
     /// An enum of how the interpreter should behave while running
     /// </summary>
@@ -179,17 +67,7 @@ namespace BefungeSharp
         //Not yet implemented private FungeSpaceArea FS_EXTENDED;
 
         //The current mode of the board
-        public BoardMode CurMode {
-                                    get 
-                                    {
-                                        return this.Settings.CurrentMode; 
-                                    }
-                                   
-                                    private set
-                                    {
-                                        this.Settings.CurrentMode = value;
-                                    }
-                                 }
+        public BoardMode CurMode { get; private set; }
 
         private List<IP> _IPs;
 
@@ -206,17 +84,13 @@ namespace BefungeSharp
         /// The Instruction Pointer representing the editor cursor
         /// </summary>
         public IP EditIP { get { return _editIP; } }
-
-        public InterpreterSettings Settings { get; private set; }
-
+        
         /// <summary>
         /// Controls the intepretation and execution of commands
         /// </summary>
         /// <param name="mgr">A reference to the manager</param>
         public Interpreter(List<List<int>> initial_chars, Stack<int> stack = null, BoardMode mode = BoardMode.Edit)
         {
-            this.Settings = Interpreter.GetSettingsFromOptions();
-         
             //Set up the area's the program will refer to
             FS_93 = new FungeSpaceArea(0, 0, 24, 79);
             FS_DEFAULT =  new FungeSpaceArea(0, 0, OptionsManager.Get<int>("Interpreter","FS_DEFAULT_AREA_HEIGHT") - 1,  OptionsManager.Get<int>("Interpreter","FS_DEFAULT_AREA_HEIGHT") - 1);
@@ -788,32 +662,6 @@ namespace BefungeSharp
             }
 
             return Instructions.CommandType.NotImplemented;//TODO - Needs a better idea
-        }
-
-        /// <summary>
-        /// Builds the set of settings from the Options Manager,
-        /// it is static because of the way the instructions manager is set up.
-        /// It is a necissary hack to reduce complexity or data redunency
-        /// </summary>
-        /// <returns></returns>
-        public static InterpreterSettings GetSettingsFromOptions()
-        {
-            InterpreterSettings settings = new InterpreterSettings();
-            SharpConfig.Section interpreter = OptionsManager.SessionOptions["Interpreter"];
-
-            settings.ConcurrentEnabled          = interpreter["LF_CONCURRENT_FUNGE"].GetValueTyped<bool>();
-            settings.FileInputEnabled           = interpreter["LF_FILE_INPUT"].GetValueTyped<bool>();
-            settings.FileOutputEnabled          = interpreter["LF_FILE_OUTPUT"].GetValueTyped<bool>();
-            settings.ExecuteStyle               = interpreter["LF_EXECUTE_STYLE"].GetValueTyped<int>();
-            settings.StdInputStyle              = interpreter["LF_STD_INPUT_STYLE"].GetValueTyped<int>();
-            settings.StdOutputStyle             = interpreter["LF_STD_OUTPUT_STYLE"].GetValueTyped<int>();
-            settings.NetworkConnectionsEnabled  = interpreter["LF_NETWORKING"].GetValueTyped<bool>();
-            settings.Dimensions                 = interpreter["LF_DIMENSIONS"].GetValueTyped<int>();
-            settings.SpecVersionNumber          = interpreter["LF_SPEC_VERSION"].GetValueTyped<int>();
-            settings.SGML_Spaces                = settings.SpecVersionNumber == 98 ? true : false;
-            settings.CurrentMode                = interpreter["RT_DEFAULT_MODE"].GetValueTyped<BoardMode>();
-
-            return settings;
         }
     }
 }
