@@ -31,6 +31,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>assets\BefungeSharpIcon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="ConEx, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -108,6 +111,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="assets\BefungeSharpIcon.ico" />
     <Content Include="ConEx.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
