@@ -17,13 +17,33 @@ namespace BefungeSharp
         /// <summary>
         /// The last used file's file encoding
         /// </summary>
-        public static Encoding LastUsedEncoding { get; private set; }
+        public static string LastUsedEncoding
+        {
+            get
+            {
+                return OptionsManager.Get<string>("General", "FILE_ENCODING");
+            }
+            private set
+            {
+                OptionsManager.Set<string>("General", "FILE_ENCODING", value);
+            }
+        }
 
         /// <summary>
         /// The fully rooted last used file path,
         /// or "" if there was no last used file
         /// </summary>
-        public static string LastUserOpenedPath { get; private set;}
+        public static string LastUserOpenedPath
+        {
+            get
+            {
+                return OptionsManager.Get<string>("General", "FILE_LAST_USED");
+            }
+            private set
+            {
+                OptionsManager.Set<string>("General", "FILE_LAST_USED", value);
+            }
+        }
 
         /// <summary>
         /// The fully rooted directory of the last used file,
@@ -48,11 +68,10 @@ namespace BefungeSharp
         /// </summary>
         public static string LastUserOpenedFile { get { return Path.GetFileName(LastUserOpenedPath); } }
 
-        static FileUtils()
+        /*static FileUtils()
         {
-            LastUserOpenedPath = "";
-            LastUsedEncoding = Encoding.UTF8;
-        }
+           
+        }*/
 
         /// <summary>
         /// Copies the current file about to be written over into the backup directory,
@@ -62,8 +81,8 @@ namespace BefungeSharp
         /// <param name="supressConsoleMessages">Blocks the printing of console messages (for when not in a terminal like mode)</param>
         public static void BackupFile(string filePath, bool supressConsoleMessages)
         {
-            string exeLoc = Environment.GetCommandLineArgs()[0];
-            string backupsPath = exeLoc.Remove(exeLoc.Length - Path.GetFileName(exeLoc).Length)+ "Backups";
+            string backupsPath = Path.GetDirectoryName(Path.GetDirectoryName(Environment.GetCommandLineArgs()[0])) + "\\" +
+                                                        OptionsManager.Get<string>("General", "FILE_BACKUPS_FOLDER");
             if (Directory.Exists(backupsPath) == false)
             {
                 try 
@@ -138,7 +157,7 @@ namespace BefungeSharp
                     .ToList();
 
                 //Delete all but the most recent n of them
-                int amountToKeep = 3;//TODO:OPTIONS["Amount Of Backups To Save"]
+                int amountToKeep = OptionsManager.Get<int>("General", "FILE_MAX_BACKUPS");
                 for (int i = fileList.Count - 1; i >= amountToKeep; i--)
                 {
                     File.Delete(fileList[i].FullName);
@@ -170,25 +189,36 @@ namespace BefungeSharp
 
             try
             {
+                //Read open the file
                 fStream = File.OpenRead(filePath);
 
                 //Attempt to read BOM Marks, test them
                 byte[] BOMMarks = new byte[4];
                 fStream.Read(BOMMarks, 0, 4);
-                LastUsedEncoding = DetectBOMBytes(BOMMarks);
-
+                Encoding encoding = DetectBOMBytes(BOMMarks);
+                
                 //If we are not using any Unicode Encodings,
                 //assume we are just using ANSI text files
-                if (LastUsedEncoding == null)
+                if (encoding == null)
                 {
-                    LastUsedEncoding = Encoding.Default;
+                    //Save the last encoding we're using
+                    LastUsedEncoding = Encoding.Default.BodyName;
+                    encoding = Encoding.Default;
+                }
+                else
+                {
+                    LastUsedEncoding = encoding.BodyName;
                 }
                 
+                //Reset the file position and open up a stream reader
                 fStream.Position = 0;
-                using (StreamReader rStream = new StreamReader(fStream, LastUsedEncoding))
+                using (StreamReader rStream = new StreamReader(fStream, Encoding.GetEncoding(LastUsedEncoding)))
                 {
+                    //If we're reading as binary files
+                    //from the 'i' instruction probably
                     if (readAsBinary == true)
                     {
+                        //Read all of the stream at once and you're done
                         while (rStream.EndOfStream == false)
                         {
                             int value = rStream.Read();
@@ -208,7 +238,6 @@ namespace BefungeSharp
                                 //If the line ending is \r\n
                                 if (rStream.Peek() == '\n')
                                 {
-                                    //advanced past it
                                     rStream.Read();
                                 }
                                 fileContents.Add(new List<int>());
@@ -219,6 +248,9 @@ namespace BefungeSharp
                             }
                         }
                     }
+
+                    //If we're opening a file with the menu system
+                    //Change the last user opened path
                     if (changeLastUsed == true)
                     {
                         LastUserOpenedPath = Path.GetFullPath(filePath);
@@ -275,7 +307,7 @@ namespace BefungeSharp
                 }
 
                 //Create the stream writer from the file path
-                wStream = new StreamWriter(filePath, false, LastUsedEncoding);
+                wStream = new StreamWriter(filePath, false, Encoding.GetEncoding(LastUsedEncoding));
 
                 for (int r = 0; r < outStrings.Count; r++)
 			    {
@@ -294,7 +326,7 @@ namespace BefungeSharp
             }
             catch (Exception e)
             {
-                Console.WriteLine("Error reading: " + e.Message);
+                Console.WriteLine("Error writing: " + e.Message);
 
                 //Reset the LastUserOpenedPath to something safe
                 LastUserOpenedPath = "";
@@ -572,19 +604,54 @@ namespace BefungeSharp
 
             int count = 10;
             
+            //A collection of allowed extentions based on the language features supported
+            List<string> allowedExtensions = new List<string>();
+
+            //Always allow text files
+            allowedExtensions.Add(".txt");
+
+            int dimensions = OptionsManager.Get<int>("Interpreter","LF_DIMENSIONS");
+            bool UF_SUPPORT = OptionsManager.Get<bool>("Interpreter", "LF_UF_SUPPORT") == true && dimensions >= 1;
+            if(UF_SUPPORT)
+            {
+                allowedExtensions.Add(".uf");
+            }
+
+            bool BF93_SUPPORT = OptionsManager.Get<bool>("Interpreter", "LF_BF93_SUPPORT") && dimensions >= 2;
+            bool BF98_SUPPORT = OptionsManager.Get<bool>("Interpreter", "LF_BF98_SUPPORT") && dimensions >= 2;
+            
+            //If either befunge is turned on
+            if(BF93_SUPPORT || BF98_SUPPORT)
+            {
+                //Add the general .bf file extentions
+                allowedExtensions.Add(".bf");
+
+                //Test for individual support
+                if(BF93_SUPPORT)
+                {
+                    allowedExtensions.Add(".b93");
+                }
+                if(BF98_SUPPORT)
+                {
+                    allowedExtensions.Add(".b98");
+                }
+            }
+
+            bool TF_SUPPORT = OptionsManager.Get<bool>("Interpreter", "LF_TF_SUPPORT") && dimensions >= 3;
+
+            if(TF_SUPPORT)
+            {
+                allowedExtensions.Add(".tf");
+            }
+
             List<string> outList = new List<string>();
-            //TODO:Choose the allowed extentions based on the language
-            string[] allowedExtensions;
-            
             //Thanks Marc! http://stackoverflow.com/a/30082323
-            allowedExtensions = new string[] { ".bf", ".b93", ".b98", ".tf", ".txt" };
-            
             try
             {
                 DirectoryInfo info = new DirectoryInfo(Directory.GetCurrentDirectory());
                 List<FileInfo> fileList = info
                     .GetFiles("*", SearchOption.AllDirectories) //Get all the files with the allowed extensions,
-                    .Where(file => allowedExtensions.Any(file.Extension.ToLower().EndsWith))
+                    .Where(file => allowedExtensions.Any(file.Extension.ToLower().EndsWith) || file.Extension == "")
                     //Sort by the last access time so they appear on the top of the list and will get chosen first
                     .OrderBy(f => f.LastAccessTime)
                     .Reverse()
@@ -693,8 +760,10 @@ namespace BefungeSharp
             }
             return FileUtils.LastUserOpenedPath;
         }
-        #endregion
-        
+                
+        /// <summary>
+        /// Displays the current directory
+        /// </summary>
         public static void DisplayCurrentDirectory()
         {
             //Takes care of a silly asthetic problem where it would print out 
@@ -709,5 +778,6 @@ namespace BefungeSharp
             }
             Console.WriteLine();
         }
+        #endregion
     }
 }

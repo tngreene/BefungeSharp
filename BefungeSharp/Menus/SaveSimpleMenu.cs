@@ -8,20 +8,13 @@ using System.Text.RegularExpressions;
 
 namespace BefungeSharp.Menus
 {
-    public class SaveSimpleMenu : IMenu
+    public class SaveSimpleMenu : Menu
     {
-        public string[] InputRestriction
-        {
-            get { return new string[]{ "[^\"<>|;]" }; }
-        }
-
-        public void OnOpening()
+        public override void OnOpening()
         {
             //--General FileMenu content---------
-            Console.SetCursorPosition(0, 0);
-            Console.CursorVisible = true;
+            base.OnOpening();
 
-            Console.Clear();
             Console.WriteLine("*Enter in a file path (relative to current directory)");
             Console.Write("*Type ");
             Console.BackgroundColor = ConsoleColor.White;
@@ -36,18 +29,8 @@ namespace BefungeSharp.Menus
             FileUtils.DisplayCurrentDirectory();
             //--End General FileMenu content-----
         }
-
-        public void OnClosing()
-        {
-            //--General FileMenu content---------
-            Console.WriteLine("Press any key to continue");
-            Console.ReadKey(true);
-            Console.Clear();
-            Console.CursorVisible = false;
-            //--End General FileMenu content-----
-        }
-
-        public void RunLoop()
+        
+        public override void RunLoop()
         {
             //--General FileMenu content-----
             OnOpening();
@@ -170,8 +153,6 @@ namespace BefungeSharp.Menus
             }
 
             OnClosing();
-        }
-
-        
+        }        
     }
 }

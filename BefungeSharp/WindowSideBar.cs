@@ -120,18 +120,17 @@ namespace BefungeSharp
                         if (Program.WindowUI.SelectionActive == false)
                         {
                             string[] contentArr = {
-                                                    //TODO Organize these
                                                     //X indicates the feature has not been implemented
                                                     "║New File - Ctrl + N              ║",
                                                     "║Save - Alt + S                   ║",
                                                     "║Reload Source - Alt + R          ║",
                                                     "║Run (Step) - F1                  ║",
-                                                    "║Run (Real Time) - F2 - F5        ║",//TODO:OPTION["DefaultSpeed"]
+                                                    "║Run (Real Time) - F2 - F5        ║",
                                                     "║Run (Terminal Mode) - F6         ║",
                                                     "║Main Menu - Esc                  ║",
+                                                    "║Insert Snippet - Insert          ║",
                                                     "║Set IP Delta - Ctrl + Arrow Key  ║",
-                                                    //"║XInsert Snippet - Insert         ║",
-                                                    "║Start Selection - Shift (hold)   ║",
+                                                    "║Select - Shift (hold) + Arrow Key║",
                                                     //"║XSelect All - Ctrl + A           ║",
                                                     "╚═════════════════════════════════╝"
                                                   };

@@ -8,12 +8,12 @@ namespace BefungeSharp.Instructions.Nop
 {
     public abstract class NopInstruction : Instruction
     {
-        public NopInstruction(char inName, int minimum_flags) : base(inName, CommandType.Nop, ConsoleColor.Black, minimum_flags) { }
+        public NopInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, CommandType.Nop, minimum_flags) { }
     }
 
     public class SpaceInstruction : NopInstruction
     {
-        public SpaceInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public SpaceInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { this.Color = ConsoleColor.Black; }
 
         public override bool Preform(IP ip)
         {
@@ -38,7 +38,7 @@ namespace BefungeSharp.Instructions.Nop
 
     public class ExplicitNopInstruction : NopInstruction
     {
-        public ExplicitNopInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { this.color = ConsoleColor.DarkBlue; }
+        public ExplicitNopInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {

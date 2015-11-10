@@ -5,22 +5,22 @@ using System.Text;
 using System.Threading.Tasks;
 
 using BefungeSharp.FungeSpace;
+
 namespace BefungeSharp
-{
-    
+{    
     /// <summary>
-    /// An enum of how the board should behave while running
+    /// An enum of how the interpreter should behave while running
     /// </summary>
     public enum BoardMode
     {
-        Run_MAX = 1,//Program runs instantanously, user will mostlikely not be able to see the IP or The stacks changing
-        Run_TERMINAL = 3,
-        Run_FAST = 50,//Program delayed by 50ms. The IP and stacks will move rapidly but visibly
-        Run_MEDIUM = 100,//Program delayed by 100ms. IP and stack changes are more easy to follow
-        Run_SLOW = 200,//Program delayed by 200ms. IP and stack changes are slow enough to follow on paper
-        Run_STEP = 101,//Program delayed until user presses the "Next Step" Key
-        Edit = 0,//Program is running in edit mode
-        Debug = 2
+        Run_MAX,//Program runs instantanously, user will mostlikely not be able to see the IP or The stacks changing
+        Run_TERMINAL,
+        Run_FAST,//Program delayed by 50ms. The IP and stacks will move rapidly but visibly
+        Run_MEDIUM,//Program delayed by 100ms. IP and stack changes are more easy to follow
+        Run_SLOW,//Program delayed by 200ms. IP and stack changes are slow enough to follow on paper
+        Run_STEP,//Program delayed until user presses the "Next Step" Key
+        Edit,//Program is running in edit mode
+        Debug//The program is running in debug mode
     }
 
     /// <summary>
@@ -53,21 +53,21 @@ namespace BefungeSharp
         /// </summary>
         private FungeSpaceArea fs_view_screen;
         public FungeSpaceArea ViewScreen { get { return fs_view_screen; } }
+
         /// <summary>
         /// A subset of FS_DEFAULT which the program uses for deciding what portion of FungeSpace is
         /// savable/loadable and what is beyond the ability to. Saving one row of Theoretical FungeSpace results in a 4.3 GB file
         /// Thus we must put a limit at some point. We set it to the default, but it can be changed
         /// </summary>
-        private readonly FungeSpaceArea FS_SAVEABLE;
+        //Not yet implemented private readonly FungeSpaceArea FS_SAVEABLE;
         
         /// <summary>
         /// Extended FungeSpace, the space the interpreter uses. It is sparse, fully addressable, and fully travelable.
         /// </summary>
-        private FungeSpaceArea FS_EXTENDED;
+        //Not yet implemented private FungeSpaceArea FS_EXTENDED;
 
         //The current mode of the board
-        private BoardMode _curMode;
-        public BoardMode CurMode { get { return _curMode; } }
+        public BoardMode CurMode { get; private set; }
 
         private List<IP> _IPs;
 
@@ -75,7 +75,6 @@ namespace BefungeSharp
         /// The instruction pointer list, 
         /// _IPs[0] is essentially the IP for Unfunge through non concurrent Funge-98 and non-concurrent Tre-Funge
         /// _IPs[1 + n != _IPs.Last()] are only created when using BF98-C
-        /// _IPs.Last() is the special "Edit cursor"
         /// </summary>
         public List<IP> IPs { get { return _IPs; } }
 
@@ -85,7 +84,7 @@ namespace BefungeSharp
         /// The Instruction Pointer representing the editor cursor
         /// </summary>
         public IP EditIP { get { return _editIP; } }
-
+        
         /// <summary>
         /// Controls the intepretation and execution of commands
         /// </summary>
@@ -94,10 +93,10 @@ namespace BefungeSharp
         {
             //Set up the area's the program will refer to
             FS_93 = new FungeSpaceArea(0, 0, 24, 79);
-            FS_DEFAULT = new FungeSpaceArea(0, 0, 24, 79);
+            FS_DEFAULT =  new FungeSpaceArea(0, 0, OptionsManager.Get<int>("Interpreter","FS_DEFAULT_AREA_HEIGHT") - 1,  OptionsManager.Get<int>("Interpreter","FS_DEFAULT_AREA_HEIGHT") - 1);
             fs_view_screen = FS_93;
-            FS_SAVEABLE = FS_DEFAULT;
-            FS_EXTENDED = FS_DEFAULT;
+            //FS_SAVEABLE = FS_DEFAULT;
+            //FS_EXTENDED = FS_DEFAULT;
             
             int rows = initial_chars.Count;
             int columns = 0;
@@ -115,7 +114,7 @@ namespace BefungeSharp
             _IPs = new List<IP>();
             _editIP = new IP(_fungeSpace.Origin, Vector2.East, Vector2.Zero, new Stack<Stack<int>>(), -1, false);
             
-            _curMode = mode;
+            CurMode = mode;
 
             Instructions.InstructionManager.BuildInstructionSet();
             
@@ -130,7 +129,7 @@ namespace BefungeSharp
         /// </summary>
         private void BeginExecution(BoardMode mode)
         {
-            _curMode = mode;
+            CurMode = mode;
 
             fs_view_screen = FS_93;
             //Reset the IP system
@@ -141,9 +140,6 @@ namespace BefungeSharp
             _IPs.Add(new IP());
             _IPs[0].Active = true;
             _IPs[0].Position = _fungeSpace.Origin;
-
-            //Rebuild the instruction set
-            Instructions.InstructionManager.BuildInstructionSet();
         }
 
         /// <summary>
@@ -174,9 +170,9 @@ namespace BefungeSharp
 
         public void ChangeMode(Instructions.IAffectsRunningMode affecter)
         {
-            _curMode = affecter.NewMode;
+            CurMode = affecter.NewMode;
 
-            if (_curMode == BoardMode.Edit)
+            if (CurMode == BoardMode.Edit)
             {
                 EndExecution();
             }
@@ -200,7 +196,7 @@ namespace BefungeSharp
                 case BoardMode.Run_STEP:
                 case BoardMode.Run_TERMINAL:
                     //If we're not in stepping mode take a step
-                    if (_curMode != BoardMode.Run_STEP)
+                    if (CurMode != BoardMode.Run_STEP)
                     {
                         type = TakeStep();
                     }
@@ -212,22 +208,22 @@ namespace BefungeSharp
                         {
                             //1-5 adjusts execution speed
                             case ConsoleKey.F1:
-                                _curMode = BoardMode.Run_STEP;
+                                CurMode = BoardMode.Run_STEP;
                                 break;
                             case ConsoleKey.F2:
-                                _curMode = BoardMode.Run_SLOW;
+                                CurMode = BoardMode.Run_SLOW;
                                 break;
                             case ConsoleKey.F3:
-                                _curMode = BoardMode.Run_MEDIUM;
+                                CurMode = BoardMode.Run_MEDIUM;
                                 break;
                             case ConsoleKey.F4:
-                                _curMode = BoardMode.Run_FAST;
+                                CurMode = BoardMode.Run_FAST;
                                 break;
                             case ConsoleKey.F5:
-                                _curMode = BoardMode.Run_MAX;
+                                CurMode = BoardMode.Run_MAX;
                                 break;
                             case ConsoleKey.F6:
-                                _curMode = BoardMode.Run_TERMINAL;
+                                CurMode = BoardMode.Run_TERMINAL;
                                 ConEx.ConEx_Draw.FillScreen(' ');
                                 ConEx.ConEx_Draw.DrawScreen();
                                 Console.CursorLeft = 0;
@@ -237,11 +233,11 @@ namespace BefungeSharp
                             //Takes us back to editor mode
                             case ConsoleKey.F12:
                                 EndExecution();
-                                _curMode = BoardMode.Edit;
+                                CurMode = BoardMode.Edit;
                                 break;
                             //Takes the next step
                             case ConsoleKey.RightArrow:
-                                if (_curMode == BoardMode.Run_STEP)
+                                if (CurMode == BoardMode.Run_STEP)
                                 {
                                     type = TakeStep();
                                 }
@@ -263,10 +259,7 @@ namespace BefungeSharp
                         {
                             /*Arrow Keys
                              * Tab   + Arrow Key moves view screen
-                             * Shift + Arrow Key changes IP direction
-                             * Arrow Key press:
-                             * MoveTo
-                             * Ignore future movement
+                             * Ctrl + Arrow Key changes IP direction
                              * 
                              * This system makes sure we still use our generalizations and
                              * allows for neat editing tricks
@@ -342,6 +335,30 @@ namespace BefungeSharp
                                     FungeSpaceUtils.ChangeData(EditIP.Position, ' ');
                                 }
                                 break;
+                            case ConsoleKey.Insert:
+                                {
+                                    string snippet = "UI_SNIPPET_";
+                                    
+                                    if(EditIP.Delta == Vector2.North)
+                                    {
+                                        snippet += "N";
+                                    }
+                                    else if(EditIP.Delta == Vector2.East)
+                                    {
+                                        snippet += "E";
+                                    }
+                                    else if(EditIP.Delta == Vector2.South)
+                                    {
+                                        snippet += "S";
+                                    }
+                                    else if(EditIP.Delta == Vector2.West)
+                                    {
+                                        snippet += "W";
+                                    }
+                                                                        
+                                    EditIP.Position = FungeSpaceUtils.ChangeDataRange(EditIP.Position,  OptionsManager.Get<string>("Editor", snippet), EditIP.Delta);
+                                }
+                                break;
                             case ConsoleKey.F1:
                                 BeginExecution(BoardMode.Run_STEP);
                                 break;
@@ -383,7 +400,7 @@ namespace BefungeSharp
                         }
                     }
                     
-                    if (_curMode == BoardMode.Edit || _curMode == BoardMode.Debug)
+                    if (CurMode == BoardMode.Edit || CurMode == BoardMode.Debug)
                     {
                         Vector2 confirmedPosition = WrapEditIPViewScreen(EditIP.Position.Data.x, EditIP.Position.Data.y);
                         if (confirmedPosition != EditIP.Position.Data)
@@ -403,7 +420,7 @@ namespace BefungeSharp
         {
             DrawFungeSpace();
 
-            if (_curMode != BoardMode.Edit && _curMode != BoardMode.Debug)
+            if (CurMode != BoardMode.Edit && CurMode != BoardMode.Debug)
             {
                 //If we are going to draw the IP we are following we must ask,
                 //if it has gone out of the view screen, past which bound did it go?
@@ -420,6 +437,12 @@ namespace BefungeSharp
                     moveDirection = Vector2.West;
                 }
 
+                //Keep moving the view screen until the IP we are following is inside it
+                while (followingIPPosition.x < fs_view_screen.left || followingIPPosition.x > fs_view_screen.right)
+                {
+                    MoveViewScreen(moveDirection);
+                }
+
                 if (followingIPPosition.y > fs_view_screen.bottom)
                 {
                     moveDirection = Vector2.South;
@@ -430,7 +453,7 @@ namespace BefungeSharp
                 }
                 
                 //Keep moving the view screen until the IP we are following is inside it
-                while (fs_view_screen.Contains(followingIPPosition.x, followingIPPosition.y) == false)
+                while (followingIPPosition.y < fs_view_screen.top || followingIPPosition.y > fs_view_screen.bottom)
                 {
                     MoveViewScreen(moveDirection);
                 }
@@ -523,22 +546,23 @@ namespace BefungeSharp
         public void MoveViewScreen(Vector2 direction)
         {
             //TODO:MAJOR!MoveViewScreen does not do well when not moving in a + sign
-            int xOffset = 16;//TODO:Options["xOffset"]
-            int yOffset = 5;
+            int xOffset = OptionsManager.Get<int>("Editor","GRID_XOFFSET");
+            int yOffset = OptionsManager.Get<int>("Editor","GRID_YOFFSET");
             if(direction == Vector2.North)
             {
                 fs_view_screen.top -= yOffset;
                 fs_view_screen.bottom =  fs_view_screen.top + (FS_93.Height - 1);
             }
-            else if(direction == Vector2.East)
-            {
-                fs_view_screen.left += xOffset;
-                fs_view_screen.right = fs_view_screen.left + (FS_93.Width - 1);
-            }
             else if(direction == Vector2.South)
             {
                 fs_view_screen.top += yOffset;
                 fs_view_screen.bottom =  fs_view_screen.top + (FS_93.Height - 1);
+            }
+            
+            if (direction == Vector2.East)
+            {
+                fs_view_screen.left += xOffset;
+                fs_view_screen.right = fs_view_screen.left + (FS_93.Width - 1);
             }
             else if(direction == Vector2.West)
             {
@@ -634,7 +658,7 @@ namespace BefungeSharp
             //If there are no more active IP's left then set us back to edit mode
             if (IPs.Exists(item => item.Active == true) == false)
             {
-                _curMode = BoardMode.Edit;
+                CurMode = BoardMode.Edit;
             }
 
             return Instructions.CommandType.NotImplemented;//TODO - Needs a better idea

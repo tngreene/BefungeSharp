@@ -9,12 +9,12 @@ namespace BefungeSharp.Instructions.FileIO
 {
     public abstract class FileIOInstruction : Instruction
     {
-        public FileIOInstruction(char inName, int minimum_flags) : base(inName, CommandType.FileIO, ConsoleColor.Gray, minimum_flags) { }
+        public FileIOInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, CommandType.FileIO, minimum_flags) { }
     }
 
     public class InputFileInstruction : FileIOInstruction, IRequiresPop, IFungeSpaceAltering
     {
-        public InputFileInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public InputFileInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -55,7 +55,7 @@ namespace BefungeSharp.Instructions.FileIO
     
     public class OutputFileInstruction : FileIOInstruction, IRequiresPop
     {
-        public OutputFileInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public OutputFileInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {

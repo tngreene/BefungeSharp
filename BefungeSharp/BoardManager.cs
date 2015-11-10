@@ -86,7 +86,7 @@ namespace BefungeSharp
                                 case ConsoleKey.F4:
                                     if(ConEx.ConEx_Input.AltDown)
                                     {
-                                        Environment.Exit(1);//End the program
+                                        Program.QuitProgram(0);
                                     }
                                     break;
                                 default:
@@ -107,7 +107,7 @@ namespace BefungeSharp
                 }
                 double mm = watch.ElapsedMilliseconds;
                 //Based on the mode sleep the program so it does not scream by
-                System.Threading.Thread.Sleep((int) Program.Interpreter.CurMode);
+                System.Threading.Thread.Sleep(ClockDelay(Program.Interpreter.CurMode));
             }//while(true)
         }//Update()
         
@@ -182,7 +182,34 @@ namespace BefungeSharp
 
             ConEx.ConEx_Draw.DrawScreen();
         }
-      
-        
+
+        /// <summary>
+        /// How much delay between clock ticks there is, in milliseconds
+        /// </summary>
+        public static int ClockDelay(BoardMode mode)
+        {
+            //Translate between the current number and desired number of
+            //milliseconds. Milliseconds 50,100,200 were chosen because
+            //they seemed to work well
+            switch (mode)
+            {
+                case BoardMode.Run_MAX:
+                    return 0;
+                case BoardMode.Run_TERMINAL:
+                    return 0;
+                case BoardMode.Run_FAST:
+                    return 50;
+                case BoardMode.Run_MEDIUM:
+                    return 100;
+                case BoardMode.Run_SLOW:
+                    return 200;
+                case BoardMode.Run_STEP:
+                    return 100;
+                case BoardMode.Edit:
+                case BoardMode.Debug:
+                default:
+                    return 0;
+            }
+        }
     }//class BoardManager
 }//Namespace BefungeSharp

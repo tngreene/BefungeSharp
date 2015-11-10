@@ -37,6 +37,9 @@
       <HintPath>.\ConEx.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
+    <Reference Include="SharpConfig">
+      <HintPath>.\SharpConfig.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Windows.Forms" />
@@ -53,10 +56,11 @@
     <Compile Include="Instructions\StackStackInstructions.cs" />
     <Compile Include="Instructions\StandardIOInstructions.cs" />
     <Compile Include="Menus\HelpMenu.cs" />
-    <Compile Include="Menus\IMenu.cs" />
+    <Compile Include="Menus\Menu.cs" />
     <Compile Include="Menus\MainMenu.cs" />
     <Compile Include="Menus\OpenSimpleMenu.cs" />
     <Compile Include="Menus\SaveSimpleMenu.cs" />
+    <Compile Include="OptionsManager.cs" />
     <Compile Include="WindowSideBar.cs" />
     <Compile Include="BoardManager.cs" />
     <Compile Include="WindowUI.cs" />
