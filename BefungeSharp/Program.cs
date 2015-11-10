@@ -55,7 +55,8 @@ namespace BefungeSharp
             //Clear the screen
             ConEx.ConEx_Draw.FillScreen(' ');
             ConEx.ConEx_Draw.DrawScreen();
-            
+
+            //Ask if the person would like to save their options
             if (OptionsManager.SessionOptionsChanged == true)
             {
                 Console.WriteLine("Save changed options? Y/N");

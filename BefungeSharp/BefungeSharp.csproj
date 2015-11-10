@@ -56,7 +56,7 @@
     <Compile Include="Instructions\StackStackInstructions.cs" />
     <Compile Include="Instructions\StandardIOInstructions.cs" />
     <Compile Include="Menus\HelpMenu.cs" />
-    <Compile Include="Menus\IMenu.cs" />
+    <Compile Include="Menus\Menu.cs" />
     <Compile Include="Menus\MainMenu.cs" />
     <Compile Include="Menus\OpenSimpleMenu.cs" />
     <Compile Include="Menus\SaveSimpleMenu.cs" />

@@ -50,6 +50,11 @@ namespace BefungeSharp
         /// </summary>
         public static SharpConfig.Configuration DefaultOptions { get { return CreateDefaultOptions(); } }
         
+        /// <summary>
+        /// The name of the options file
+        /// </summary>
+        public static string OptionsFileName { get { return "options.ini"; } }
+
         static OptionsManager()
         {
             //0. Create the default options dictionary
@@ -61,12 +66,12 @@ namespace BefungeSharp
                 Directory.SetCurrentDirectory(Path.GetDirectoryName(Environment.GetCommandLineArgs()[0]) + "\\");
 
                 //Can be disabled for testing
-                SessionOptions = SharpConfig.Configuration.LoadFromFile("options.ini");
+                SessionOptions = SharpConfig.Configuration.LoadFromFile(OptionsManager.OptionsFileName);
             }
             catch (FileNotFoundException e)
             {
                 Console.WriteLine("options.ini could not be found, creating new copy from defaults");
-                SessionOptions.SaveToStream(File.Create("options.ini"));
+                SessionOptions.SaveToStream(File.Create(OptionsManager.OptionsFileName));
             }
             catch (Exception e)
             {
@@ -181,6 +186,8 @@ namespace BefungeSharp
             config.AddSetting<string>("Editor","UI_SNIPPET_S","v:#,|"," a single line of Funge code, chosen when the IP's delta is south");
             config.AddSetting<string>("Editor","UI_SNIPPET_W","<:# !#,_"," a single line of Funge code, chosen when the IP's delta is west");
             config.AddSetting<bool>  ("Editor","UI_INVERSE_SCROLLING",false,"While moving around FungeSpace in Edit mode the controls are reversed");
+            config.AddSetting<int>   ("Editor","GRID_XOFFSET", 16,"The number of cells to shift the view port horizontally. Should be a multiple of 16, or 1");
+            config.AddSetting<int>   ("Editor","GRID_YOFFSET", 5,"The number of cells to shift the view port vertically. Should be a multiple of 5, or 1");
             
             config["Visualizer"].Comment = new Comment("Settings the control how FungeSpace and data is visualized\r\n"+
                                                        "\t\t\t  ; Only ConsoleColors are supported", ';');
@@ -209,8 +216,6 @@ namespace BefungeSharp
             {
                 config["Visualizer"].Add(setting);
             }
-            config.AddSetting<int>("Visualizer","GRID_XOFFSET",16,"The number of cells to shift the view port horizontally. Should be a multiple of 16, or 1");
-            config.AddSetting<int>("Visualizer","GRID_YOFFSET", 5,"The number of cells to shift the view port vertically. Should be a multiple of 5, or 1");
             
             config["Interpreter"].Comment = new Comment("Settings for the interpreter to use at runtime\r\n" +
                                                     "\t\t\t  ; Only enable a single dimension and a single version", ';');

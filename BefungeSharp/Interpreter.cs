@@ -546,8 +546,8 @@ namespace BefungeSharp
         public void MoveViewScreen(Vector2 direction)
         {
             //TODO:MAJOR!MoveViewScreen does not do well when not moving in a + sign
-            int xOffset = OptionsManager.Get<int>("Visualizer","GRID_XOFFSET");
-            int yOffset = OptionsManager.Get<int>("Visualizer","GRID_YOFFSET");
+            int xOffset = OptionsManager.Get<int>("Editor","GRID_XOFFSET");
+            int yOffset = OptionsManager.Get<int>("Editor","GRID_YOFFSET");
             if(direction == Vector2.North)
             {
                 fs_view_screen.top -= yOffset;

@@ -604,9 +604,12 @@ namespace BefungeSharp
 
             int count = 10;
             
-            
+            //A collection of allowed extentions based on the language features supported
             List<string> allowedExtensions = new List<string>();
+
+            //Always allow text files
             allowedExtensions.Add(".txt");
+
             int dimensions = OptionsManager.Get<int>("Interpreter","LF_DIMENSIONS");
             bool UF_SUPPORT = OptionsManager.Get<bool>("Interpreter", "LF_UF_SUPPORT") == true && dimensions >= 1;
             if(UF_SUPPORT)
@@ -757,8 +760,7 @@ namespace BefungeSharp
             }
             return FileUtils.LastUserOpenedPath;
         }
-        #endregion
-        
+                
         /// <summary>
         /// Displays the current directory
         /// </summary>
@@ -776,5 +778,6 @@ namespace BefungeSharp
             }
             Console.WriteLine();
         }
+        #endregion
     }
 }
