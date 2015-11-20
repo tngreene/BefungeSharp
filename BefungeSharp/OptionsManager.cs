@@ -153,6 +153,11 @@ namespace BefungeSharp
             config[section][name].SetValue<T>(value);
             config[section][name].Comment = new Comment(comment, symbol);
         }
+        
+        public static void ResetSessionOptions()
+        {
+            OptionsManager.SessionOptions = OptionsManager.DefaultOptions;
+        }
         /// <summary>
         /// Creates the default options configuration
         /// </summary>
@@ -161,86 +166,77 @@ namespace BefungeSharp
         /// </returns>
         private static Configuration CreateDefaultOptions()
         {
-            //Settings namespaces
-            //General
-            //  FILE - General File System settings
-            //Editor
-            //  UI - Editor User Interface
-            //Visualizer - Visualizer
-            //  COLOR - Syntax Highlighting
-            //  GRID - Viewport Movement along a grid
-            //INTP - Interpreter
-            //  LF - Languages and Features
-            //  RT - Runtime Behaviors
-            //  FS - FungeSpace settings
-            Configuration config = new Configuration();
-            config["General"].Comment = new Comment("Settings that affect the whole program", ';');
-            config.AddSetting<string>("General","FILE_BACKUPS_FOLDER","Backups");
-            config.AddSetting<int>   ("General","FILE_MAX_BACKUPS",3);
-            config.AddSetting<string>("General","FILE_ENCODING","utf-8","See https://msdn.microsoft.com/en-us/library/system.text.encoding%28v=vs.110%29.aspx for possible values");
-            config.AddSetting<string>("General","FILE_LAST_USED","","Settings that affect edit mode");
+            //Rather than make a whole bunch of method calls we'll just
+            //statically write the file as a raw string and adjust as
+            //needed. It also makes commenting easier
+            return Configuration.LoadFromString(
+            @"  ; Settings namespaces
+                ; General
+                ;   FILE - General File System settings
+                ; Editor
+                ;   UI - Editor User Interface
+                ; Visualizer - Visualizer
+                ;   COLOR - Syntax Highlighting
+                ;   GRID - Viewport Movement along a grid
+                ; INTP - Interpreter
+                ;   LF - Languages and Features
+                ;   RT - Runtime Behaviors
+                ;   FS - FungeSpace settings
+                ; Settings that affect the whole program
+                [General]
+                FILE_BACKUPS_FOLDER=Backups ; 
+                FILE_MAX_BACKUPS=3 ; 
+                FILE_ENCODING=utf-8 ; See https://msdn.microsoft.com/en-us/library/system.text.encoding%28v=vs.110%29.aspx for possible values
+                FILE_LAST_USED= ; Settings that affect edit mode
 
-            config["Editor"].Comment = new Comment("Settings that affect edit mode", ';');
-            config.AddSetting<string>("Editor","UI_SNIPPET_N","^:# !#,|"," a single line of Funge code, chosen when the IP's delta is north");
-            config.AddSetting<string>("Editor","UI_SNIPPET_E",">:#,_"," a single line of Funge code, chosen when the IP's delta is east");
-            config.AddSetting<string>("Editor","UI_SNIPPET_S","v:#,|"," a single line of Funge code, chosen when the IP's delta is south");
-            config.AddSetting<string>("Editor","UI_SNIPPET_W","<:# !#,_"," a single line of Funge code, chosen when the IP's delta is west");
-            config.AddSetting<bool>  ("Editor","UI_INVERSE_SCROLLING",false,"While moving around FungeSpace in Edit mode the controls are reversed");
-            config.AddSetting<int>   ("Editor","GRID_XOFFSET", 16,"The number of cells to shift the view port horizontally. Should be a multiple of 16, or 1");
-            config.AddSetting<int>   ("Editor","GRID_YOFFSET", 5,"The number of cells to shift the view port vertically. Should be a multiple of 5, or 1");
-            
-            config["Visualizer"].Comment = new Comment("Settings the control how FungeSpace and data is visualized\r\n"+
-                                                       "\t\t\t  ; Only ConsoleColors are supported", ';');
-            
-            Setting[] code_highlights = new Setting[] { 
-                new Setting("COLOR_Arithmetic",             "Green"),
-                new Setting("COLOR_Concurrent",             "Blue"),
-                new Setting("COLOR_DataStorage",            "Green"),
-                new Setting("COLOR_FlowControl",            "Cyan"),
-                new Setting("COLOR_FileIO",                 "Gray"),
-                new Setting("COLOR_Logic",                  "DarkGreen"),
-                new Setting("COLOR_Movement",               "Cyan"),
-                new Setting("COLOR_Nop",                    "DarkBlue"),
-                new Setting("COLOR_NotImplemented",         "DarkRed"),
-                new Setting("COLOR_Number",                 "Magenta"),
-                new Setting("COLOR_StackManipulation",      "DarkYellow"),
-                new Setting("COLOR_StackStackManipulation", "Yellow"),
-                new Setting("COLOR_StopExecution",          "Red"),
-                new Setting("COLOR_StdIO",                  "DarkGray"),
-                new Setting("COLOR_String",                 "DarkYellow"),
-                new Setting("COLOR_System",                 "DarkMagenta"),
-                new Setting("COLOR_Trefunge",               "DarkRed")
-            };
+                [Editor] ; Settings that affect edit mode
+                UI_SNIPPET_N=^:# !#,| ;  a single line of Funge code, chosen when the IP's delta is north
+                UI_SNIPPET_E=>:#,_ ;  a single line of Funge code, chosen when the IP's delta is east
+                UI_SNIPPET_S=v:#,| ;  a single line of Funge code, chosen when the IP's delta is south
+                UI_SNIPPET_W=<:# !#,_ ;  a single line of Funge code, chosen when the IP's delta is west
+                UI_INVERSE_SCROLLING=False ; While moving around FungeSpace in Edit mode the controls are reversed
+                GRID_XOFFSET=16 ; The number of cells to shift the view port horizontally. Should be a multiple of 16, or 1
+                GRID_YOFFSET=5 ; The number of cells to shift the view port vertically. Should be a multiple of 5, or 1
 
-            foreach (var setting in code_highlights)
-            {
-                config["Visualizer"].Add(setting);
-            }
-            
-            config["Interpreter"].Comment = new Comment("Settings for the interpreter to use at runtime\r\n" +
-                                                    "\t\t\t  ; Only enable a single dimension and a single version", ';');
+                [Visualizer] ; Settings the control how FungeSpace and data is visualized
+                COLOR_SYNTAX_HIGHLIGHTING=True ; Enables or disables syntax highlighting
+                ; Only ConsoleColors are supported
+                COLOR_Arithmetic=Green
+                COLOR_Concurrent=Blue
+                COLOR_DataStorage=Green
+                COLOR_FlowControl=Cyan
+                COLOR_FileIO=Gray
+                COLOR_Logic=DarkGreen
+                COLOR_Movement=Cyan
+                COLOR_Nop=DarkBlue
+                COLOR_NotImplemented=DarkRed
+                COLOR_Number=Magenta
+                COLOR_StackManipulation=DarkYellow
+                COLOR_StackStackManipulation=Yellow
+                COLOR_StopExecution=Red
+                COLOR_StdIO=DarkGray
+                COLOR_String=DarkYellow
+                COLOR_System=DarkMagenta
+                COLOR_Trefunge=DarkRed
 
-            //LF stands for languages and features
-            config.AddSetting<bool>("Interpreter","LF_CONCURRENCY",     true,"Enables the 't' instruction");
-            config.AddSetting<bool>("Interpreter","LF_FILE_INPUT",      true,"Enables the 'i' instruction. Potentially unsafe");
-            config.AddSetting<bool>("Interpreter","LF_FILE_OUTPUT",     true,"Enables the 'o' instruction. Potentially unsafe");
-            config.AddSetting<int> ("Interpreter","LF_EXECUTE_STYLE",      1,"0 for none, 1 for system() calls, 2 specific programs, 3 for this running shell. Currently using 1");
-            config.AddSetting<int> ("Interpreter","LF_STD_INPUT_STYLE",    1,"0 for unbuffered, 1 for buffered. For now use 1");
-            config.AddSetting<int> ("Interpreter","LF_STD_OUTPUT_STYLE",   0,"0 for unbuffered, 1 for buffered. For now use 0");
-            config.AddSetting<bool>("Interpreter","LF_NETWORKING",     false,"Enables BefungeSharp to make Network connections. Currently unimplemented");
-            config.AddSetting<bool>("Interpreter","LF_UF_SUPPORT",      true,"Unfunge is supported");
-            config.AddSetting<bool>("Interpreter","LF_BF93_SUPPORT",   false, "Befunge-93 is not supported");
-            config.AddSetting<bool>("Interpreter","LF_BF98_SUPPORT",    true, "Befunge is supported");
-            config.AddSetting<bool>("Interpreter","LF_TF_SUPPORT",     false,"Trefunge is not supported");
-            config.AddSetting<int> ("Interpreter","LF_DIMENSIONS",         2,"The current number of dimensions to use");
-            config.AddSetting<int> ("Interpreter","LF_SPEC_VERSION",      98,"The current spec to use, must be supported");
-            
-            //RT stands for runtime behaviors
-            config.AddSetting<BoardMode>("Interpreter","RT_DEFAULT_MODE",BoardMode.Edit,"The default mode the program goes into after opening a file");
-            //FS stands for FungeSpace
-            config.AddSetting<int>      ("Interpreter","FS_DEFAULT_AREA_WIDTH", 80,"The default width of pre-allocated FungeSpace, must be atleast 80 and a multiple of 16");
-            config.AddSetting<int>      ("Interpreter","FS_DEFAULT_AREA_HEIGHT",25,"The default width of pre-allocated FungeSpace, must be atleast 25 and a multiple of 5");
-            return config;
+                ; Settings for the interpreter to use at runtime
+                [Interpreter]
+                LF_CONCURRENCY=True ; Enables the 't' instruction
+                LF_FILE_INPUT=True ; Enables the 'i' instruction. Potentially unsafe
+                LF_FILE_OUTPUT=True ; Enables the 'o' instruction. Potentially unsafe
+                LF_EXECUTE_STYLE=1 ; 0 for none, 1 for system() calls, 2 specific programs, 3 for this running shell. Currently using 1
+                LF_STD_INPUT_STYLE=1 ; 0 for unbuffered, 1 for buffered. For now use 1
+                LF_STD_OUTPUT_STYLE=0 ; 0 for unbuffered, 1 for buffered. For now use 0
+                LF_NETWORKING=False ; Enables BefungeSharp to make Network connections. Currently unimplemented
+                LF_UF_SUPPORT=True ; Unfunge is supported
+                LF_BF93_SUPPORT=False ; Befunge-93 is not supported
+                LF_BF98_SUPPORT=True ; Befunge is supported
+                LF_TF_SUPPORT=False ; Trefunge is not supported
+                LF_DIMENSIONS=2 ; The current number of dimensions to use
+                LF_SPEC_VERSION=98 ; The current spec to use, must be supported
+                RT_DEFAULT_MODE=Edit ; The default mode the program goes into after opening a file
+                FS_DEFAULT_AREA_WIDTH=80 ; The default width of pre-allocated FungeSpace, must be atleast 80 and a multiple of 16
+                FS_DEFAULT_AREA_HEIGHT=25 ; The default width of pre-allocated FungeSpace, must be atleast 25 and a multiple of 5");
         }
     }
 }

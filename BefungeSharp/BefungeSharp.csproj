@@ -59,6 +59,7 @@
     <Compile Include="Menus\Menu.cs" />
     <Compile Include="Menus\MainMenu.cs" />
     <Compile Include="Menus\OpenSimpleMenu.cs" />
+    <Compile Include="Menus\OptionsMenu.cs" />
     <Compile Include="Menus\SaveSimpleMenu.cs" />
     <Compile Include="OptionsManager.cs" />
     <Compile Include="WindowSideBar.cs" />

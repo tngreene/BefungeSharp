@@ -441,7 +441,8 @@ namespace BefungeSharp.FungeSpace
                 ConsoleColor color = ConsoleColor.White;
 
                 int value = traverse.Data.value;
-                if (value >= ' ' && value <= '~')
+                if (value >= ' ' && value <= '~'
+                    && OptionsManager.Get<bool>("Visualizer","COLOR_SYNTAX_HIGHLIGHTING"))
                 {
                     color = Instructions.InstructionManager.InstructionSet[value].Color;
                 }

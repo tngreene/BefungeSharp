@@ -11,27 +11,24 @@ namespace BefungeSharp.Menus
     {
         public override void OnOpening()
         {
-            base.OnOpening();
-                      
             //A silly bit of fun to make the menu look cooler
-            Console.ForegroundColor = (ConsoleColor) new Random().Next(10,15);
-            /*Console.CursorLeft = 51;
-            Console.WriteLine("Main Menu");
-            Console.WriteLine(new String('_', Console.WindowWidth));
-            Console.WriteLine("\r\n");*/
+            Console.ForegroundColor = (ConsoleColor)new Random().Next(10, 15);
+            base.OnOpening();
+
+            DecorateWindowTop("Main Menu");
+            
             //Ask what they would like to do
-            Console.WriteLine("Welcome to BefungeSharp! Please select an option:\n");
+            Console.WriteLine("Welcome to BefungeSharp!\r\n");
 
             int menu_index = 0;
             Console.WriteLine(++menu_index + ".) New File");
             Console.WriteLine(++menu_index + ".) Open File");
-            Console.WriteLine(++menu_index + ".) Current Language Version: " + OptionsManager.Get<int>("Interpreter","LF_SPEC_VERSION"));
+            Console.WriteLine(++menu_index + ".) Options");
             Console.WriteLine(++menu_index + ".) Help");
             Console.WriteLine(++menu_index + ".) New Menu Color");
             Console.WriteLine(++menu_index + ".) Exit");
-
-
-            Console.WriteLine("\r\nEnter a number between 1 - 6");
+            
+            Console.WriteLine("\r\nEnter a number between 1 - " + menu_index);
         }
 
         public override void RunLoop()
@@ -56,7 +53,7 @@ namespace BefungeSharp.Menus
                     openSimple.RunLoop();
                     break;
                 case 3://Options
-                    //new OptionsMenuTree.OptionsMenuTop().RunLoop();
+                    new OptionsMenu().RunLoop();
                     break;
                 case 4://Help
                     Menus.HelpMenu helpMenu = new HelpMenu();

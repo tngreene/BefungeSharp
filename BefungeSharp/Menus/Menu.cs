@@ -36,6 +36,13 @@ namespace BefungeSharp.Menus
             Console.CursorVisible = false;
         }
 
+        internal static void DecorateWindowTop(string window_decoration)
+        {
+            Console.CursorLeft = (Console.WindowWidth / 2) - (window_decoration.Length / 2);
+            Console.WriteLine(window_decoration);
+            Console.WriteLine(new String('_', Console.WindowWidth) + "\r\n\r\n");
+        }
+
         /// <summary>
         /// Waits for input from the user based on range of allowed values
         /// Good for situations like getting a number between x and y
@@ -55,5 +62,21 @@ namespace BefungeSharp.Menus
             while (input < lower_bound || input > upper_bound);
             return input;
         }
+
+        internal static bool WaitForBooleanChoice()
+        {
+            while (true)
+            {
+                string input = Console.ReadLine();
+                if (System.Text.RegularExpressions.Regex.IsMatch(input.ToLower(), "(y|yes|t|true)"))
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }     
     }
 }
