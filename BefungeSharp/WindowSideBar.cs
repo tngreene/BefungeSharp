@@ -131,6 +131,7 @@ namespace BefungeSharp
                         {
                             break;
                         }
+                        
                         if (Program.WindowUI.SelectionActive == false)
                         {
                             string[] contentArr = {
@@ -177,7 +178,10 @@ namespace BefungeSharp
             {
                ConEx.ConEx_Draw.InsertString(_pages[_pageIndex][i], BAR_TOP + i, BAR_LEFT, false);
             }
-
+            
+            //Draw instructions and the current page number for the side bar
+            ConEx.ConEx_Draw.InsertString(String.Format("◄◄ Home           {0}/{1}         End ►►", _pageIndex+1,_pages.Count), BAR_BOTTOM, BAR_LEFT, false);
+            
             if (_pageIndex == 1)
             {
                 DrawASCII_Table();
