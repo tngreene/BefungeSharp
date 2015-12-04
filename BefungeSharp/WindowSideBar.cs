@@ -18,8 +18,8 @@ namespace BefungeSharp
          * */
         private const int BAR_TOP = 0;
         private const int BAR_LEFT = 81;
-        private int BAR_RIGHT;
-        private int BAR_BOTTOM = 0;
+        private readonly int BAR_RIGHT;
+        private readonly int BAR_BOTTOM;
 
         private int _pageIndex;
         private List<List<string>> _pages;
@@ -38,36 +38,37 @@ namespace BefungeSharp
             //Create Page 2
             _pages.Add(new List<string>());
             string[] asciiTableContent = { 
-                                            "╔═════════════════════╗",
-                                            "║     ASCII Table     ║",
-                                            "╠════╦════╦═════╦═════╣",
-                                            "║32  ║57 9║87  W║112 p║",
-                                            "║33 !║58 :║88  X║113 q║",
-                                            "║34 \"║59 ;║89  Y║114 r║",
-                                            "║35 #║60 <║90  Z║115 s║",
-                                            "║36 $║61 =║91  [║116 t║",
-                                            "║37 %║62 >║92  \\║117 u║",
-                                            "║38 &║63  ║93  ]║118 v║",
-                                            "║39 '║69 E║94  ^║119 w║",
-                                            "║40 (║70 F║95  _║120 x║",
-                                            "║41 )║71 G║96  `║121 y║",
-                                            "║42 *║72 H║97  a║123 z║",
-                                            "║43 +║73 I║98  b║124 {║",
-                                            "║44 ,║74 J║99  c║125 |║",
-                                            "║45 -║75 K║100 d║126 }║",
-                                            "║46 .║76 L║101 e║127 ~║",
-                                            "║47 /║77 M║102 f║     ║",
-                                            "║48 0║78 N║103 g║     ║",
-                                            "║49 1║79 O║104 h║     ║",
-                                            "║50 2║80 P║105 i║     ║",
-                                            "║51 3║81 Q║106 j║     ║",
-                                            "║52 4║82 R║107 k║     ║",
-                                            "║53 5║83 S║108 l║     ║",
-                                            "║54 6║84 T║109 m║     ║",
-                                            "║55 7║85 U║110 n║     ║",
-                                            "║56 8║86 V║111 o║     ║",
-                                            "╚════╩════╩═════╩═════╝"
-                                         };
+                                            "╔══════════════════════════════════╗",
+                                            "║           ASCII Table            ║",
+                                            "╠═══════╦═══════╦════════╦═════════╣",
+                                            "║ 32    ║ 58  : ║ 82   T ║ 111  o  ║",
+                                            "║ 33  ! ║ 59  ; ║ 83   U ║ 112  p  ║",
+                                            "║ 34  \" ║ 60  < ║ 84   V ║ 113  q  ║",
+                                            "║ 35  # ║ 61  = ║ 88   W ║ 114  r  ║",
+                                            "║ 36  $ ║ 62  > ║ 89   X ║ 115  s  ║",
+                                            "║ 37  % ║ 63  ? ║ 90   Y ║ 116  t  ║",
+                                            "║ 38  & ║ 64  @ ║ 91   Z ║ 117  u  ║",
+                                            "║ 39  ' ║ 65  A ║ 92   [ ║ 118  v  ║",
+                                            "║ 40  ( ║ 66  B ║ 93   \\ ║ 119  w  ║",
+                                            "║ 41  ) ║ 67  C ║ 94   ] ║ 120  x  ║",
+                                            "║ 42  * ║ 68  D ║ 95   _ ║ 121  y  ║",
+                                            "║ 43  + ║ 69  E ║ 96   ` ║ 122  z  ║",
+                                            "║ 44  , ║ 70  F ║ 97   a ║ 123  {  ║",
+                                            "║ 45  - ║ 71  G ║ 98   b ║ 124  |  ║",
+                                            "║ 46  . ║ 72  H ║ 99   c ║ 125  }  ║",
+                                            "║ 47  / ║ 73  I ║ 100  d ║ 126  ~  ║",
+                                            "║ 48  0 ║ 74  J ║ 101  e ║         ║",
+                                            "║ 49  1 ║ 75  K ║ 102  f ║         ║",
+                                            "║ 50  2 ║ 76  L ║ 103  g ║         ║",
+                                            "║ 51  3 ║ 77  M ║ 104  h ║         ║",
+                                            "║ 52  4 ║ 78  N ║ 105  i ║         ║",
+                                            "║ 53  5 ║ 79  O ║ 106  j ║         ║",
+                                            "║ 54  6 ║ 80  P ║ 107  k ║         ║",
+                                            "║ 55  7 ║ 81  Q ║ 108  l ║         ║",
+                                            "║ 56  8 ║ 82  R ║ 109  m ║         ║",
+                                            "║ 57  9 ║ 83  S ║ 110  n ║         ║",
+                                            "╚═══════╩═══════╩════════╩═════════╝"};
+  
             _pages[1].AddRange(asciiTableContent);
         }
         /// <summary>
@@ -83,9 +84,9 @@ namespace BefungeSharp
             */
             List<string> content = new List<string>();
             string[] commandContent = {
-                                        "╔═════════════════════════════════╗",
-                                        "║        Keyboard Shortcuts       ║",
-                                        "╠═════════════════════════════════╣"
+                                        "╔══════════════════════════════════╗",
+                                        "║        Keyboard Shortcuts        ║",
+                                        "╠══════════════════════════════════╣"
                                         };
             content.AddRange(commandContent);
             switch (mode)
@@ -97,13 +98,13 @@ namespace BefungeSharp
                 case BoardMode.Run_STEP:
                     {
                         string stepInstructions = mode == BoardMode.Run_STEP ?
-                                              "║Next Tick - Right arrow          ║" : 
-                                              "║                                 ║";
+                                              "║Next Tick - Right arrow           ║" : 
+                                              "║                                  ║";
                         string[] contentArr = {
-                                              "║Select Speed - F1 - F6           ║",
-                                              "║Back to Edit Mode - F12          ║",
+                                              "║Select Speed - F1 - F6            ║",
+                                              "║Back to Edit Mode - F12           ║",
                                               stepInstructions,
-                                              "╚═════════════════════════════════╝",
+                                              "╚══════════════════════════════════╝",
                                               };
                         content.AddRange(contentArr);
                         _pages[0] = content;
@@ -121,18 +122,18 @@ namespace BefungeSharp
                         {
                             string[] contentArr = {
                                                     //X indicates the feature has not been implemented
-                                                    "║New File - Ctrl + N              ║",
-                                                    "║Save - Alt + S                   ║",
-                                                    "║Reload Source - Alt + R          ║",
-                                                    "║Run (Step) - F1                  ║",
-                                                    "║Run (Real Time) - F2 - F5        ║",
-                                                    "║Run (Terminal Mode) - F6         ║",
-                                                    "║Main Menu - Esc                  ║",
-                                                    "║Insert Snippet - Insert          ║",
-                                                    "║Set IP Delta - Ctrl + Arrow Key  ║",
-                                                    "║Select - Shift (hold) + Arrow Key║",
+                                                    "║New File - Ctrl + N               ║",
+                                                    "║Save - Alt + S                    ║",
+                                                    "║Reload Source - Alt + R           ║",
+                                                    "║Run (Step) - F1                   ║",
+                                                    "║Run (Real Time) - F2 - F5         ║",
+                                                    "║Run (Terminal Mode) - F6          ║",
+                                                    "║Main Menu - Esc                   ║",
+                                                    "║Insert Snippet - Insert           ║",
+                                                    "║Set IP Delta - Ctrl + Arrow Key   ║",
+                                                    "║Select - Shift (hold) + Arrow Key ║",
                                                     //"║XSelect All - Ctrl + A           ║",
-                                                    "╚═════════════════════════════════╝"
+                                                    "╚══════════════════════════════════╝"
                                                   };
 
                             content.AddRange(contentArr);
@@ -140,14 +141,14 @@ namespace BefungeSharp
                         else
                         {
                             string[] contentArr = {
-                                                    "║Adjust Selection Box - Arrow Keys║",
-                                                    "║Copy Section - Ctrl + C          ║",
-                                                    "║Cut Section - Ctrl + X           ║",
-                                                    "║Paste Section - Ctrl + V         ║",
-                                                    "║Clear area - Delete              ║",
+                                                    "║Adjust Selection Box - Arrow Keys ║",
+                                                    "║Copy Section - Ctrl + C           ║",
+                                                    "║Cut Section - Ctrl + X            ║",
+                                                    "║Paste Section - Ctrl + V          ║",
+                                                    "║Clear area - Delete               ║",
                                                     //"║XReverse line - Alt + R          ║",
-                                                    "║Cancel Selection - Any Other Key ║",
-                                                    "╚═════════════════════════════════╝"
+                                                    "║Cancel Selection - Any Other Key  ║",
+                                                    "╚══════════════════════════════════╝"
                                                    };
                             content.AddRange(contentArr);
                         }
