@@ -58,7 +58,7 @@ namespace BefungeSharp.Instructions
         {
             this.Name = inName;
             this.Type = inType;
-            this.Color = OptionsManager.Get<ConsoleColor>("Visualizer","COLOR_" + Enum.GetName(typeof(CommandType), inType));
+            this.Color = OptionsManager.Get<ConsoleColor>("V","COLOR_" + Enum.GetName(typeof(CommandType), inType));
             this.MinimumFlags = minimum_flags;
         }
         
@@ -85,8 +85,8 @@ namespace BefungeSharp.Instructions
             RuntimeFeatures UF_93 = RuntimeFeatures.UF | RuntimeFeatures.VERSION_93;
             Instruction outInstruction = null;
 
-            int dimensions = OptionsManager.Get<int>("Interpreter", "LF_DIMENSIONS");
-            int spec_version = OptionsManager.Get<int>("Interpreter", "LF_SPEC_VERSION");
+            int dimensions = OptionsManager.Get<int>("I", "LF_DIMENSIONS");
+            int spec_version = OptionsManager.Get<int>("I", "LF_SPEC_VERSION");
             //Based on the character, if it follows the necessary rules
             switch (c)
             {
@@ -298,13 +298,13 @@ namespace BefungeSharp.Instructions
                 //-----------------
                 //--FileIO---------
                 case 'i':
-                    if (OptionsManager.Get<bool>("Interpreter","LF_FILE_INPUT") == true && spec_version > 93)
+                    if (OptionsManager.Get<bool>("I","LF_FILE_INPUT") == true && spec_version > 93)
                     {
                         outInstruction = new FileIO.InputFileInstruction(c, (RuntimeFeatures.FILE_INPUT | NO_93_COMPATIBILITY));
                     }
                     break;
                 case 'o':
-                    if (OptionsManager.Get<bool>("Interpreter", "LF_FILE_OUTPUT") == true && spec_version > 93)
+                    if (OptionsManager.Get<bool>("I", "LF_FILE_OUTPUT") == true && spec_version > 93)
                     {
                         outInstruction = new FileIO.OutputFileInstruction(c, (RuntimeFeatures.FILE_OUTPUT | NO_93_COMPATIBILITY));
                     }
@@ -320,7 +320,7 @@ namespace BefungeSharp.Instructions
                 //-----------------
                 //--Concurrent-----
                 case 't':
-                    if (OptionsManager.Get<bool>("Interpreter", "LF_CONCURRENCY") == true && spec_version > 93)
+                    if (OptionsManager.Get<bool>("I", "LF_CONCURRENCY") == true && spec_version > 93)
                     {
                         outInstruction = new Concurrent.SplitInstruction(c, (RuntimeFeatures.CONCURRENT_FUNGE | NO_93_COMPATIBILITY));
                     }
@@ -328,7 +328,7 @@ namespace BefungeSharp.Instructions
                 //-----------------
                 //--System---------
                 case '=':
-                    if (OptionsManager.Get<int>("Interpreter", "LF_EXECUTE_STYLE") > 0 && spec_version > 93)
+                    if (OptionsManager.Get<int>("I", "LF_EXECUTE_STYLE") > 0 && spec_version > 93)
                     {
                         outInstruction = new SystemCall.ExecuteInstruction(c, (RuntimeFeatures.EXECUTE | NO_93_COMPATIBILITY));
                     }
@@ -431,11 +431,11 @@ namespace BefungeSharp.Instructions
                 }
                 else
                 {
-                    if (OptionsManager.Get<int>("Interpreter","LF_SPEC_VERSION") == 98)
+                    if (OptionsManager.Get<int>("I","LF_SPEC_VERSION") == 98)
                     {
                         InstructionSet.Add(c, new SystemCall.NotImplemented(c, RuntimeFeatures.NULL));
                     }
-                    else if (OptionsManager.Get<int>("Interpreter","LF_SPEC_VERSION") == 93)
+                    else if (OptionsManager.Get<int>("I","LF_SPEC_VERSION") == 93)
                     {
                         InstructionSet.Add(c, new Nop.ExplicitNopInstruction(c, RuntimeFeatures.NULL));
                     }

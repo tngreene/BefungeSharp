@@ -442,7 +442,7 @@ namespace BefungeSharp.FungeSpace
 
                 int value = traverse.Data.value;
                 if (value >= ' ' && value <= '~'
-                    && OptionsManager.Get<bool>("Visualizer","COLOR_SYNTAX_HIGHLIGHTING"))
+                    && OptionsManager.Get<bool>("V","COLOR_SYNTAX_HIGHLIGHTING"))
                 {
                     color = Instructions.InstructionManager.InstructionSet[value].Color;
                 }

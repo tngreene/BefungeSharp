@@ -31,7 +31,9 @@ namespace BefungeSharp
         VERSION_98 = 0x400  //IDE default
     }
 
-
+    /// <summary>
+    /// Represents a manager for gettings and setting program options
+    /// </summary>
     public static class OptionsManager
     {
         /// <summary>
@@ -84,11 +86,31 @@ namespace BefungeSharp
         /// Searches through SessionOptions, then Default Options
         /// </summary>
         /// <typeparam name="T">The data type you expect to get back</typeparam>
-        /// <param name="section">The name of the section</param>
+        /// <param name="section">The name or first letter of the section</param>
         /// <param name="name">The name of the setting</param>
         /// <returns>The data inside of the setting</returns>
         public static T Get<T>(string section, string name)
         {
+			//Compare the first character of the section name to our list
+			switch(section.ToUpper()[0])
+			{
+				case 'G':
+					section = "General";
+					break;
+				case 'E':
+					section = "Editor";
+                    break;
+				case 'V':
+					section = "Visualizer";
+					break;
+				case 'I':
+					section = "Interpreter";
+					break;
+				default:
+					throw new Exception("Section: " + section + "not found!");
+					break;
+			}
+
             //If the section and setting exists, return it
             //otherwise, try finding it in the defaults
             if (SessionOptions.Contains(section) == true)
@@ -117,11 +139,30 @@ namespace BefungeSharp
         /// Attempts to set a setting with a particular value
         /// </summary>
         /// <typeparam name="T">The data type to set</typeparam>
-        /// <param name="section">The name of the section</param>
+        /// <param name="section">The name or first letter of the section</param>
         /// <param name="name">The name of the setting</param>
         /// <param name="value">The new value to give the setting</param>
         public static void Set<T>(string section, string name, T value)
         {
+            switch(section.ToUpper()[0])
+			{
+				case 'G':
+					section = "General";
+					break;
+				case 'E':
+					section = "Editor";
+                    break;
+				case 'V':
+					section = "Visualizer";
+					break;
+				case 'I':
+					section = "Interpreter";
+					break;
+				default:
+					throw new Exception("Section: " + section + "not found!");
+					break;
+			}
+
             string exceptionString = "";
             if (SessionOptions.Contains(section) == true)
             {
@@ -175,10 +216,10 @@ namespace BefungeSharp
                 ;   FILE - General File System settings
                 ; Editor
                 ;   UI - Editor User Interface
-                ; Visualizer - Visualizer
+                ; Visualizer
                 ;   COLOR - Syntax Highlighting
                 ;   GRID - Viewport Movement along a grid
-                ; INTP - Interpreter
+                ; Interpreter
                 ;   LF - Languages and Features
                 ;   RT - Runtime Behaviors
                 ;   FS - FungeSpace settings

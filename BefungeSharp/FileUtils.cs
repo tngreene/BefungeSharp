@@ -21,11 +21,11 @@ namespace BefungeSharp
         {
             get
             {
-                return OptionsManager.Get<string>("General", "FILE_ENCODING");
+                return OptionsManager.Get<string>("G", "FILE_ENCODING");
             }
             private set
             {
-                OptionsManager.Set<string>("General", "FILE_ENCODING", value);
+                OptionsManager.Set<string>("G", "FILE_ENCODING", value);
             }
         }
 
@@ -37,11 +37,11 @@ namespace BefungeSharp
         {
             get
             {
-                return OptionsManager.Get<string>("General", "FILE_LAST_USED");
+                return OptionsManager.Get<string>("G", "FILE_LAST_USED");
             }
             private set
             {
-                OptionsManager.Set<string>("General", "FILE_LAST_USED", value);
+                OptionsManager.Set<string>("G", "FILE_LAST_USED", value);
             }
         }
 
@@ -82,7 +82,7 @@ namespace BefungeSharp
         public static void BackupFile(string filePath, bool supressConsoleMessages)
         {
             string backupsPath = Path.GetDirectoryName(Path.GetDirectoryName(Environment.GetCommandLineArgs()[0])) + "\\" +
-                                                        OptionsManager.Get<string>("General", "FILE_BACKUPS_FOLDER");
+                                                        OptionsManager.Get<string>("G", "FILE_BACKUPS_FOLDER");
             if (Directory.Exists(backupsPath) == false)
             {
                 try 
@@ -157,7 +157,7 @@ namespace BefungeSharp
                     .ToList();
 
                 //Delete all but the most recent n of them
-                int amountToKeep = OptionsManager.Get<int>("General", "FILE_MAX_BACKUPS");
+                int amountToKeep = OptionsManager.Get<int>("G", "FILE_MAX_BACKUPS");
                 for (int i = fileList.Count - 1; i >= amountToKeep; i--)
                 {
                     File.Delete(fileList[i].FullName);

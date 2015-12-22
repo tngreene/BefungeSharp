@@ -23,7 +23,7 @@ namespace BefungeSharp.Menus
                 Console.WriteLine("Choose an option to cycle");
                 
                 Console.WriteLine("1.) Current Language Version: "
-                                               + OptionsManager.Get<int>("Interpreter", "LF_SPEC_VERSION"));
+                                               + OptionsManager.Get<int>("I", "LF_SPEC_VERSION"));
 
                 Console.WriteLine("2.) Number of Dimensions: ");
                 
@@ -31,16 +31,16 @@ namespace BefungeSharp.Menus
                 Console.Write("3.) Sandbox Mode:");
                                 
                 string sandbox_mode = "";
-                sandbox_mode += OptionsManager.Get<bool>("Interpreter", "LF_FILE_INPUT")  == false ? "i" : "";
-                sandbox_mode += OptionsManager.Get<bool>("Interpreter", "LF_FILE_OUTPUT") == false ? "o" : "";
-                sandbox_mode += OptionsManager.Get<int> ("Interpreter", "LF_EXECUTE_STYLE") == 0   ? "=" : "";
+                sandbox_mode += OptionsManager.Get<bool>("I", "LF_FILE_INPUT")  == false ? "i" : "";
+                sandbox_mode += OptionsManager.Get<bool>("I", "LF_FILE_OUTPUT") == false ? "o" : "";
+                sandbox_mode += OptionsManager.Get<int> ("I", "LF_EXECUTE_STYLE") == 0   ? "=" : "";
                 
                 //If the sandbox mode hasn't been assaigned anything print "NONE"
                 sandbox_mode = sandbox_mode == "" ? "NONE" : "";
                 Console.WriteLine(sandbox_mode);
                 
                 Console.WriteLine("4.) Syntax Highlighting: "
-                    + (OptionsManager.Get<bool>("Visualizer", "COLOR_SYNTAX_HIGHLIGHTING") ? "ON" : "OFF"));
+                    + (OptionsManager.Get<bool>("V", "COLOR_SYNTAX_HIGHLIGHTING") ? "ON" : "OFF"));
                 Console.WriteLine("5.) Reset to defaults");
                 Console.WriteLine("6.) Back");
 
@@ -90,15 +90,15 @@ namespace BefungeSharp.Menus
                         switch (menu_input)
                         {
                             case "1":
-                                OptionsManager.Set<int>("Interpreter", "LF_SPEC_VERSION", Convert.ToInt32(value_input));
+                                OptionsManager.Set<int>("I", "LF_SPEC_VERSION", Convert.ToInt32(value_input));
                                 break;
                             case "2":
-                                OptionsManager.Set<int>("Interpreter", "LF_DIMENSIONS", Convert.ToInt32(value_input));
+                                OptionsManager.Set<int>("I", "LF_DIMENSIONS", Convert.ToInt32(value_input));
                                 break;
                             case "3":
                                 if (value_input.Contains("i"))
                                 {
-                                    OptionsManager.Set<bool>("Interpreter", "LF_FILE_INPUT", false);
+                                    OptionsManager.Set<bool>("I", "LF_FILE_INPUT", false);
                                 }
                                 else
                                 {
@@ -106,7 +106,7 @@ namespace BefungeSharp.Menus
                                 }
                                 if (value_input.Contains("o"))
                                 {
-                                    OptionsManager.Set<bool>("Interpreter", "LF_FILE_OUTPUT", false);
+                                    OptionsManager.Set<bool>("I", "LF_FILE_OUTPUT", false);
                                 }
                                 else
                                 {
@@ -114,15 +114,15 @@ namespace BefungeSharp.Menus
                                 }
                                 if (value_input.Contains("="))
                                 {
-                                    OptionsManager.Set<int>("Interpreter", "LF_FILE_EXECUTE", 0);
+                                    OptionsManager.Set<int>("I", "LF_EXECUTE_STYLE", 0);
                                 }
                                 else
                                 {
-                                    OptionsManager.Set<int>("Interpreter","LF_FILE_EXECUTE", OptionsManager.DefaultOptions["Interpreter"]["LF_FILE_EXECUTE"].IntValue);
+                                    OptionsManager.Set<int>("I", "LF_EXECUTE_STYLE", OptionsManager.DefaultOptions["Interpreter"]["LF_EXECUTE_STYLE"].IntValue);
                                 }
                                 break;
                             case "4":
-                                OptionsManager.Set<bool>("Visualizer", "COLOR_SYNTAX_HIGHLIGHTING", !OptionsManager.Get<bool>("Visualizer", "COLOR_SYNTAX_HIGHLIGHTING"));
+                                OptionsManager.Set<bool>("V", "COLOR_SYNTAX_HIGHLIGHTING", !OptionsManager.Get<bool>("V", "COLOR_SYNTAX_HIGHLIGHTING"));
                                 break;
                             case "5":
                                 if (value_input.ToLower() == "y")

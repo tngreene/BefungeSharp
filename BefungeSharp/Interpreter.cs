@@ -93,7 +93,7 @@ namespace BefungeSharp
         {
             //Set up the area's the program will refer to
             FS_93 = new FungeSpaceArea(0, 0, 24, 79);
-            FS_DEFAULT =  new FungeSpaceArea(0, 0, OptionsManager.Get<int>("Interpreter","FS_DEFAULT_AREA_HEIGHT") - 1,  OptionsManager.Get<int>("Interpreter","FS_DEFAULT_AREA_HEIGHT") - 1);
+            FS_DEFAULT =  new FungeSpaceArea(0, 0, OptionsManager.Get<int>("I","FS_DEFAULT_AREA_HEIGHT") - 1,  OptionsManager.Get<int>("Interpreter","FS_DEFAULT_AREA_HEIGHT") - 1);
             fs_view_screen = FS_93;
             //FS_SAVEABLE = FS_DEFAULT;
             //FS_EXTENDED = FS_DEFAULT;
@@ -356,7 +356,7 @@ namespace BefungeSharp
                                         snippet += "W";
                                     }
                                                                         
-                                    EditIP.Position = FungeSpaceUtils.ChangeDataRange(EditIP.Position,  OptionsManager.Get<string>("Editor", snippet), EditIP.Delta);
+                                    EditIP.Position = FungeSpaceUtils.ChangeDataRange(EditIP.Position,  OptionsManager.Get<string>("E", snippet), EditIP.Delta);
                                 }
                                 break;
                             case ConsoleKey.F1:
@@ -546,8 +546,8 @@ namespace BefungeSharp
         public void MoveViewScreen(Vector2 direction)
         {
             //TODO:MAJOR!MoveViewScreen does not do well when not moving in a + sign
-            int xOffset = OptionsManager.Get<int>("Editor","GRID_XOFFSET");
-            int yOffset = OptionsManager.Get<int>("Editor","GRID_YOFFSET");
+            int xOffset = OptionsManager.Get<int>("E","GRID_XOFFSET");
+            int yOffset = OptionsManager.Get<int>("E","GRID_YOFFSET");
             if(direction == Vector2.North)
             {
                 fs_view_screen.top -= yOffset;
