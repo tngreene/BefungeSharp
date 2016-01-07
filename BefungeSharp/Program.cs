@@ -30,6 +30,12 @@ namespace BefungeSharp
         [STAThread]
         public static void Main(string[] args)
         {
+            //Initiallize static classes in order
+            //1. OptionsManger
+            //2. FileUtils
+            Console.WriteLine("Loading " + OptionsManager.OptionsFileName);
+            FileUtils.DisplayCurrentDirectory();
+
             //Size of field + border + width_of_sidebar
             int width_of_sidebar = 36;//Seems right?
             Console.Title = "BefungeSharp, the Premier Funge-98 IDE for Windows";
