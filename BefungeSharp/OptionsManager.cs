@@ -92,23 +92,27 @@ namespace BefungeSharp
         public static T Get<T>(string section, string name)
         {
 			//Compare the first character of the section name to our list
-			switch(section.ToUpper()[0])
+			switch(section)
 			{
-				case 'G':
-					section = "General";
-					break;
-				case 'E':
-					section = "Editor";
+                case "General":
+                case "G":
+                    section = "General";
                     break;
-				case 'V':
-					section = "Visualizer";
-					break;
-				case 'I':
-					section = "Interpreter";
-					break;
-				default:
-					throw new Exception("Section: " + section + "not found!");
-					break;
+                case "Editor":
+                case "E":
+                    section = "Editor";
+                    break;
+                case "Visualizer":
+                case "V":
+                    section = "Visualizer";
+                    break;
+                case "Interpreter"://This or section.toUpper()[0]?
+                case "I":
+                    section = "Interpreter";
+                    break;
+                default:
+                    throw new Exception("Section: " + section + "not found!");
+                    break;
 			}
 
             //If the section and setting exists, return it
@@ -127,10 +131,12 @@ namespace BefungeSharp
                     return DefaultOptions[section][name].GetValueTyped<T>();
                 }
             }
+            else
+            {
+                //We're in trouble.
+                throw new Exception("Section: " + section + " Setting: " + name + " not found!");
+            }
 
-            //We're in trouble.
-            throw new Exception("Section: " + section + " Setting: " + name + " not found!");
-            
             //Technically we'll never reach here, but VS doesn't know that for sure
             return default(T);
         }

@@ -25,19 +25,14 @@ namespace BefungeSharp.Menus
                 Console.WriteLine("1.) Current Language Version: "
                                                + OptionsManager.Get<int>("I", "LF_SPEC_VERSION"));
 
-                Console.WriteLine("2.) Number of Dimensions: ");
+                Console.WriteLine("2.) Number of Dimensions: "
+                                               + OptionsManager.Get<int>("I","LF_DIMENSIONS"));
                 
                 //Build up the sandbox mode to display
                 Console.Write("3.) Sandbox Mode:");
                                 
-                string sandbox_mode = "";
-                sandbox_mode += OptionsManager.Get<bool>("I", "LF_FILE_INPUT")  == false ? "i" : "";
-                sandbox_mode += OptionsManager.Get<bool>("I", "LF_FILE_OUTPUT") == false ? "o" : "";
-                sandbox_mode += OptionsManager.Get<int> ("I", "LF_EXECUTE_STYLE") == 0   ? "=" : "";
                 
-                //If the sandbox mode hasn't been assaigned anything print "NONE"
-                sandbox_mode = sandbox_mode == "" ? "NONE" : "";
-                Console.WriteLine(sandbox_mode);
+                Console.WriteLine(BuildSandboxDisplayString());
                 
                 Console.WriteLine("4.) Syntax Highlighting: "
                     + (OptionsManager.Get<bool>("V", "COLOR_SYNTAX_HIGHLIGHTING") ? "ON" : "OFF"));
@@ -45,32 +40,33 @@ namespace BefungeSharp.Menus
                 Console.WriteLine("6.) Back");
 
                 Console.WriteLine("\r\nEnter a number between 1 - 6");
-                string menu_input = Menu.WaitForInput('1','6').ToString();
-                
+                string menu_input = ConEx.ConEx_Input.WaitForIntInRange(1,6,true).ToString();
+                Console.CursorLeft--;
+
                 string pattern;
                 string requirement_message;
                 
                 switch (menu_input)
                 {
                     case "1":
-                        pattern = "(93|98)";
+                        pattern = "^(93|98)$";
                         requirement_message = "Must be 93 or 98";
                         break;
-                    case "2":
-                        pattern = "[123]";
-                        requirement_message = "Must be 1,2, or 3";
+                    //case "2":
+                      //  pattern = "^[123]$";
+                        //requirement_message = "Must be 1,2, or 3";
                         break;
                     case "3":
                         pattern = "[io= ]*";
                         requirement_message = "Must be a combination of i,o,= or a space";
                         break;
-                    case "4":
-                        pattern = "(on|off)";
-                        requirement_message = "Must be a on or off";
+                    //case "4":
+                      //  pattern = "^(on|off)$";
+                        //requirement_message = "Must be a on or off";
                         break;
-                    case "5":
-                        pattern = "y";//Look for yes, anything else is a no
-                        requirement_message = "Must be yes or no";
+                    //case "5":
+                      //  pattern = "y";//Look for yes, anything else is a no
+                        //requirement_message = "Must be yes or no";
                         break;
                     case "6":
                         this.OnClosing();
@@ -80,73 +76,85 @@ namespace BefungeSharp.Menus
                 }
 
                 string value_input ="";
-                while (true)
+                
+                Console.WriteLine(requirement_message);
+                Console.WriteLine("Enter a value");
+                    
+                switch (menu_input)
                 {
-                    Console.WriteLine(requirement_message);
-                    Console.WriteLine("Enter a value");
-                    value_input = Console.ReadLine();
-                    if (Regex.IsMatch(value_input, pattern) == true || value_input.ToLower() != "back")
-                    {
-                        switch (menu_input)
+                    case "1":
+                        value_input = ConEx.ConEx_Input.WaitForRegExMatch(pattern, requirement_message);
+                        OptionsManager.Set<int>("I", "LF_SPEC_VERSION", Convert.ToInt32(value_input));
+                        Console.WriteLine("Spec Version is now: {0}", value_input);
+                        break;
+                    case "2":
+                        int dimensions = ConEx.ConEx_Input.WaitForIntInRange(1, 3, true);
+                        OptionsManager.Set<int>("I", "LF_DIMENSIONS", dimensions);
+                        Console.WriteLine("Dimensions is now: {0}", dimensions);
+                        break;
+                    case "3":
+                        value_input = ConEx.ConEx_Input.WaitForRegExMatch(pattern, requirement_message);
+                        if (value_input.Contains("i"))
                         {
-                            case "1":
-                                OptionsManager.Set<int>("I", "LF_SPEC_VERSION", Convert.ToInt32(value_input));
-                                break;
-                            case "2":
-                                OptionsManager.Set<int>("I", "LF_DIMENSIONS", Convert.ToInt32(value_input));
-                                break;
-                            case "3":
-                                if (value_input.Contains("i"))
-                                {
-                                    OptionsManager.Set<bool>("I", "LF_FILE_INPUT", false);
-                                }
-                                else
-                                {
-                                    OptionsManager.DefaultOptions["Interpreter"]["LF_FILE_INPUT"] = OptionsManager.DefaultOptions["Interpreter"]["LF_FILE_INPUT"];
-                                }
-                                if (value_input.Contains("o"))
-                                {
-                                    OptionsManager.Set<bool>("I", "LF_FILE_OUTPUT", false);
-                                }
-                                else
-                                {
-                                    OptionsManager.SessionOptions["Interpreter"]["LF_FILE_OUTPUT"] = OptionsManager.DefaultOptions["Interpreter"]["LF_FILE_OUTPUT"];
-                                }
-                                if (value_input.Contains("="))
-                                {
-                                    OptionsManager.Set<int>("I", "LF_EXECUTE_STYLE", 0);
-                                }
-                                else
-                                {
-                                    OptionsManager.Set<int>("I", "LF_EXECUTE_STYLE", OptionsManager.DefaultOptions["Interpreter"]["LF_EXECUTE_STYLE"].IntValue);
-                                }
-                                break;
-                            case "4":
-                                OptionsManager.Set<bool>("V", "COLOR_SYNTAX_HIGHLIGHTING", !OptionsManager.Get<bool>("V", "COLOR_SYNTAX_HIGHLIGHTING"));
-                                break;
-                            case "5":
-                                if (value_input.ToLower() == "y")
-                                {
-                                    Console.WriteLine("Are you sure you want to reset all options to their default values?");
-                                    bool is_reseting = Menu.WaitForBooleanChoice();
-                                    if (is_reseting == true)
-                                    {
-                                        OptionsManager.ResetSessionOptions();
-                                    }
-                                }
-                                break;
+                            OptionsManager.Set<bool>("I", "LF_FILE_INPUT", false);
+                        }
+                        else
+                        {
+                            OptionsManager.Set<bool>("I","LF_FILE_INPUT", OptionsManager.DefaultOptions["Interpreter"]["LF_FILE_INPUT"].BoolValue);
+                        }
+                        if (value_input.Contains("o"))
+                        {
+                            OptionsManager.Set<bool>("I", "LF_FILE_OUTPUT", false);
+                        }
+                        else
+                        {
+                            OptionsManager.Set<bool>("I","LF_FILE_OUTPUT", OptionsManager.DefaultOptions["Interpreter"]["LF_FILE_OUTPUT"].BoolValue);
+                        }
+                        if (value_input.Contains("="))
+                        {
+                            OptionsManager.Set<int>("I", "LF_EXECUTE_STYLE", 0);
+                        }
+                        else
+                        {
+                            OptionsManager.Set<int>("I", "LF_EXECUTE_STYLE", OptionsManager.DefaultOptions["Interpreter"]["LF_EXECUTE_STYLE"].IntValue);
+                        }
+                        Console.WriteLine("The following items are sandboxed: {0}", BuildSandboxDisplayString());
+                        break;
+                    case "4":
+                        //Toggles
+                        OptionsManager.Set<bool>("V", "COLOR_SYNTAX_HIGHLIGHTING", !OptionsManager.Get<bool>("V", "COLOR_SYNTAX_HIGHLIGHTING"));
+                        break;
+                    case "5":
+                        if (ConEx.ConEx_Input.WaitForBooleanChoice())
+                        {
+                            Console.WriteLine("Are you sure you want to reset all options to their default values?");
+                            bool is_reseting = ConEx.ConEx_Input.WaitForBooleanChoice();
+                            if (is_reseting == true)
+                            {
+                                OptionsManager.ResetSessionOptions();
+                            }
                         }
                         break;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Please try again");
-                    }
                 }
+
+                Console.WriteLine("Press any key to continue");
+                Console.ReadKey(true);
             }
             while (true);
 
             this.OnClosing();
-        }        
+        }
+
+        private string BuildSandboxDisplayString()
+        {
+            string sandbox_mode = "";
+            sandbox_mode += OptionsManager.Get<bool>("I", "LF_FILE_INPUT") == false ? "i" : "";
+            sandbox_mode += OptionsManager.Get<bool>("I", "LF_FILE_OUTPUT") == false ? "o" : "";
+            sandbox_mode += OptionsManager.Get<int>("I", "LF_EXECUTE_STYLE") == 0 ? "=" : "";
+
+            //If the sandbox mode hasn't been assaigned anything print "NONE"
+            sandbox_mode = sandbox_mode == "" ? "NONE" : sandbox_mode;
+            return sandbox_mode;
+        }
     }
 }

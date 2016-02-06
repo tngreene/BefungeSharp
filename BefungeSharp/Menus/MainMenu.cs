@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
+using ConEx;
 
 namespace BefungeSharp.Menus
 {
@@ -35,17 +36,17 @@ namespace BefungeSharp.Menus
         {
             OnOpening();
             
-            char input = Menu.WaitForInput('1', '6');
+            int input = ConEx_Input.WaitForIntInRange(1,6, true, "Value must be between 1 and 6");
 
             Console.Clear();
-            switch (input - 48)
+            switch (input)
             {
                 case 1://New File
                         List<List<int>> s = new List<List<int>>();
                         //s.Add(@"""dlroW olleH"">:#,_@");
                         //s.Add(@"12341234");
                         //s_board_manager = new BoardManager(25, 80, s);
-                        Program.BoardManager = new BoardManager(s,null,OptionsManager.Get<BoardMode>("Interpreter","RT_DEFAULT_MODE"));
+                        Program.BoardManager = new BoardManager(s,null,OptionsManager.Get<BoardMode>("I","RT_DEFAULT_MODE"));
                         Program.BoardManager.UpdateBoard();
                     break;
                 case 2://Open File

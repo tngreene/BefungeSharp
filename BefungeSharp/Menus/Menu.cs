@@ -43,40 +43,5 @@ namespace BefungeSharp.Menus
             Console.WriteLine(new String('_', Console.WindowWidth) + "\r\n\r\n");
         }
 
-        /// <summary>
-        /// Waits for input from the user based on range of allowed values
-        /// Good for situations like getting a number between x and y
-        /// </summary>
-        /// <param name="lower_bound">The lowest character accepted (by value)</param>
-        /// <param name="upper_bound">The highest character accepted (by value)</param>
-        /// <returns>The chosen input</returns>
-        internal static char WaitForInput(char lower_bound, char upper_bound)
-        {
-            char input = '\0';
-            //Get their input
-            do
-            {
-                input = Console.ReadKey().KeyChar;
-                Console.CursorLeft = 0;
-            }
-            while (input < lower_bound || input > upper_bound);
-            return input;
-        }
-
-        internal static bool WaitForBooleanChoice()
-        {
-            while (true)
-            {
-                string input = Console.ReadLine();
-                if (System.Text.RegularExpressions.Regex.IsMatch(input.ToLower(), "(y|yes|t|true)"))
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-        }     
     }
 }
