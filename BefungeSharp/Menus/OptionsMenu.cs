@@ -35,16 +35,15 @@ namespace BefungeSharp.Menus
                 Console.WriteLine(BuildSandboxDisplayString());
                 
                 Console.WriteLine("4.) Syntax Highlighting: "
-                    + (OptionsManager.Get<bool>("V", "COLOR_SYNTAX_HIGHLIGHTING") ? "ON" : "OFF"));
+                    + (OptionsManager.Get<bool>("V", "COLOR_SYNTAX_HIGHLIGHTING") ? "yes" : "no"));
                 Console.WriteLine("5.) Reset to defaults");
                 Console.WriteLine("6.) Back");
 
                 Console.WriteLine("\r\nEnter a number between 1 - 6");
                 string menu_input = ConEx.ConEx_Input.WaitForIntInRange(1,6,true).ToString();
-                Console.CursorLeft--;
 
-                string pattern;
-                string requirement_message;
+                string pattern = "";
+                string requirement_message = "";
                 
                 switch (menu_input)
                 {
@@ -52,21 +51,21 @@ namespace BefungeSharp.Menus
                         pattern = "^(93|98)$";
                         requirement_message = "Must be 93 or 98";
                         break;
-                    //case "2":
+                    case "2":
                       //  pattern = "^[123]$";
-                        //requirement_message = "Must be 1,2, or 3";
+                        requirement_message = "Must be 1, 2, or 3";
                         break;
                     case "3":
                         pattern = "[io= ]*";
-                        requirement_message = "Must be a combination of i,o,= or a space";
+                        requirement_message = "Choose any/all of i, or o, =. Press enter to revert to none";
                         break;
-                    //case "4":
-                      //  pattern = "^(on|off)$";
-                        //requirement_message = "Must be a on or off";
+                    case "4":
+                      //  pattern = "^(yes|no)$";
+                        requirement_message = "Must be a yes or no";
                         break;
-                    //case "5":
-                      //  pattern = "y";//Look for yes, anything else is a no
-                        //requirement_message = "Must be yes or no";
+                    case "5":
+                      //  pattern = "^(yes|no)$";
+                        requirement_message = "Must be a yes or no";
                         break;
                     case "6":
                         this.OnClosing();
@@ -85,10 +84,10 @@ namespace BefungeSharp.Menus
                     case "1":
                         value_input = ConEx.ConEx_Input.WaitForRegExMatch(pattern, requirement_message);
                         OptionsManager.Set<int>("I", "LF_SPEC_VERSION", Convert.ToInt32(value_input));
-                        Console.WriteLine("Spec Version is now: {0}", value_input);
+                        Console.WriteLine("Spec version is now: {0}", value_input);
                         break;
                     case "2":
-                        int dimensions = ConEx.ConEx_Input.WaitForIntInRange(1, 3, true);
+                        int dimensions = ConEx.ConEx_Input.WaitForIntInRange(1, 3, true, requirement_message);
                         OptionsManager.Set<int>("I", "LF_DIMENSIONS", dimensions);
                         Console.WriteLine("Dimensions is now: {0}", dimensions);
                         break;
@@ -121,13 +120,21 @@ namespace BefungeSharp.Menus
                         Console.WriteLine("The following items are sandboxed: {0}", BuildSandboxDisplayString());
                         break;
                     case "4":
-                        //Toggles
-                        OptionsManager.Set<bool>("V", "COLOR_SYNTAX_HIGHLIGHTING", !OptionsManager.Get<bool>("V", "COLOR_SYNTAX_HIGHLIGHTING"));
+                        if (ConEx.ConEx_Input.WaitForBooleanChoice() == true)
+                        {
+                            OptionsManager.Set<bool>("V", "COLOR_SYNTAX_HIGHLIGHTING", true);
+                        }
+                        else
+                        {
+                            OptionsManager.Set<bool>("V", "COLOR_SYNTAX_HIGHLIGHTING", false);
+                        }
+                        Console.WriteLine("Syntax Highlighting is {0}", OptionsManager.Get<bool>("V", "COLOR_SYNTAX_HIGHLIGHTING") ? "on" : "off" );
                         break;
                     case "5":
-                        if (ConEx.ConEx_Input.WaitForBooleanChoice())
+                        if (ConEx.ConEx_Input.WaitForBooleanChoice() == true)
                         {
                             Console.WriteLine("Are you sure you want to reset all options to their default values?");
+                            
                             bool is_reseting = ConEx.ConEx_Input.WaitForBooleanChoice();
                             if (is_reseting == true)
                             {
@@ -153,7 +160,7 @@ namespace BefungeSharp.Menus
             sandbox_mode += OptionsManager.Get<int>("I", "LF_EXECUTE_STYLE") == 0 ? "=" : "";
 
             //If the sandbox mode hasn't been assaigned anything print "NONE"
-            sandbox_mode = sandbox_mode == "" ? "NONE" : sandbox_mode;
+            sandbox_mode = sandbox_mode == "" ? "none" : sandbox_mode;
             return sandbox_mode;
         }
     }
