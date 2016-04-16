@@ -31,6 +31,7 @@ Completed Features
 	- Implemented i, o, t, =, y, {, and } instructions
 	- Switch among step, slow - fast speeds, and output only view
 	- Sandbox mode for i, o, and = instructions
+	- Befunge-93 compatibility mode
 * Debugging
 	- Stack, input, and output information displayed
 	- Shows FungeSpace change in real time
@@ -55,7 +56,6 @@ Planned features
 	- Trefunge support
 	- Better performance
 	- Logging output to files
-	- Befunge-93 compatibility mode
 	- 'y' instruction fully compliant
 * Debugging
 	- Edit and Continue mode
