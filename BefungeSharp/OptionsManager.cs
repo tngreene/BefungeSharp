@@ -213,6 +213,7 @@ namespace BefungeSharp
         /// </returns>
         private static Configuration CreateDefaultOptions()
         {
+			Configuration.ValidCommentChars = new char[]{ ';' };
             //Rather than make a whole bunch of method calls we'll just
             //statically write the file as a raw string and adjust as
             //needed. It also makes commenting easier
@@ -276,12 +277,13 @@ namespace BefungeSharp
                 LF_STD_OUTPUT_STYLE=0 ; 0 for unbuffered, 1 for buffered. For now use 0
                 LF_NETWORKING=False ; Enables BefungeSharp to make Network connections. Currently unimplemented
                 LF_UF_SUPPORT=True ; Unfunge is supported
-                LF_BF93_SUPPORT=False ; Befunge-93 is not supported
-                LF_BF98_SUPPORT=True ; Befunge is supported
+                LF_BF93_SUPPORT=True ; Befunge-93 is supported
+                LF_BF98_SUPPORT=True ; Befunge-98 is supported
                 LF_TF_SUPPORT=False ; Trefunge is not supported
                 LF_DIMENSIONS=2 ; The current number of dimensions to use
                 LF_SPEC_VERSION=98 ; The current spec to use, must be supported
                 RT_DEFAULT_MODE=Edit ; The default mode the program goes into after opening a file
+                RT_STRICT_BF93=False ; If 'g', 'p' used out of bounds ends the interpreter
                 FS_DEFAULT_AREA_WIDTH=80 ; The default width of pre-allocated FungeSpace, must be atleast 80 and a multiple of 16
                 FS_DEFAULT_AREA_HEIGHT=25 ; The default width of pre-allocated FungeSpace, must be atleast 25 and a multiple of 5");
         }

@@ -17,6 +17,11 @@ namespace BefungeSharp.Instructions.Nop
 
         public override bool Preform(IP ip)
         {
+			if (Program.Interpreter.SpecVersion == 93)
+			{
+				return true;
+			}
+
             /* Move to the next space,
              * if we have found a ';', preform the jumping over of ethereal space
              * Stop if we have found a non-space character

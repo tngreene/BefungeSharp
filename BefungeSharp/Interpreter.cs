@@ -39,6 +39,7 @@ namespace BefungeSharp
         /// The size of FungeSpace when in Befunge-93 mode
         /// </summary>
         private readonly FungeSpaceArea FS_93;
+		public FungeSpaceArea FS_93_Area { get { return FS_93; } } 
 
         /// <summary>
         /// The size of FungeSpace that is automatically created, and filled, at the start of the program
@@ -71,6 +72,11 @@ namespace BefungeSharp
 
         private List<IP> _IPs;
 
+		/// <summary>
+		/// The current spec version
+		/// </summary>
+		public int SpecVersion { get; private set; }
+
         /// <summary>
         /// The instruction pointer list, 
         /// _IPs[0] is essentially the IP for Unfunge through non concurrent Funge-98 and non-concurrent Tre-Funge
@@ -97,7 +103,9 @@ namespace BefungeSharp
             fs_view_screen = FS_93;
             //FS_SAVEABLE = FS_DEFAULT;
             //FS_EXTENDED = FS_DEFAULT;
-            
+
+			SpecVersion = OptionsManager.Get<int>("I", "LF_SPEC_VERSION");
+
             int rows = initial_chars.Count;
             int columns = 0;
 
@@ -489,7 +497,9 @@ namespace BefungeSharp
 
                 //TODO:It's not looking up ; or ' ', its looking up those instructions,
                 //whatever their form might be
-                while ((value == ';' || value == ' ') && _IPs[n].StringMode == false)
+                while ((value == ';' || value == ' ') &&
+						_IPs[n].StringMode == false   &&
+						SpecVersion == 98)
                 {
                     drawing_position = FungeSpaceUtils.MoveBy(drawing_position, _IPs[n].Delta);
                     value = drawing_position.Data.value;
@@ -626,23 +636,19 @@ namespace BefungeSharp
                     //Push a single ' ' then consume all spaces
                     _IPs[n].Stack.Push(cmd);
 
-                    if (/*Language == 98 &&*/cmd == ' ')
+                    if (SpecVersion == 98 && cmd == ' ')
                     {
                         Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
                         //We skip moving with .Move() because by now the IP is already in the correct position
                     }
-                    //else if(Language == 93)
-                    //{
-
-                    //}
-                    else
+                    else //Also counts for spec_version == 93
                     {
                         _IPs[n].Move();
                     }
                 }
                 else 
                 {
-                    while (cmd == ';' || cmd == ' ')
+                    while ((cmd == ';' || cmd == ' ') && SpecVersion == 98)
                     {
                         Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
                         cmd = _IPs[n].Position.Data.value;
