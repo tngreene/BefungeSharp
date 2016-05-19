@@ -258,17 +258,17 @@ namespace BefungeSharp
 			ConEx.ConEx_Draw.FillArea(' ', BAR_TOP, BAR_LEFT, ConEx.ConEx_Draw.Dimensions.width, ConEx.ConEx_Draw.Dimensions.height);
 		}
 
-		public void Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
+		public void Update(BoardMode mode, IEnumerable<ConsoleKeyInfo> keysHit)
 		{
 			#region --HandleInput-------------
-			for (int i = 0; i < keysHit.Length; i++)
+			for (int i = 0; i < keysHit.Count(); i++)
 			{
 				//--Debugging key presses
-				System.ConsoleKey k = keysHit[i].Key;
-				var m = keysHit[i].Modifiers;
+				System.ConsoleKey k = keysHit.ElementAt(i).Key;
+				var m = keysHit.ElementAt(i).Modifiers;
 				//------------------------
 
-                switch (keysHit[i].Key)
+                switch (keysHit.ElementAt(i).Key)
                 {
                     //Cycle through the pages
                     case ConsoleKey.Home:

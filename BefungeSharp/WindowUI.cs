@@ -339,7 +339,7 @@ namespace BefungeSharp
             _inputRep.Clear();
         }
 
-        public void Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
+		public void Update(BoardMode mode, IEnumerable<ConsoleKeyInfo> keysHit)
         {
             //Based on what mode it is handle those keys
             switch (mode)
@@ -353,14 +353,14 @@ namespace BefungeSharp
                 case BoardMode.Edit:
                     HandleModifiers(mode, keysHit);
                     bool keep_selection_active = false;
-                    for (int i = 0; i < keysHit.Length; i++)
+                    for (int i = 0; i < keysHit.Count(); i++)
                     {
                         //--Debugging key presses
-                        System.ConsoleKey k = keysHit[i].Key;
-                        var m = keysHit[i].Modifiers;
+                        //System.ConsoleKey k = keysHit.ElementAt(i).Key;
+                        //var m = keysHit.ElementAt(i).Modifiers;
                         //------------------------
                        
-                        switch (keysHit[i].Key)
+                        switch (keysHit.ElementAt(i).Key)
                         {
                             case ConsoleKey.UpArrow:
                             case ConsoleKey.LeftArrow:
@@ -375,7 +375,7 @@ namespace BefungeSharp
                                         //Set everything to the cell we are currently in
                                         _selection.origin = _selection.handle = Program.Interpreter.EditIP.Position.Data;
                                     }
-                                    UpdateSelection(k);
+									UpdateSelection(keysHit.ElementAt(i).Key);
                                 
                                     //Don't clear if we used an arrow key with shift
                                     keep_selection_active = true;
@@ -408,7 +408,7 @@ namespace BefungeSharp
         /// </summary>
         /// <param name="mode">The mode of the program you wish to conisder</param>
         /// <param name="keysHit">an array of keys hit</param>
-        private void HandleModifiers(BoardMode mode, ConsoleKeyInfo[] keysHit)
+        private void HandleModifiers(BoardMode mode, IEnumerable<ConsoleKeyInfo> keysHit)
         {
             //Ensures that the user cannot paste when they out of the window
             if (ConEx.ConEx_Window.IsActive() == false)
@@ -480,6 +480,7 @@ namespace BefungeSharp
             }*/
             return;
         }
+
 #region Selection
         /// <summary>
         /// Gets the contents of the selection box

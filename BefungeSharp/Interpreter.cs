@@ -84,13 +84,11 @@ namespace BefungeSharp
         /// </summary>
         public List<IP> IPs { get { return _IPs; } }
 
-        private IP _editIP;
-
         /// <summary>
         /// The Instruction Pointer representing the editor cursor
         /// </summary>
-        public IP EditIP { get { return _editIP; } }
-        
+		public IP EditIP { get; private set; }
+
         /// <summary>
         /// Controls the intepretation and execution of commands
         /// </summary>
@@ -120,7 +118,7 @@ namespace BefungeSharp
             _fungeSpace = new FungeSparseMatrix(initial_chars);
             
             _IPs = new List<IP>();
-            _editIP = new IP(_fungeSpace.Origin, Vector2.East, Vector2.Zero, new Stack<Stack<int>>(), -1, false);
+            EditIP = new IP(_fungeSpace.Origin, Vector2.East, Vector2.Zero, new Stack<Stack<int>>(), -1, false);
             
             CurMode = mode;
 
@@ -155,7 +153,7 @@ namespace BefungeSharp
         /// </summary>
         private void PauseExecution()
         {
-            _editIP.Active = true;
+            EditIP.Active = true;
         }
 
         /// <summary>
@@ -165,7 +163,7 @@ namespace BefungeSharp
         private void UnpauseExecution()
         {
             //Remove the edit IP
-            _editIP.Active = false;
+            EditIP.Active = false;
         }
 
         /// <summary>
@@ -186,7 +184,7 @@ namespace BefungeSharp
             }
         }
 
-        public Instructions.CommandType Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
+        public Instructions.CommandType Update(BoardMode mode, IEnumerable<ConsoleKeyInfo> keysHit)
         {
             Instructions.CommandType type = Instructions.CommandType.NotImplemented;
             
@@ -210,9 +208,9 @@ namespace BefungeSharp
                     }
 
                     #region --HandleInput-------------
-                    for (int i = 0; i < keysHit.Length; i++)
+                    for (int i = 0; i < keysHit.Count(); i++)
                     {
-                        switch (keysHit[i].Key)
+                        switch (keysHit.ElementAt(i).Key)
                         {
                             //1-5 adjusts execution speed
                             case ConsoleKey.F1:
@@ -256,14 +254,14 @@ namespace BefungeSharp
                     #endregion
                 case BoardMode.Edit:                                        
                     #region --HandleInput-------------
-                    for (int i = 0; i < keysHit.Length; i++)
+                    for (int i = 0; i < keysHit.Count(); i++)
                     {
                         //--Debugging key presses
-                        System.ConsoleKey k = keysHit[i].Key;
-                        var m = keysHit[i].Modifiers;
+                        //System.ConsoleKey k = keysHit.ElementAt(i).Key;
+                        //var m = keysHit.ElementAt(i).Modifiers;
                         //------------------------
                         
-                        switch (keysHit[i].Key)
+                        switch (keysHit.ElementAt(i).Key)
                         {
                             /*Arrow Keys
                              * Tab   + Arrow Key moves view screen
@@ -285,7 +283,7 @@ namespace BefungeSharp
                                     }
                                     Vector2 direction = Vector2.Zero;
 
-                                    switch (keysHit[i].Key)
+                                    switch (keysHit.ElementAt(i).Key)
                                     {
                                         case ConsoleKey.UpArrow:
                                             direction = Vector2.North;
@@ -313,7 +311,6 @@ namespace BefungeSharp
                                         EditIP.Delta = direction;
                                         break;
                                     }
-
 
                                     //Get where we'll be going next
                                     int nextX = EditIP.Position.Data.x + direction.x;
@@ -394,10 +391,10 @@ namespace BefungeSharp
                                 EndExecution();
                                 return type = Instructions.CommandType.StopExecution;//Go back to the main menu
                             default:
-                                if (keysHit[i].KeyChar >= ' ' && keysHit[i].KeyChar <= '~' 
+                                if (keysHit.ElementAt(i).KeyChar >= ' ' && keysHit.ElementAt(i).KeyChar <= '~' 
                                     && (ConEx.ConEx_Input.AltDown || ConEx.ConEx_Input.CtrlDown) == false)
                                 {
-                                    EditIP.Position = _fungeSpace.InsertCell(EditIP.Position.Data.x, EditIP.Position.Data.y, keysHit[0].KeyChar);
+                                    EditIP.Position = _fungeSpace.InsertCell(EditIP.Position.Data.x, EditIP.Position.Data.y, keysHit.ElementAt(0).KeyChar);
 
                                     int nextX = EditIP.Position.Data.x + EditIP.Delta.x;
                                     int nextY = EditIP.Position.Data.y + EditIP.Delta.y;

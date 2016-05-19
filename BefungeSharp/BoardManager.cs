@@ -40,11 +40,11 @@ namespace BefungeSharp
                 bool control = ConEx.ConEx_Input.CtrlDown;
                
                 //Get the current keys
-                ConsoleKeyInfo[] keysHit = ConEx.ConEx_Input.GetInput();
+                IEnumerable<ConsoleKeyInfo> keysHit = ConEx.ConEx_Input.GetInput();
                 
-                Instructions.CommandType type =  Program.Interpreter.Update( Program.Interpreter.CurMode, keysHit);
+                Instructions.CommandType type =  Program.Interpreter.Update(Program.Interpreter.CurMode, keysHit);
                                                  Program.WindowUI.Update(Program.Interpreter.CurMode, keysHit);
-                                                 Program.WindowSideBar.Update( Program.Interpreter.CurMode, keysHit);
+                                                 Program.WindowSideBar.Update(Program.Interpreter.CurMode, keysHit);
 
                 //Based on what mode it is handle those keys
                 switch ( Program.Interpreter.CurMode)
@@ -59,12 +59,12 @@ namespace BefungeSharp
                         HandleModifiers( Program.Interpreter.CurMode, keysHit);
 
                         #region --HandleInput-------------
-                        for (int i = 0; i < keysHit.Length; i++)
+                        for (int i = 0; i < keysHit.Count(); i++)
                         {
-                            System.ConsoleKey k = keysHit[i].Key;
-                            var m = keysHit[i].Modifiers;
+                            //System.ConsoleKey k = keysHit.ElementAt(i).Key;
+                            //var m = keysHit.ElementAt(i).Modifiers;
 
-                            switch (keysHit[i].Key)
+                            switch (keysHit.ElementAt(i).Key)
                             {
                                 case ConsoleKey.UpArrow:
                                 case ConsoleKey.LeftArrow:
@@ -116,7 +116,7 @@ namespace BefungeSharp
         /// </summary>
         /// <param name="mode">The mode of the program you wish to conisder</param>
         /// <param name="keysHit">an array of keys hit</param>
-        private void HandleModifiers(BoardMode mode, ConsoleKeyInfo[] keysHit)
+        private void HandleModifiers(BoardMode mode, IEnumerable<ConsoleKeyInfo> keysHit)
         {
             //Ensures that the user cannot paste when they out of the window
             if (ConEx.ConEx_Window.IsActive() == false)
