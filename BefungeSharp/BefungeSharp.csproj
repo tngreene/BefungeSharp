@@ -53,6 +53,12 @@
     <Compile Include="FungeSpace\FungeNode.cs" />
     <Compile Include="Instructions\ConcurrentInstructions.cs" />
     <Compile Include="Instructions\FileIOInstructions.cs" />
+    <Compile Include="Instructions\Fingerprints\FingerprintInstruction.cs" />
+    <Compile Include="Instructions\Fingerprints\Fingerprint.cs" />
+    <Compile Include="Instructions\Fingerprints\NULL\NULL.cs" />
+    <Compile Include="Instructions\Fingerprints\NULL\NULL_Instructions.cs" />
+    <Compile Include="Instructions\Fingerprints\ROMA\ROMA.cs" />
+    <Compile Include="Instructions\Fingerprints\ROMA\ROMA_Instructions.cs" />
     <Compile Include="Instructions\StackStackInstructions.cs" />
     <Compile Include="Instructions\StandardIOInstructions.cs" />
     <Compile Include="Menus\HelpMenu.cs" />
@@ -113,6 +119,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using BefungeSharp.FungeSpace;
+using BefungeSharp.Instructions.Fingerprints;
 
 namespace BefungeSharp
 {    
@@ -32,8 +33,7 @@ namespace BefungeSharp
         /// <summary>
         /// Our Representation of FungeSpace
         /// </summary>
-        private FungeSpace.FungeSparseMatrix _fungeSpace;
-        public FungeSparseMatrix FungeSpace { get { return _fungeSpace; } }
+        public FungeSparseMatrix FungeSpace { get; private set; }
 
         /// <summary>
         /// The size of FungeSpace when in Befunge-93 mode
@@ -70,8 +70,6 @@ namespace BefungeSharp
         //The current mode of the board
         public BoardMode CurMode { get; private set; }
 
-        private List<IP> _IPs;
-
 		/// <summary>
 		/// The current spec version
 		/// </summary>
@@ -82,13 +80,13 @@ namespace BefungeSharp
         /// _IPs[0] is essentially the IP for Unfunge through non concurrent Funge-98 and non-concurrent Tre-Funge
         /// _IPs[1 + n != _IPs.Last()] are only created when using BF98-C
         /// </summary>
-        public List<IP> IPs { get { return _IPs; } }
+        internal List<IP> IPs { get; private set; }
 
         /// <summary>
         /// The Instruction Pointer representing the editor cursor
         /// </summary>
 		public IP EditIP { get; private set; }
-
+		
         /// <summary>
         /// Controls the intepretation and execution of commands
         /// </summary>
@@ -115,10 +113,10 @@ namespace BefungeSharp
                 }
             }
             
-            _fungeSpace = new FungeSparseMatrix(initial_chars);
+            FungeSpace = new FungeSparseMatrix(initial_chars);
             
-            _IPs = new List<IP>();
-            EditIP = new IP(_fungeSpace.Origin, Vector2.East, Vector2.Zero, new Stack<Stack<int>>(), -1, false);
+            IPs = new List<IP>();
+            EditIP = new IP(FungeSpace.Origin, Vector2.East, Vector2.Zero, new Stack<Stack<int>>(), -1, false);
             
             CurMode = mode;
 
@@ -139,13 +137,13 @@ namespace BefungeSharp
 
             fs_view_screen = FS_93;
             //Reset the IP system
-            _IPs.Clear();
+            IPs.Clear();
             IP.ResetCounter();
 
             //Add the main thread IP/standard IP
-            _IPs.Add(new IP());
-            _IPs[0].Active = true;
-            _IPs[0].Position = _fungeSpace.Origin;
+            IPs.Add(new IP());
+            IPs[0].Active = true;
+            IPs[0].Position = FungeSpace.Origin;
         }
 
         /// <summary>
@@ -394,7 +392,7 @@ namespace BefungeSharp
                                 if (keysHit.ElementAt(i).KeyChar >= ' ' && keysHit.ElementAt(i).KeyChar <= '~' 
                                     && (ConEx.ConEx_Input.AltDown || ConEx.ConEx_Input.CtrlDown) == false)
                                 {
-                                    EditIP.Position = _fungeSpace.InsertCell(EditIP.Position.Data.x, EditIP.Position.Data.y, keysHit.ElementAt(0).KeyChar);
+                                    EditIP.Position = FungeSpace.InsertCell(EditIP.Position.Data.x, EditIP.Position.Data.y, keysHit.ElementAt(0).KeyChar);
 
                                     int nextX = EditIP.Position.Data.x + EditIP.Delta.x;
                                     int nextY = EditIP.Position.Data.y + EditIP.Delta.y;
@@ -429,7 +427,7 @@ namespace BefungeSharp
             {
                 //If we are going to draw the IP we are following we must ask,
                 //if it has gone out of the view screen, past which bound did it go?
-                Vector2 followingIPPosition = _IPs[0].Position.Data;//For now, we are always following the main one
+                Vector2 followingIPPosition = IPs[0].Position.Data;//For now, we are always following the main one
                 Vector2 moveDirection = Vector2.Zero;
  
                 //If it went past the right edge
@@ -472,21 +470,21 @@ namespace BefungeSharp
 
         private void DrawFungeSpace()
         {
-            FungeSpaceUtils.DrawFungeSpace(_fungeSpace.Origin, fs_view_screen);
+            FungeSpaceUtils.DrawFungeSpace(FungeSpace.Origin, fs_view_screen);
         }
 
         private void DrawIP()
         {
             //For every IP in the list
-            for (int n = 0; n < _IPs.Count(); n++)
+            for (int n = 0; n < IPs.Count(); n++)
 			{
-                if (_IPs[n].Active == false)
+                if (IPs[n].Active == false)
                 {
                     continue;
                 }
                 
-                int value = _IPs[n].Position.Data.value;
-                FungeNode drawing_position = _IPs[n].Position;
+                int value = IPs[n].Position.Data.value;
+                FungeNode drawing_position = IPs[n].Position;
 
                 //If the next space we are at is actually one we will be skipping over then
                 //look forward to where we ACTUALLY will be going and draw the IP as there
@@ -495,10 +493,10 @@ namespace BefungeSharp
                 //TODO:It's not looking up ; or ' ', its looking up those instructions,
                 //whatever their form might be
                 while ((value == ';' || value == ' ') &&
-						_IPs[n].StringMode == false   &&
+						IPs[n].StringMode == false   &&
 						SpecVersion == 98)
                 {
-                    drawing_position = FungeSpaceUtils.MoveBy(drawing_position, _IPs[n].Delta);
+                    drawing_position = FungeSpaceUtils.MoveBy(drawing_position, IPs[n].Delta);
                     value = drawing_position.Data.value;
                 }
                 value = drawing_position.Data.value;
@@ -613,10 +611,10 @@ namespace BefungeSharp
         private Instructions.CommandType TakeStep()
         {
             //For every active IP in the list
-            for (int n = _IPs.Count - 1; n >= 0; n--)
+            for (int n = IPs.Count - 1; n >= 0; n--)
             {
                 //If the IP isn't active skip over handling it
-                if (_IPs[n].Active == false)
+                if (IPs[n].Active == false)
                 {
                     continue;
                 }
@@ -626,35 +624,42 @@ namespace BefungeSharp
                 //  - We skip over any space that needs to be skipped
                 //  - We execute any command in range
                 //3.) We move the IP
-                int cmd = _IPs[n].Position.Data.value;
+                int cmd = IPs[n].Position.Data.value;
                 
-                if (_IPs[n].StringMode == true && cmd != '"')
+                if (IPs[n].StringMode == true && cmd != '"')
                 {
                     //Push a single ' ' then consume all spaces
-                    _IPs[n].Stack.Push(cmd);
+                    IPs[n].Stack.Push(cmd);
 
                     if (SpecVersion == 98 && cmd == ' ')
                     {
-                        Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
+                        Instructions.InstructionManager.InstructionSet[cmd].Preform(IPs[n]);
                         //We skip moving with .Move() because by now the IP is already in the correct position
                     }
                     else //Also counts for spec_version == 93
                     {
-                        _IPs[n].Move();
+                        IPs[n].Move();
                     }
                 }
                 else 
                 {
                     while ((cmd == ';' || cmd == ' ') && SpecVersion == 98)
                     {
-                        Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
-                        cmd = _IPs[n].Position.Data.value;
+                        Instructions.InstructionManager.InstructionSet[cmd].Preform(IPs[n]);
+                        cmd = IPs[n].Position.Data.value;
                     }
                     if (cmd >= ' ' && cmd <= '~')
                     {
-                        bool success = Instructions.InstructionManager.InstructionSet[cmd].Preform(_IPs[n]);
+						if (cmd > 'A' && cmd < 'Z')
+						{
+							IPs[n].CallFingerprintMember((char)cmd);
+						}
+						else
+						{
+							bool success = Instructions.InstructionManager.InstructionSet[cmd].Preform(IPs[n]);
+						}
                     }
-                    _IPs[n].Move();
+                    IPs[n].Move();
                 }
             }
 
@@ -666,5 +671,26 @@ namespace BefungeSharp
 
             return Instructions.CommandType.NotImplemented;//TODO - Needs a better idea
         }
+
+		public static Instructions.Fingerprints.Fingerprint IsFingerprintEnabled(int bitstring)
+		{
+			return null;
+		}
+
+		/// <summary>
+		/// Checks if the interpreter can currently load a given fingerprint
+		/// </summary>
+		/// <param name="short_name">The short name to check</param>
+		/// <returns>If supported a new copy or reference will be returned, otherwise null is returned</returns>
+		public static Instructions.Fingerprints.Fingerprint IsFingerprintEnabled(string short_name)
+		{
+			switch (short_name)
+			{
+				case "HRTI": return null;
+				case "NULL": return new Instructions.Fingerprints.NULL.NULL();
+				case "ROMA": return new Instructions.Fingerprints.ROMA.ROMA();
+				default: return null;
+			}
+		}
     }
 }

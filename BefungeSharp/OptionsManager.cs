@@ -254,6 +254,7 @@ namespace BefungeSharp
                 COLOR_DataStorage=Green
                 COLOR_FlowControl=Cyan
                 COLOR_FileIO=Gray
+                COLOR_Fingerprint=DarkRed
                 COLOR_Logic=DarkGreen
                 COLOR_Movement=Cyan
                 COLOR_Nop=DarkBlue

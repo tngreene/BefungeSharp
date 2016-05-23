@@ -19,7 +19,6 @@ namespace BefungeSharp.Instructions.Delta
         /// </summary>
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
-        /// <param name="value">The new delta which will be applied to the IP</param>
         public DeltaInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, CommandType.Movement, minimum_flags) { }
     }
 
@@ -66,7 +65,7 @@ namespace BefungeSharp.Instructions.Delta
         public override bool Preform(IP ip)
         {
             Random rnd = new Random();
-            ip.Delta = Vector2.CardinalDirections[rnd.Next(0, 4)];
+            ip.Delta = newDelta = Vector2.CardinalDirections[rnd.Next(0, 4)];
             return true;
         }
     }
@@ -127,7 +126,6 @@ namespace BefungeSharp.Instructions.Delta
         public override bool Preform(IP ip)
         {
             ip.Delta = new Vector2(ip.Delta.y, ip.Delta.x * -1);
-            
             return true;
         }
     }

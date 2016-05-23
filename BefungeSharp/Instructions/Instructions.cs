@@ -15,6 +15,7 @@ namespace BefungeSharp.Instructions
         DataStorage,//gp
         FlowControl,//#@;jqk
         FileIO,//io
+		Fingerprint,//(), any other FP that doesn't match some command type here
         Logic,//!_|`
         Movement,//>v^<?
         Nop,//z and ' '
@@ -342,7 +343,17 @@ namespace BefungeSharp.Instructions
                 //-----------------
                 //--Footprint------
                 case '(':
+					if (spec_version > 93)
+					{
+						outInstruction = new Fingerprints.LoadSemantic(c, NO_93_COMPATIBILITY);
+					}
+					break;
                 case ')':
+					if (spec_version > 93)
+					{
+						outInstruction = new Fingerprints.UnloadSemantic(c, NO_93_COMPATIBILITY);
+					}
+					break;
                 case 'A':
                 case 'B':
                 case 'C':
@@ -371,7 +382,7 @@ namespace BefungeSharp.Instructions
                 case 'Z':
                     if (spec_version > 93)
                     {
-                        outInstruction = new SystemCall.NotImplemented(c, NO_93_COMPATIBILITY);
+						outInstruction = new Instructions.Fingerprints.NULL.NULL_Instruction(c);
                     }
                     break;
                 //-----------------
@@ -379,9 +390,9 @@ namespace BefungeSharp.Instructions
                 case 'h'://Go high, 3D movement
                 case 'l'://Go low, 3D movement
                 case 'm'://3D if statment
-                    if (spec_version > 93 && dimensions == 3)
+                    if (spec_version > 93 && dimensions >= 3)
                     {
-                        //For now Footprint and Trefunge all get "Not Implemented", which acts like 'r'
+                        //For now Trefunge all get "Not Implemented", which acts like 'r'
                         outInstruction = new SystemCall.NotImplemented(c, (RuntimeFeatures.TF | RuntimeFeatures.VERSION_98));
                     }
                     break;
