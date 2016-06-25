@@ -63,11 +63,12 @@ namespace BefungeSharp.Instructions.Fingerprints
 		/// <param name="long_name">The long description of fingerprint</param>
 		/// <param name="short_name">The short description of fingerprint</param>
 		/// <param name="bitstring">An optional bitstring if there is no short name</param>
-		public Fingerprint(FingerprintType type, string long_name="", string short_name="", int bitstring=0)
+		public Fingerprint(FingerprintType type, string short_name="", string long_name="", int bitstring=0)
 		{
 			Type = type;
-			LongName  = long_name;
 			ShortName = short_name;
+			LongName  = long_name;
+
 			Bitstring = bitstring == 0 ? GenerateBitstring(short_name) : bitstring;
 
 			Members = new Dictionary<char, Instruction>(26);

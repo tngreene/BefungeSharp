@@ -55,6 +55,8 @@
     <Compile Include="Instructions\FileIOInstructions.cs" />
     <Compile Include="Instructions\Fingerprints\FingerprintInstruction.cs" />
     <Compile Include="Instructions\Fingerprints\Fingerprint.cs" />
+    <Compile Include="Instructions\Fingerprints\HRTI\HRTI.cs" />
+    <Compile Include="Instructions\Fingerprints\HRTI\HRTI_Instructions.cs" />
     <Compile Include="Instructions\Fingerprints\NULL\NULL.cs" />
     <Compile Include="Instructions\Fingerprints\NULL\NULL_Instructions.cs" />
     <Compile Include="Instructions\Fingerprints\ROMA\ROMA.cs" />

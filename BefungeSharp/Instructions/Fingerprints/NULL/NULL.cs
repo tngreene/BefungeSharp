@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace BefungeSharp.Instructions.Fingerprints.NULL
 {
+	//Original Author: Chris Pressy
+	//Original Spec: https://github.com/catseye/Funge-98/blob/master/library/NULL.markdown
 	public class NULL : Fingerprint
 	{
 		public NULL() : base(FingerprintType.Tame, "NULL", "NULL")

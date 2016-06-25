@@ -686,7 +686,7 @@ namespace BefungeSharp
 		{
 			switch (short_name)
 			{
-				case "HRTI": return null;
+				case "HRTI": return new Instructions.Fingerprints.HRTI.HRTI();
 				case "NULL": return new Instructions.Fingerprints.NULL.NULL();
 				case "ROMA": return new Instructions.Fingerprints.ROMA.ROMA();
 				default: return null;
