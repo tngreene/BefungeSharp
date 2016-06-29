@@ -22,7 +22,6 @@ namespace BefungeSharp.Instructions.Fingerprints.HRTI
 
 		public override void Load()
 		{
-			MarkList.Clear();
 			Timer.Start();
 			Members['E'] = new EraseMarkInstruction  ('E', "Erase mark' erases the last timer mark by this IP (such that T above will act like r)");
 			Members['G'] = new GranularityInstruction('G', "'Granularity' pushes the smallest clock tick the underlying system can reliably handle, measured in microseconds.");
@@ -33,8 +32,7 @@ namespace BefungeSharp.Instructions.Fingerprints.HRTI
 
 		public override void Unload()
 		{
-			MarkList.Clear();
-			Timer.Stop();
+			//Nothing special here...
 		}
 	}
 }

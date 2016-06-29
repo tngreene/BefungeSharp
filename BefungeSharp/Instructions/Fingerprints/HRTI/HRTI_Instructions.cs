@@ -12,7 +12,7 @@ namespace BefungeSharp.Instructions.Fingerprints.HRTI
 		protected static long CurrentMicroseconds { get { return (long)(Math.Floor(Stopwatch.Frequency / 1000000.0) * HRTI.Timer.ElapsedTicks); } }
 
 		public HRTI_Instruction(char inName, string description)
-			: base(inName, RuntimeFeatures.UF, CommandType.Number, "HRTI", description)
+			: base(inName, RuntimeFeatures.UF, CommandType.Fingerprint, "HRTI", description)
 		{
 		}
 	}

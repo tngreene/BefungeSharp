@@ -59,6 +59,8 @@
     <Compile Include="Instructions\Fingerprints\HRTI\HRTI_Instructions.cs" />
     <Compile Include="Instructions\Fingerprints\NULL\NULL.cs" />
     <Compile Include="Instructions\Fingerprints\NULL\NULL_Instructions.cs" />
+    <Compile Include="Instructions\Fingerprints\REFC\REFC.cs" />
+    <Compile Include="Instructions\Fingerprints\REFC\REFC_Instructions.cs" />
     <Compile Include="Instructions\Fingerprints\ROMA\ROMA.cs" />
     <Compile Include="Instructions\Fingerprints\ROMA\ROMA_Instructions.cs" />
     <Compile Include="Instructions\StackStackInstructions.cs" />

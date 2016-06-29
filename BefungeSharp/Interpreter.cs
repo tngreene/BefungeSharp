@@ -688,6 +688,7 @@ namespace BefungeSharp
 			{
 				case "HRTI": return new Instructions.Fingerprints.HRTI.HRTI();
 				case "NULL": return new Instructions.Fingerprints.NULL.NULL();
+				case "REFC": return new Instructions.Fingerprints.REFC.REFC();
 				case "ROMA": return new Instructions.Fingerprints.ROMA.ROMA();
 				default: return null;
 			}
