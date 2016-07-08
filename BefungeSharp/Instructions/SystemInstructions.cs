@@ -153,9 +153,9 @@ namespace BefungeSharp.Instructions.SystemCall
                         }
                         break;
                     #endregion
-                    #region case 16
+					#region 16. The current hour, minute, and second (local environment)
 					case 16:
-                        //16. The current hour, minute, and second (local environment)
+                        
                         {
                             System.DateTime time = System.DateTime.Now;
                             int hours = time.Hour * 256 * 256;
@@ -269,20 +269,17 @@ namespace BefungeSharp.Instructions.SystemCall
                         }
                         break;
 					#endregion
-                    #region case 4
+					#region 4. A cell containing this implementation's version number 
 					case 4:
-                        //4. A cell containing this implementation's version number 
                         //where all .'s are stripped out (local environment)
                         {
-                            //I'd say we're more than half way and really rocking the application
-                            //development making our current version 6.8
-                            ip.Stack.Push(68);
+                            //With only Trefunge and more Fingerprints to add, I'd say we're 88% there!
+                            ip.Stack.Push(88);
                         }
                         break;
 					#endregion
-                    #region case 3
+					#region 3. A cell containing this implementation's handprint (local environment)
 					case 3:
-                        //3. A cell containing this implementation's handprint (local environment)
                         //Our handprint is BSHP for BefungeSharp! Oh so clever.
                         {
                             //0x42534850, aka 

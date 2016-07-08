@@ -31,6 +31,7 @@ Completed Features
 * Interpreter
 	- [x] Visualizes FungeSpace and all active IPs!
 	- [x] FungeSpace is Funge-98 compliant
+	- [x] HRTI and other fingerprints are supported
 	- [x] Implemented i, o, t, =, y, {, and } instructions
 	- [x] Switch among step, slow - fast speeds, and output only view
 	- [x] Sandbox mode for i, o, and = instructions
@@ -55,7 +56,6 @@ Planned features
 	- [ ] "Reverse selection in place" feature
 	- [ ] "Rotate selection" feature
 * Interpreter
-	- [ ] Schematics system
 	- [ ] Trefunge support
 	- [ ] Better performance
 	- [ ] Logging output to files
