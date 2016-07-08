@@ -39,7 +39,7 @@ namespace BefungeSharp
 		/// <summary>
 		/// The dictionary of ip's loaded fingerprints, by default is loaded with "NULL"
 		/// </summary>
-		public Stack<Fingerprint> LoadedFingerprints { get; private set; }
+		public List<Fingerprint> LoadedFingerprints { get; private set; }
 
         /// <summary>
         /// Active is whether the IP should be drawn/updated/moved/anything. It is not the same a stopped IP
@@ -78,9 +78,9 @@ namespace BefungeSharp
             ID_Counter++;
             StringMode = false;
 
-			LoadedFingerprints = new Stack<Fingerprint>();
-			LoadedFingerprints.Push(new Instructions.Fingerprints.NULL.NULL());
-			LoadedFingerprints.Peek().Load();
+			LoadedFingerprints = new List<Fingerprint>();
+			LoadedFingerprints.Add(new Instructions.Fingerprints.NULL.NULL());
+			LoadedFingerprints.First().Load();
         }
 
         public IP(FungeNode position, Vector2 delta, Vector2 storageOffset, Stack<Stack<int>> stack_stack, int parent_id, bool willIncrementCounter)
@@ -105,9 +105,9 @@ namespace BefungeSharp
             }
             StringMode = false;
 
-			LoadedFingerprints = new Stack<Fingerprint>();
-			LoadedFingerprints.Push(new Instructions.Fingerprints.NULL.NULL());
-			LoadedFingerprints.Peek().Load();
+			LoadedFingerprints = new List<Fingerprint>();
+			LoadedFingerprints.Add(new Instructions.Fingerprints.NULL.NULL());
+			LoadedFingerprints.First().Load();
         }
 
         //For use with Funge-98C
@@ -136,7 +136,7 @@ namespace BefungeSharp
 
             StringMode = false;
 
-			LoadedFingerprints = new Stack<Fingerprint>(parent.LoadedFingerprints);
+			LoadedFingerprints = new List<Fingerprint>(parent.LoadedFingerprints);
         }
 
         public void Move()
@@ -191,7 +191,7 @@ namespace BefungeSharp
 
 			//From the top to the bottom, check if the fingerprint has a member
 			//Eventually it will reach NULL, and quit
-			for (int i = 0; i < LoadedFingerprints.Count; i++)
+			for (int i = LoadedFingerprints.Count(); i >= 0; --i)
 			{
 				Instruction inst = LoadedFingerprints.ElementAt(i).Members[c];
 				if (inst != null)

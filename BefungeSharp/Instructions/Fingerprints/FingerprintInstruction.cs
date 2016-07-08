@@ -27,7 +27,7 @@ namespace BefungeSharp.Instructions.Fingerprints
 		//Description for Fingerprint Instructions (excluding '(' and ')')
 		public string Description { get; protected set; }
 	}
-
+	
 	public class LoadSemantic : FingerprintInstruction
 	{
 		public LoadSemantic(char inName, RuntimeFeatures minimum_flags)
@@ -37,27 +37,19 @@ namespace BefungeSharp.Instructions.Fingerprints
 
 		public override bool Preform(IP ip)
 		{
-			int count = ip.Stack.Pop();
+			uint bitstring = Fingerprint.EncodeBitstring(ip.Stack);
 
-			string short_name = "";
-			for (int i = 0; i < count; i++)
-			{
-				short_name += (char)ip.Stack.Pop();
-			}
-
-			//TODO: For when we have a Fingerprint w/o a name
-			//int bitstring = Fingerprint.GenerateBitstring(short_name);
-			//bool enabled = Interpreter.IsFingerprintEnabled(bitstring);
-			
-			Fingerprint fp = Interpreter.IsFingerprintEnabled(short_name);
+			Fingerprint fp = Interpreter.IsFingerprintEnabled(bitstring);
 			if (fp == null)
 			{
-				new Delta.ReverseDeltaInstruction('r', 0).Preform(ip);
+				return Instructions.Instruction.MakeInstruction('r').Preform(ip);
 			}
 			else
 			{
 				fp.Load();
-				ip.LoadedFingerprints.Push(fp);
+				ip.LoadedFingerprints.Insert(0,fp);
+				ip.Stack.Push((int)bitstring);
+				ip.Stack.Push(1);
 			}
 			return true;
 		}
@@ -73,7 +65,24 @@ namespace BefungeSharp.Instructions.Fingerprints
 		public override bool Preform(IP ip)
 		{
 			//Make sure you cannot pop off NULL
-			throw new NotImplementedException();
+			if (ip.LoadedFingerprints.Count() == 1)
+			{
+				Instruction.MakeInstruction('r').Preform(ip);
+			}
+			else
+			{
+				uint bitstring = Fingerprint.EncodeBitstring(ip.Stack);
+				for (int i = 0; i < ip.LoadedFingerprints.Count(); i++)
+				{
+					if (ip.LoadedFingerprints.ElementAt(i).Bitstring == bitstring)
+					{
+						ip.LoadedFingerprints.ElementAt(i).Unload();
+						ip.LoadedFingerprints.RemoveAt(i);
+					}
+				}
+			}
+
+			return true;
 		}
 	}
 }

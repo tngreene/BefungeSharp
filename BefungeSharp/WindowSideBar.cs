@@ -32,7 +32,8 @@ namespace BefungeSharp
 			Edit_SelectionMode,
 			Run_RealtimeMode,
 			Run_StepMode,
-			Extra_ASCII_Table
+			Extra_ASCII_Table,
+			LoadedFingerprints
 		}
 
 		/// <summary>
@@ -45,17 +46,21 @@ namespace BefungeSharp
 		/// </summary>
         private List<Tuple<Page, string[]>> _current_pages;
 
-        private string[] CurrentPage { get { return _current_pages[_page_index].Item2; } }
+        private string[] CurrentPage { get { return _current_pages[PageIndex].Item2; } }
 
 		/// <summary>
 		/// The current page we're on
 		/// </summary>
-		private int _page_index;
+		private int PageIndex { get; set; }
 
 		/// <summary>
 		/// The blank template page
 		/// </summary>
 		private readonly string[] TEMPLATE_PAGE;
+		private readonly int PAGE_HEADER_START; //0
+		private readonly int PAGE_HEADER_END; //2
+		private readonly int PAGE_ROW; //3
+		private readonly int PAGE_END;
 
 		public WindowSideBar()
         {
@@ -69,15 +74,18 @@ namespace BefungeSharp
             {
                 //Create a 36 row long blank template which can have portions overridden
                 int i = 0;
+				PAGE_HEADER_START = i;
                 TEMPLATE_PAGE[i++] = "╔══════════════════════════════════╗";
                 TEMPLATE_PAGE[i++] = "║                                  ║";
                 TEMPLATE_PAGE[i++] = "╠══════════════════════════════════╣";
-
+				PAGE_HEADER_END = i-1;
+				PAGE_ROW = i;
                 for (i = 3; i < TEMPLATE_PAGE.Length - 3; i++)
                 {
                     TEMPLATE_PAGE[i] = "║                                  ║";
                 }
-
+				
+				PAGE_END = i;
                 TEMPLATE_PAGE[i++] = "╚══════════════════════════════════╝";
                 TEMPLATE_PAGE[i++] = "";
                 TEMPLATE_PAGE[i++] = "◄◄ Home           N/C         End ►►";
@@ -90,22 +98,23 @@ namespace BefungeSharp
 
                 //The regular keyboard shortcuts
                 new string[]{
-							TEMPLATE_PAGE[0],
+							TEMPLATE_PAGE[PAGE_HEADER_START],
 							"║            Edit Shortcuts        ║",
-							TEMPLATE_PAGE[2],
+							TEMPLATE_PAGE[PAGE_HEADER_END],
 							"║New File - Ctrl + N               ║",
 							"║Save - Alt + S                    ║",
 							"║Reload Source - Alt + R           ║",
-                            TEMPLATE_PAGE[3],
+                            TEMPLATE_PAGE[PAGE_ROW],
 							"║Run (Step) - F1                   ║",
 							"║Run (Real Time) - F2 - F5         ║",
 							"║Run (Terminal Mode) - F6          ║",
-                            TEMPLATE_PAGE[3],
+                            TEMPLATE_PAGE[PAGE_ROW],
 							"║Main Menu - Esc                   ║",
-                            TEMPLATE_PAGE[3],
+                            TEMPLATE_PAGE[PAGE_ROW],
 							"║Insert Snippet - Insert           ║",
 							"║Set IP Delta - Ctrl + Arrow Key   ║",
 							"║Select - Shift (hold) + Arrow Key ║",
+							"║Move Viewport - Tab + Arrow Key   ║"
 							//"║XSelect All - Ctrl + A           ║",
 							}.CopyTo(_all_pages[Page.Edit_NormalMode], 0);
             }
@@ -115,9 +124,9 @@ namespace BefungeSharp
                 _all_pages.Add(Page.Edit_SelectionMode, new string[TEMPLATE_PAGE.Length]);
                 TEMPLATE_PAGE.CopyTo(_all_pages[Page.Edit_SelectionMode], 0);
                 new string[] {
-								TEMPLATE_PAGE[0],
+								TEMPLATE_PAGE[PAGE_HEADER_START],
 								"║       Selection Shortcuts        ║",
-								TEMPLATE_PAGE[2],
+								TEMPLATE_PAGE[PAGE_HEADER_END],
 								"║Adjust Selection Box - Arrow Keys ║",
 								"║Copy Section - Ctrl + C           ║",
 								"║Cut Section - Ctrl + X            ║",
@@ -134,25 +143,26 @@ namespace BefungeSharp
                 TEMPLATE_PAGE.CopyTo(_all_pages[Page.Run_RealtimeMode], 0);
 
                 new string[] {
-						TEMPLATE_PAGE[0],
+						TEMPLATE_PAGE[PAGE_HEADER_START],
 						"║        Realtime Shortcuts        ║",
-						TEMPLATE_PAGE[2],
+						TEMPLATE_PAGE[PAGE_HEADER_END],
 						"║Select Speed - F1 - F6            ║",
 						"║Back to Edit Mode - F12           ║"
 					}.CopyTo(_all_pages[Page.Run_RealtimeMode], 0);
             }
 
+			//Step runtime mode
             {
                 _all_pages.Add(Page.Run_StepMode, new string[TEMPLATE_PAGE.Length]);
                 TEMPLATE_PAGE.CopyTo(_all_pages[Page.Run_StepMode], 0);
 
                 new string[] {
-					    TEMPLATE_PAGE[0],
+					    TEMPLATE_PAGE[PAGE_HEADER_START],
 						"║            Step Shortcuts        ║",
-						TEMPLATE_PAGE[2],
+						TEMPLATE_PAGE[PAGE_HEADER_END],
 						"║Select Speed - F1 - F6            ║",
                         "║Back to Edit Mode - F12           ║",
-                        TEMPLATE_PAGE[3],
+                        TEMPLATE_PAGE[PAGE_ROW],
                         "║Next Tick - Right Arrow           ║"
 				}.CopyTo(_all_pages[Page.Run_StepMode], 0);
             }
@@ -194,6 +204,20 @@ namespace BefungeSharp
                     "╚═══════╩═══════╩════════╩═════════╝"
 			    }.CopyTo(_all_pages[Page.Extra_ASCII_Table], 0);
             }
+
+			//Loaded Fingerprints Table
+			{
+				_all_pages.Add(Page.LoadedFingerprints, new string[TEMPLATE_PAGE.Length]);
+				TEMPLATE_PAGE.CopyTo(_all_pages[Page.LoadedFingerprints], 0);
+
+				new string[] {
+						TEMPLATE_PAGE[PAGE_HEADER_START],
+						"║        Loaded Fingerprints       ║",
+						TEMPLATE_PAGE[PAGE_HEADER_END],
+						"║                                  ║",
+						"║                                  ║"
+					}.CopyTo(_all_pages[Page.LoadedFingerprints], 0);
+			}
             _current_pages = new List<Tuple<Page, string[]>>();
         }
 
@@ -204,7 +228,7 @@ namespace BefungeSharp
 		public void Draw(BoardMode mode)
 		{
             //Update the page index bar
-			CurrentPage[TEMPLATE_PAGE.Length-1] = String.Format("◄◄ Home           {0}/{1}         End ►►", _page_index + 1, _current_pages.Count());
+			CurrentPage[TEMPLATE_PAGE.Length-1] = String.Format("◄◄ Home           {0}/{1}         End ►►", PageIndex + 1, _current_pages.Count());
 
 			//Insert every string of the page into the draw buffer
 			for (int i = 0; i < CurrentPage.Count(); i++)
@@ -258,6 +282,31 @@ namespace BefungeSharp
 			ConEx.ConEx_Draw.FillArea(' ', BAR_TOP, BAR_LEFT, ConEx.ConEx_Draw.Dimensions.width, ConEx.ConEx_Draw.Dimensions.height);
 		}
 
+		public string[] RefreshLoadedFingerprintsPage()
+		{
+			string[] loaded_fingerprints_page = new string[TEMPLATE_PAGE.Length];
+			_all_pages[Page.LoadedFingerprints].CopyTo(loaded_fingerprints_page, 0);
+
+			IP ip =  Program.Interpreter.IPs.First();
+
+			for (int i = ip.LoadedFingerprints.Count() - 1; i >= 0 && i < PAGE_END; --i)
+			{
+				string short_name = ip.LoadedFingerprints.ElementAt(i).ShortName;
+				string members = new string(ip.LoadedFingerprints.ElementAt(i)
+											.Members
+											.Select(s => s.Value == null ? ' ' : s.Key)
+											.ToArray<char>());
+
+				string fingerprint_members = (TEMPLATE_PAGE[PAGE_ROW][0] + " " + short_name + ":" + members)
+											.PadRight(TEMPLATE_PAGE[0].Count() - 1, ' ')
+											+ TEMPLATE_PAGE[PAGE_ROW][TEMPLATE_PAGE[PAGE_ROW].Count()-1];
+
+				loaded_fingerprints_page[PAGE_HEADER_END + 1 + i] = fingerprint_members;
+			}
+
+			return loaded_fingerprints_page;
+		}
+
 		public void Update(BoardMode mode, IEnumerable<ConsoleKeyInfo> keysHit)
 		{
 			#region --HandleInput-------------
@@ -272,39 +321,58 @@ namespace BefungeSharp
                 {
                     //Cycle through the pages
                     case ConsoleKey.Home:
-                        _page_index = _page_index > 0 ? _page_index -= 1 : _page_index = _current_pages.Count - 1;
+                        PageIndex = PageIndex > 0 ? PageIndex -= 1 : PageIndex = _current_pages.Count - 1;
                         break;
                     case ConsoleKey.End:
-                        _page_index = _page_index < _current_pages.Count - 1 ? _page_index += 1 : _page_index = 0;
+                        PageIndex = PageIndex < _current_pages.Count - 1 ? PageIndex += 1 : PageIndex = 0;
                         break;
                 }
 			}
 			#endregion
 
             _current_pages.Clear();
-            switch(mode)
+			if (mode == BoardMode.Edit)
+			{
+
+			}
+			else
+			{
+				if (mode == BoardMode.Run_STEP)
+				{
+					_current_pages.Add(new Tuple<Page, string[]>(Page.Run_StepMode, _all_pages[Page.Run_StepMode]));
+				}
+				else
+				{
+					_current_pages.Add(new Tuple<Page, string[]>(Page.Run_RealtimeMode, _all_pages[Page.Run_RealtimeMode]));
+				}
+
+				_all_pages[Page.LoadedFingerprints] = RefreshLoadedFingerprintsPage();
+				_current_pages.Add(new Tuple<Page, string[]>(Page.LoadedFingerprints, _all_pages[Page.LoadedFingerprints]));
+			}
+			_current_pages.Add(new Tuple<Page, string[]>(Page.Extra_ASCII_Table, _all_pages[Page.Extra_ASCII_Table]));
+
+			switch (mode)
 			{
 				case BoardMode.Run_MAX:
 				case BoardMode.Run_FAST:
 				case BoardMode.Run_MEDIUM:
 				case BoardMode.Run_SLOW:
-                    _current_pages.Add(new Tuple<Page,string[]>(Page.Run_RealtimeMode, _all_pages[Page.Run_RealtimeMode]));
+
 					break;
 				case BoardMode.Run_STEP:
-                    _current_pages.Add(new Tuple<Page, string[]>(Page.Run_StepMode, _all_pages[Page.Run_StepMode]));
+
 					break;
 				case BoardMode.Edit:
-					if(Program.WindowUI.SelectionActive == true)
+					if (Program.WindowUI.SelectionActive == true)
 					{
-                        _current_pages.Add(new Tuple<Page, string[]>(Page.Edit_SelectionMode, _all_pages[Page.Edit_SelectionMode]));
+						_current_pages.Add(new Tuple<Page, string[]>(Page.Edit_SelectionMode, _all_pages[Page.Edit_SelectionMode]));
 					}
 					else
 					{
-                        _current_pages.Add(new Tuple<Page, string[]>(Page.Edit_NormalMode, _all_pages[Page.Edit_NormalMode]));
+						_current_pages.Add(new Tuple<Page, string[]>(Page.Edit_NormalMode, _all_pages[Page.Edit_NormalMode]));
 					}
 					break;
 			}
-            _current_pages.Add(new Tuple<Page, string[]>(Page.Extra_ASCII_Table, _all_pages[Page.Extra_ASCII_Table]));
 		}
 	}
 }

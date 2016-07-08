@@ -492,6 +492,8 @@ namespace BefungeSharp
 
                 //TODO:It's not looking up ; or ' ', its looking up those instructions,
                 //whatever their form might be
+
+				//TODO: Infinite loop on empty program
                 while ((value == ';' || value == ' ') &&
 						IPs[n].StringMode == false   &&
 						SpecVersion == 98)
@@ -672,9 +674,9 @@ namespace BefungeSharp
             return Instructions.CommandType.NotImplemented;//TODO - Needs a better idea
         }
 
-		public static Instructions.Fingerprints.Fingerprint IsFingerprintEnabled(int bitstring)
+		public static Instructions.Fingerprints.Fingerprint IsFingerprintEnabled(uint bitstring)
 		{
-			return null;
+			return IsFingerprintEnabled(Instructions.Fingerprints.Fingerprint.DecodeBitstring(bitstring));
 		}
 
 		/// <summary>

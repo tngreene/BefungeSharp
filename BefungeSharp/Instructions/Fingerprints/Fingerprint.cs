@@ -34,7 +34,7 @@ namespace BefungeSharp.Instructions.Fingerprints
 		/// <summary>
 		/// Bitstring of fingerprint such as 0x54555254 or 0x48525449
 		/// </summary>
-		public int Bitstring { get; private set; }
+		public uint Bitstring { get; private set; }
 
 		/// <summary>
 		/// Long name such as "Simple Turtle Graphics Library" or "High Resolution Time Interface"
@@ -63,13 +63,13 @@ namespace BefungeSharp.Instructions.Fingerprints
 		/// <param name="long_name">The long description of fingerprint</param>
 		/// <param name="short_name">The short description of fingerprint</param>
 		/// <param name="bitstring">An optional bitstring if there is no short name</param>
-		public Fingerprint(FingerprintType type, string short_name="", string long_name="", int bitstring=0)
+		public Fingerprint(FingerprintType type, string short_name="", string long_name="", uint bitstring=0)
 		{
 			Type = type;
 			ShortName = short_name;
 			LongName  = long_name;
 
-			Bitstring = bitstring == 0 ? GenerateBitstring(short_name) : bitstring;
+			Bitstring = bitstring == 0 ? EncodeBitstring(short_name) : bitstring;
 
 			Members = new Dictionary<char, Instruction>(26);
 			for (char c = 'A'; c < 'Z'; c++)
@@ -88,17 +88,49 @@ namespace BefungeSharp.Instructions.Fingerprints
 		/// </summary>
 		public abstract void Unload();
 
-		public static int GenerateBitstring(string short_name)
+		public static uint EncodeBitstring(Stack<int> stack)
 		{
-			int bitstring = 0;
-			for (int i = short_name.Length - 1; i >= 0; i--)
+			int count = stack.Pop();
+			uint bitstring = 0;
+			while(count > 0)
 			{
-				bitstring += short_name[i] * 256;
+				bitstring = (bitstring << 8) + (uint)stack.PopOrDefault();
+				count--;
 			}
 			
 			return bitstring;
 		}
-		
+
+		public static uint EncodeBitstring(string str)
+		{
+			uint bitstring = 0;
+			for (int i = 0; i < str.Count(); i++)
+			{
+				bitstring = (bitstring << 8) + str[i];
+			}
+
+			return bitstring;
+		}
+
+		public static string DecodeBitstring(uint bitstring)
+		{
+			string decoded_string = "";
+			uint mask = 0xFF000000;
+			int bytes_remaining = 4;
+			while (bytes_remaining > 0)
+			{
+				uint masked_bits = mask & bitstring;
+				char c = (char)(masked_bits >> (bytes_remaining - 1) * 8);
+
+				decoded_string += c;
+				mask >>= 8;
+
+				--bytes_remaining;
+			}
+
+			return decoded_string;
+		}
+
 		/// <summary>
 		/// Print all members and a brief description of them
 		/// </summary>
