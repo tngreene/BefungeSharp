@@ -231,19 +231,17 @@ namespace BefungeSharp.Instructions.SystemCall
                         }
                         break;
 					#endregion
-                    #region case 8
+					#region 8. A cell containing the unique ID for the current ip (ip specific)
 					case 8:
-                        //8. A cell containing the unique ID for the current ip (ip specific)
                         //Used in Concurrent Funge
                         {
                             ip.Stack.Push(ip.ID);
                         }
                         break;
 					#endregion
-                    #region case 7
+                    #region 7. A cell containing the dimensions of the interpreter (global environment)
 					case 7:
-                        //7. A cell containing the dimensions of the interpreter
-                        //1 for Unefunge, 2 for Befunge, 3 for Trefunge, etc. (global environment)
+						//1 for Unefunge, 2 for Befunge, 3 for Trefunge, etc. 
                         {
                             //For now we'll just push 2
                             ip.Stack.Push(2);
@@ -274,7 +272,7 @@ namespace BefungeSharp.Instructions.SystemCall
                         //where all .'s are stripped out (local environment)
                         {
                             //With only Trefunge and more Fingerprints to add, I'd say we're 88% there!
-                            ip.Stack.Push(88);
+                            ip.Stack.Push(088);
                         }
                         break;
 					#endregion
@@ -293,22 +291,25 @@ namespace BefungeSharp.Instructions.SystemCall
                         }
                         break;
 					#endregion
-                    #region case 2
+					#region 2. A cell containing the number of bytes per cell
 					case 2:
-                        //2. A cell containing the number of bytes per cell
                         {
                             ip.Stack.Push(sizeof(int));
                         }
                         break;
 					#endregion
-                    #region case 1
+					#region //1. A cell containing various flags relating to which instructions
 					case 1:
-                        //1. A cell containing various flags relating to which instructions
-                        //Are implemented
                         {
                             //ip.Stack.Push((int)flags);
                             //t,= implemented, StdIO acts like getch()
-                            ip.Stack.Push(0x01 | 0x08 | 0x10);
+							RuntimeFeatures flags = 0x0;
+							flags |= OptionsManager.Get<bool>("I", "LF_CONCURRENCY") == true ? RuntimeFeatures.CONCURRENT_FUNGE : 0x0;
+							flags |= OptionsManager.Get<bool>("I", "LF_FILE_INPUT")  == true ? RuntimeFeatures.FILE_INPUT : 0x0;
+							flags |= OptionsManager.Get<bool>("I", "LF_FILE_OUTPUT") == true ? RuntimeFeatures.FILE_OUTPUT : 0x0;
+							flags |= OptionsManager.Get<int>("I", "LF_EXECUTE_STYLE") > 0    ? RuntimeFeatures.EXECUTE : 0x0;
+							flags |= OptionsManager.Get<int>("I", "LF_STD_INPUT_STYLE") > 0  ? RuntimeFeatures.UNBUFFERED_IO : 0x0;
+							ip.Stack.Push((int)flags);
                         }
                         break;
 					#endregion
