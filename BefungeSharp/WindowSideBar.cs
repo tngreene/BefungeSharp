@@ -430,9 +430,12 @@ namespace BefungeSharp
 				case BoardMode.Run_STEP:
 					EnabledPages.Add(Page.Run_StepMode);
 					EnabledPages.Add(Page.Extra_ASCII_Table);
-					
-					RefreshLoadedFingerprintsPage();
-					EnabledPages.Add(Page.Loaded_Fingerprints);
+
+					if (OptionsManager.Get<int>("I", "LF_SPEC_VERSION") >= 98)
+					{
+						RefreshLoadedFingerprintsPage();
+						EnabledPages.Add(Page.Loaded_Fingerprints);
+					}
 					break;
 				case BoardMode.Edit:
 					if (Program.WindowUI.SelectionActive == true)
