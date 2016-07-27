@@ -124,6 +124,7 @@ namespace BefungeSharp.Menus
                 }
                 else
                 {
+					OptionsManager.Set<string>("G", "FILE_LAST_USED", path);
                     Console.WriteLine("Success!");
                     Console.WriteLine();
                     break;
