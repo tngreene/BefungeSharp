@@ -195,9 +195,10 @@ namespace BefungeSharp
 								TEMPLATE_PAGE[PAGE_ROW],
 								"║Main Menu - Esc                   ║",
 								TEMPLATE_PAGE[PAGE_ROW],
-								"║Insert Snippet - Insert           ║",
-								"║Set IP Delta - Ctrl + Arrow Key   ║",
-								"║Select - Shift (hold) + Arrow Key ║",
+								"║Toggle Insert/Overwrite - Insert  ║",
+								"║Insert Snippet - Shift + Insert   ║",
+								"║Change Heading - Ctrl + Arrow Key ║",
+								"║Select - Hold Shift + Arrow Key ║",
 								"║Move Viewport - Tab + Arrow Key   ║"
 								//"║XSelect All - Ctrl + A           ║",
 								});

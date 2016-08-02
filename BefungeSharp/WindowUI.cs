@@ -255,9 +255,24 @@ namespace BefungeSharp
                     break;
                 case BoardMode.Edit:
                     sb.Append("Edit");
+					sb.Append(" ");
+					if (Program.Interpreter.CurrentWriteMode == WriteMode.Insert)
+					{
+						sb.Append("INS");
+					}
+					else if (Program.Interpreter.CurrentWriteMode == WriteMode.Overwrite)
+					{
+						sb.Append("OVR");
+					}
+					else
+					{
+						throw new Exception("Write mode " + Program.Interpreter.CurrentWriteMode + " unknown");
+					}
                     break;
             }
             sb.Append(" ");
+
+			
 
             //Based on the IP's delta show it's delta as a unicode arrow/symbol
             if (selectedIP.Delta == Vector2.North)

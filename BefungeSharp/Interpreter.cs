@@ -24,6 +24,12 @@ namespace BefungeSharp
         Debug//The program is running in debug mode
     }
 
+	public enum WriteMode
+	{
+		Insert,   //Every character typed shifts all other cells by delta
+		Overwrite //Every character typed overwrites the cell under the EditIP
+	}
+
     /// <summary>
     /// A Funge Interpreter, containing a FungeSpace, a list of instruction pointers,
     /// and capabilities for editing FungeSpace
@@ -86,7 +92,12 @@ namespace BefungeSharp
         /// The Instruction Pointer representing the editor cursor
         /// </summary>
 		public IP EditIP { get; private set; }
-		
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public WriteMode CurrentWriteMode { get; private set; }
+
         /// <summary>
         /// Controls the intepretation and execution of commands
         /// </summary>
@@ -117,7 +128,8 @@ namespace BefungeSharp
             
             IPs = new List<IP>();
             EditIP = new IP(FungeSpace.Origin, Vector2.East, Vector2.Zero, new Stack<Stack<int>>(), -1, false);
-            
+			CurrentWriteMode = WriteMode.Overwrite;
+
             CurMode = mode;
 
             Instructions.InstructionManager.BuildInstructionSet();
@@ -250,8 +262,9 @@ namespace BefungeSharp
                     }
                     break;
                     #endregion
-                case BoardMode.Edit:                                        
-                    #region --HandleInput-------------
+                case BoardMode.Edit:
+					HandleModifiers(mode, keysHit);
+					#region --HandleInput-------------
                     for (int i = 0; i < keysHit.Count(); i++)
                     {
                         //--Debugging key presses
@@ -262,7 +275,7 @@ namespace BefungeSharp
                         switch (keysHit.ElementAt(i).Key)
                         {
                             /*Arrow Keys
-                             * Tab   + Arrow Key moves view screen
+                             * Tab  + Arrow Key moves view screen
                              * Ctrl + Arrow Key changes IP direction
                              * 
                              * This system makes sure we still use our generalizations and
@@ -339,28 +352,15 @@ namespace BefungeSharp
                                 }
                                 break;
                             case ConsoleKey.Insert:
-                                {
-                                    string snippet = "UI_SNIPPET_";
-                                    
-                                    if(EditIP.Delta == Vector2.North)
-                                    {
-                                        snippet += "N";
-                                    }
-                                    else if(EditIP.Delta == Vector2.East)
-                                    {
-                                        snippet += "E";
-                                    }
-                                    else if(EditIP.Delta == Vector2.South)
-                                    {
-                                        snippet += "S";
-                                    }
-                                    else if(EditIP.Delta == Vector2.West)
-                                    {
-                                        snippet += "W";
-                                    }
-                                                                        
-                                    EditIP.Position = FungeSpaceUtils.ChangeDataRange(EditIP.Position,  OptionsManager.Get<string>("E", snippet), EditIP.Delta);
-                                }
+								//Toggle between INS and OVR
+                                if(CurrentWriteMode == WriteMode.Insert)
+								{
+									CurrentWriteMode = WriteMode.Overwrite;
+								}
+								else if(CurrentWriteMode == WriteMode.Overwrite)
+								{
+									CurrentWriteMode = WriteMode.Insert;
+								}
                                 break;
                             case ConsoleKey.F1:
                                 BeginExecution(BoardMode.Run_STEP);
@@ -392,7 +392,7 @@ namespace BefungeSharp
                                 if (keysHit.ElementAt(i).KeyChar >= ' ' && keysHit.ElementAt(i).KeyChar <= '~' 
                                     && (ConEx.ConEx_Input.AltDown || ConEx.ConEx_Input.CtrlDown) == false)
                                 {
-                                    EditIP.Position = FungeSpace.InsertCell(EditIP.Position.Data.x, EditIP.Position.Data.y, keysHit.ElementAt(0).KeyChar);
+                                    InsertCharacter(keysHit.ElementAt(0).KeyChar);
 
                                     int nextX = EditIP.Position.Data.x + EditIP.Delta.x;
                                     int nextY = EditIP.Position.Data.y + EditIP.Delta.y;
@@ -419,7 +419,139 @@ namespace BefungeSharp
             return type;
         }
 
-        public void Draw()
+		private void HandleModifiers(BoardMode mode, IEnumerable<ConsoleKeyInfo> keysHit)
+		{
+			bool shift = ConEx.ConEx_Input.ShiftDown;
+			bool alt = ConEx.ConEx_Input.AltDown;
+			bool control = ConEx.ConEx_Input.CtrlDown;
+
+			bool insert = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_INSERT);
+			if (insert && shift)
+			{
+				string snippet = "UI_SNIPPET_";
+
+				if (EditIP.Delta == Vector2.North)
+				{
+					snippet += "N";
+				}
+				else if (EditIP.Delta == Vector2.East)
+				{
+					snippet += "E";
+				}
+				else if (EditIP.Delta == Vector2.South)
+				{
+					snippet += "S";
+				}
+				else if (EditIP.Delta == Vector2.West)
+				{
+					snippet += "W";
+				}
+
+				EditIP.Position = FungeSpaceUtils.ChangeDataRange(EditIP.Position, OptionsManager.Get<string>("E", snippet), EditIP.Delta);
+			}
+		}
+
+		private void InsertCharacter(char c)
+		{
+			if (CurrentWriteMode == WriteMode.Insert)
+			{
+				//[0] top-left
+				//[1] bottom-right
+				Vector2[] selection_bounds = new Vector2[2] { Vector2.Zero, Vector2.Zero};
+				
+				FungeNode traverse = EditIP.Position;
+				FungeNode change_start_node = traverse;
+
+				if (EditIP.Delta == Vector2.North)
+				{
+					//  ?
+					//|...|
+					//|---|
+					//|IP |
+					// ---
+					selection_bounds[0].x = EditIP.Position.Data.x;
+					selection_bounds[1].x = EditIP.Position.Data.x;
+					selection_bounds[1].y = EditIP.Position.Data.y;
+
+					while (traverse.Data.y > traverse.North.Data.y)
+					{
+						selection_bounds[0].y = traverse.Data.y;
+						traverse = traverse.North;
+					}
+
+					change_start_node = EditIP.Position.North;
+				}
+				else if (EditIP.Delta == Vector2.East)
+				{
+					// -------
+					//|IP|...?
+					// -------
+					selection_bounds[0].x = EditIP.Position.Data.x;
+					selection_bounds[0].y = EditIP.Position.Data.y;
+					selection_bounds[1].y = EditIP.Position.Data.y;
+
+					while (traverse.Data.x < traverse.East.Data.x)
+					{
+						selection_bounds[1].x = traverse.Data.x;
+						traverse = FungeSpaceUtils.MoveTo(traverse,EditIP.Delta);
+					}
+
+					change_start_node = FungeSpaceUtils.MoveTo(change_start_node, traverse.West.Data.y, traverse.West.Data.x + 1);
+				}
+				else if (EditIP.Delta == Vector2.South)
+				{
+					// __
+					//|IP|
+					//|--|
+					//|..|
+					//|? |
+					selection_bounds[0].x = EditIP.Position.Data.x;
+					selection_bounds[0].y = EditIP.Position.Data.y;
+					selection_bounds[1].x = EditIP.Position.Data.x;
+
+					while (traverse.Data.y < traverse.South.Data.y)
+					{
+						selection_bounds[1].y = traverse.Data.y;
+						traverse = traverse.South;
+					}
+
+					change_start_node = EditIP.Position.South;
+				}
+				else if (EditIP.Delta == Vector2.West)
+				{
+					// ______
+					//?...|IP|
+					// ------
+					selection_bounds[0].y = EditIP.Position.Data.y;
+					selection_bounds[1].x = EditIP.Position.Data.x;
+					selection_bounds[1].y = EditIP.Position.Data.y;
+
+					while (traverse.Data.x > traverse.West.Data.x)
+					{
+						selection_bounds[0].x = traverse.Data.x;
+						traverse = traverse.West;
+					}
+
+					change_start_node = EditIP.Position.West;
+				}
+
+				List<List<int>> area_to_move = FungeSpaceUtils.MatrixToDynamicArray(this.FungeSpace, selection_bounds);
+
+				foreach (var row in area_to_move)
+				{
+					FungeSpaceUtils.ChangeDataRange(change_start_node, row, EditIP.Delta);
+				}
+
+				EditIP.Position = FungeSpace.InsertCell(EditIP.Position.Data.x, EditIP.Position.Data.y, c);
+			}
+			else if (CurrentWriteMode == WriteMode.Overwrite)
+			{
+				EditIP.Position = FungeSpace.InsertCell(EditIP.Position.Data.x, EditIP.Position.Data.y, c);
+			}
+			
+		}
+        
+		public void Draw()
         {
             DrawFungeSpace();
 

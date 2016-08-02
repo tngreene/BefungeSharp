@@ -86,20 +86,12 @@ namespace BefungeSharp.FungeSpace
 
         public static List<string> MatrixToStringList(FungeSparseMatrix matrix, Vector2[] cropping_bounds)
         {
-            List<List<int>> dynm_arr = FungeSpace.FungeSpaceUtils.MatrixToDynamicArray(matrix, cropping_bounds);
-            List<string> outlines =  new List<string>();
-            
-            for (int row = 0; row < dynm_arr.Count; row++)
-            {
-                string line = "";
-                for (int column = 0; column < dynm_arr[row].Count; column++)
-                {
-                    line += (char)dynm_arr[row][column];
-                }
-                outlines.Add(line);
-            }
-            return outlines;
+            return  FungeSpace.FungeSpaceUtils.MatrixToDynamicArray(matrix, cropping_bounds)
+											  .Select<List<int>,string>(list => new String(list.Select<int,char>(num => (char)num)
+																							   .ToArray()))
+																						  .ToList<string>();
         }
+
         /// <summary>
         /// Gets the dynamic array version of a funge sparse matrix, where the holes are "filled in" with ' ''s
         /// </summary>
@@ -119,18 +111,20 @@ namespace BefungeSharp.FungeSpace
             
             //Find out if the place we want to start exists
             FungeNode f = filled_matrix.GetNode(row, column);
-            
-            FungeSparseMatrixRowEnumerator rowEnumerator = new FungeSparseMatrixRowEnumerator(f,cropping_bounds[0].y,cropping_bounds[1].y);
-            while(rowEnumerator.MoveNext())
-            {
-                FungeSparseMatrixColumnEnumerator colEnumerator = new FungeSparseMatrixColumnEnumerator(rowEnumerator.Current,cropping_bounds[0].x,cropping_bounds[1].x);
+			if (f != null)
+			{
+				FungeSparseMatrixRowEnumerator rowEnumerator = new FungeSparseMatrixRowEnumerator(f, cropping_bounds[0].y, cropping_bounds[1].y);
+				while (rowEnumerator.MoveNext())
+				{
+					FungeSparseMatrixColumnEnumerator colEnumerator = new FungeSparseMatrixColumnEnumerator(rowEnumerator.Current, cropping_bounds[0].x, cropping_bounds[1].x);
 
-                outArray.Add(new List<int>());
-                while (colEnumerator.MoveNext())
-                {
-                    outArray.Last().Add(colEnumerator.Current.Data.value);
-                }
-            }
+					outArray.Add(new List<int>());
+					while (colEnumerator.MoveNext())
+					{
+						outArray.Last().Add(colEnumerator.Current.Data.value);
+					}
+				}
+			}
             
             return outArray;
         }
@@ -311,7 +305,8 @@ namespace BefungeSharp.FungeSpace
             }
             return position;
         }
-        /// <summary>
+        
+		/// <summary>
         /// Move's an object's position node to a specific place, creating a node there if need be
         /// </summary>
         /// <param name="position">The position node of an object</param>
