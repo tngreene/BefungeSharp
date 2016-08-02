@@ -134,7 +134,23 @@ namespace BefungeSharp.FungeSpace
             
             return outArray;
         }
-        
+
+        public static void OverlayMatrix(FungeSparseMatrix base_matrix, FungeSparseMatrix overlay_matrix, Vector2 overlay_start)
+        {
+            foreach (var node in overlay_matrix)
+            {
+                if (node.Data.value == ' ')
+                {
+                    continue;
+                }
+
+                FungeCell overlay_cell = node.Data;
+                overlay_cell.x += overlay_start.x;
+                overlay_cell.y += overlay_start.y;
+                base_matrix.InsertCell(overlay_cell);
+            }
+        }
+
         /// <summary>
         /// Fills the matrix's empty spaces with a certain value
         /// </summary>
@@ -262,10 +278,43 @@ namespace BefungeSharp.FungeSpace
         }
 
         /// <summary>
+        /// Changes a range of Fungespace
+        /// </summary>
+        /// <param name="position">The position to start at</param>
+        /// <param name="string">The values to place</param>
+        /// <param name="delta">The direction to lay them down in</param>
+        /// <returns>The final position where the last value was placed</returns>
+        public static FungeNode ChangeDataRange(FungeNode position, string new_values, Vector2 delta)
+        {
+            //For every new value to insert, insert it, then move
+            for (int i = 0; i < new_values.Length; i++)
+            {
+                position = position.ParentMatrix.InsertCell(position.Data.x, position.Data.y, new_values[i]);
+                position = FungeSpaceUtils.MoveTo(position, delta);
+            }
+            return position;
+        }
+
+        /// <summary>
+        /// Changes a range of Fungespace
+        /// </summary>
+        /// <param name="position">The position to start at</param>
+        /// <param name="new_values">The values to place</param>
+        /// <param name="delta">The direction to lay them down in</param>
+        /// <returns>The final position where the last value was placed</returns>
+        public static FungeNode ChangeDataRange(FungeNode position, List<int> new_values, Vector2 delta)
+        {
+            for (int i = 0; i < new_values.Count; i++)
+            {
+                position = position.ParentMatrix.InsertCell(position.Data.x, position.Data.y, new_values[i]);
+                position = FungeSpaceUtils.MoveTo(position, delta);
+            }
+            return position;
+        }
+        /// <summary>
         /// Move's an object's position node to a specific place, creating a node there if need be
         /// </summary>
         /// <param name="position">The position node of an object</param>
-        /// <param name="matrix">The matrix in which the FungeNode lives</param>
         /// <param name="row">The intented row to go to</param>
         /// <param name="column">The intended column to go to</param>
         /// <return>The new position of the FungeNode</return>
@@ -283,6 +332,10 @@ namespace BefungeSharp.FungeSpace
             return position;
         }
 
+        public static FungeNode MoveTo(FungeNode position, Vector2 delta)
+        {
+            return MoveTo(position, position.Data.y + delta.y, position.Data.x + delta.x);
+        }
         /// <summary>
         /// MoveBy is an IP's move and wrap function
         /// </summary>
@@ -388,18 +441,26 @@ namespace BefungeSharp.FungeSpace
                 ConsoleColor color = ConsoleColor.White;
 
                 int value = traverse.Data.value;
-                if (value >= ' ' && value <= '~')
+                if (value >= ' ' && value <= '~'
+                    && OptionsManager.Get<bool>("V","COLOR_SYNTAX_HIGHLIGHTING"))
                 {
                     color = Instructions.InstructionManager.InstructionSet[value].Color;
                 }
 
                 char character = (char)traverse.Data.value;
 
-                //
-                ConEx.ConEx_Draw.InsertCharacter(character,
-                                                    traverse.Data.y - drawable_bounds.top,
-                                                    traverse.Data.x - drawable_bounds.left,
-                                                    color, ConsoleColor.Black);//.DarkGray);//Change if you want to debug where FungeSpaceCells have been inserted
+                int row    = traverse.Data.y - drawable_bounds.top;
+                int column = traverse.Data.x - drawable_bounds.left;
+                
+                //Ensures that we'll never draw inside the sidebar
+                if (row < drawable_bounds.Height && column < drawable_bounds.Width)
+                {
+                    ConEx.ConEx_Draw.InsertCharacter(character,
+                                                     row,
+                                                     column,
+                                                     color,
+                                                     ConsoleColor.Black);//ConsoleColor.DarkGray);//Change if you want to debug where FungeSpaceCells have been inserted
+                }
             }
         }
         
@@ -409,7 +470,7 @@ namespace BefungeSharp.FungeSpace
             if (true)
             {
                 //Many columns, 1 row
-                FungeSparseMatrix matrix1 = new FungeSparseMatrix(10, 10);
+                FungeSparseMatrix matrix1 = new FungeSparseMatrix();//10, 10);
                 
                 matrix1.InsertCell(-1, 0, 'a');
                 matrix1.InsertCell(-2, 0, 'b');

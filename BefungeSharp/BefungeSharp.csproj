@@ -31,12 +31,18 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>BefungeSharpIcon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="ConEx, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>.\ConEx.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
+    <Reference Include="SharpConfig">
+      <HintPath>.\SharpConfig.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Windows.Forms" />
@@ -49,7 +55,26 @@
   <ItemGroup>
     <Compile Include="FungeSpace\FungeNode.cs" />
     <Compile Include="Instructions\ConcurrentInstructions.cs" />
+    <Compile Include="Instructions\FileIOInstructions.cs" />
+    <Compile Include="Instructions\Fingerprints\FingerprintInstruction.cs" />
+    <Compile Include="Instructions\Fingerprints\Fingerprint.cs" />
+    <Compile Include="Instructions\Fingerprints\HRTI\HRTI.cs" />
+    <Compile Include="Instructions\Fingerprints\HRTI\HRTI_Instructions.cs" />
+    <Compile Include="Instructions\Fingerprints\NULL\NULL.cs" />
+    <Compile Include="Instructions\Fingerprints\NULL\NULL_Instructions.cs" />
+    <Compile Include="Instructions\Fingerprints\REFC\REFC.cs" />
+    <Compile Include="Instructions\Fingerprints\REFC\REFC_Instructions.cs" />
+    <Compile Include="Instructions\Fingerprints\ROMA\ROMA.cs" />
+    <Compile Include="Instructions\Fingerprints\ROMA\ROMA_Instructions.cs" />
+    <Compile Include="Instructions\StackStackInstructions.cs" />
     <Compile Include="Instructions\StandardIOInstructions.cs" />
+    <Compile Include="Menus\HelpMenu.cs" />
+    <Compile Include="Menus\Menu.cs" />
+    <Compile Include="Menus\MainMenu.cs" />
+    <Compile Include="Menus\OpenSimpleMenu.cs" />
+    <Compile Include="Menus\OptionsMenu.cs" />
+    <Compile Include="Menus\SaveSimpleMenu.cs" />
+    <Compile Include="OptionsManager.cs" />
     <Compile Include="WindowSideBar.cs" />
     <Compile Include="BoardManager.cs" />
     <Compile Include="WindowUI.cs" />
@@ -97,10 +122,12 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="BefungeSharpIcon.ico" />
     <Content Include="ConEx.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

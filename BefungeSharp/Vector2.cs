@@ -28,8 +28,6 @@ namespace BefungeSharp
         //Y value of our vector
         public int y;
 
-        
-
         public Vector2(Vector2 vec)
         {
             this.x = vec.x;

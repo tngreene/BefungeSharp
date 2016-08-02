@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BefungeSharp.UI;
+using BefungeSharp.FungeSpace;
 
 namespace BefungeSharp
 {
     public class WindowUI
     {
-        private Interpreter _interpRef;
         /* The board UI area extends from a (currently arbitray/hardcoded area) from row 26 to row 31 and columns 0 through 80
          * except for the space [31,80] which makes it go to a new line
          * 
@@ -21,9 +21,9 @@ namespace BefungeSharp
          * 
          * [31,0]                 [31,80]
          * */
-        const int UI_TOP = 26;
-        const int UI_RIGHT = 80;
-        int UI_BOTTOM = 0;
+        const   int UI_TOP = 26;
+        const   int UI_RIGHT = 80;
+        private int UI_BOTTOM;
 
         public enum Categories
         {
@@ -32,6 +32,7 @@ namespace BefungeSharp
             OUT,
             IN
         }
+
         //a string to represent the piece of information
         //and the row in which to start drawing it
         private string _TOSSstackRep;
@@ -47,11 +48,19 @@ namespace BefungeSharp
         private int _inputRow;
 
         private Selection _selection;
-        public bool SelectionActive { get { return _selection.content.Count > 0; } }
-        public WindowUI(Interpreter interp)
-        {
-            _interpRef = interp;
 
+        /// <summary>
+        /// Returns true if the selection has an area > 0
+        /// </summary>
+        public bool SelectionActive { 
+                                        get
+                                        {
+                                            FungeSpaceArea area = _selection.GenerateArea();
+                                            return (area.left + area.top + area.right + area.bottom) > 0;
+                                        }
+                                    }
+        public WindowUI()
+        {
             //All of the rows follow after each other
             _TOSSstackRep = "TS:";
             _TOSSstackRow = UI_TOP;
@@ -68,8 +77,7 @@ namespace BefungeSharp
 
             UI_BOTTOM = ConEx.ConEx_Draw.Dimensions.height - 1;
 
-            _selection.content = new List<string>();
-            _selection.dimensions.top = _selection.dimensions.right = _selection.dimensions.bottom = _selection.dimensions.left =0;
+            _selection.Clear();
         }
 
         /// <summary>
@@ -90,12 +98,12 @@ namespace BefungeSharp
                 case BoardMode.Run_STEP:
 #region TOSS
                     _TOSSstackRep = "TS:";
-                    if (_interpRef.IPs[0].Stack.Count > 0)
+                    if (Program.Interpreter.IPs[0].Stack.Count > 0)
                     {
                         //Insert a pipe bar inbetween every number
-                        for (int i = _interpRef.IPs[0].Stack.Count-1; i >= 0; i--)
+                        for (int i = Program.Interpreter.IPs[0].Stack.Count-1; i >= 0; i--)
                         {
-                            _TOSSstackRep += _interpRef.IPs[0].Stack.ElementAt(i).ToString() + '|';
+                            _TOSSstackRep += Program.Interpreter.IPs[0].Stack.ElementAt(i).ToString() + '|';
                         }
 
                         //If the size of the stack's representation is more than our screen can handle, present
@@ -215,16 +223,9 @@ namespace BefungeSharp
         /// </summary>
         /// <param name="mode">Mode of the program</param>
         private void DrawInfo(BoardMode mode)
-        {
-            string modeStr = "Mode: ";
-            char deltaRep = ' ';
+        {            
             IP selectedIP = null;
-            if (mode == BoardMode.Run_STEP 
-                || mode == BoardMode.Run_SLOW 
-                || mode == BoardMode.Run_MEDIUM 
-                || mode == BoardMode.Run_MAX 
-                || mode == BoardMode.Run_FAST 
-                || mode == BoardMode.Run_TERMINAL)
+            if (mode != BoardMode.Edit)
             {
                 selectedIP = Program.Interpreter.IPs[0];
             }
@@ -232,108 +233,101 @@ namespace BefungeSharp
             {
                 selectedIP = Program.Interpreter.EditIP;
             }
+            StringBuilder sb = new StringBuilder();
+            sb.Append("Mode: ");
             switch (mode)
             {
                 //All strings padded so their right side is all uniform
                 case BoardMode.Run_MAX:
-                    modeStr += "Max";
+                    sb.Append("Max");
                     break;
                 case BoardMode.Run_FAST:
-                    modeStr += "Fast";
+                    sb.Append("Fast");
                     break;
                 case BoardMode.Run_MEDIUM:
-                    modeStr += "Medium";
+                    sb.Append("Medium");
                     break;
                 case BoardMode.Run_SLOW:
-                    modeStr += "Slow";
+                    sb.Append("Slow");
                     break;
                 case BoardMode.Run_STEP:
-                    modeStr += "Step";
+                    sb.Append("Step");
                     break;
                 case BoardMode.Edit:
-                    modeStr += "Edit";
-                    
-                    //Based on the direction of the IP set the delta rep to it
-                    //This was the delta representative is only availble in Edit or edit like modes
-                    if (selectedIP.Delta == Vector2.North)
-                    {
-                        deltaRep = (char)9516;
-                    }
-                    else if (selectedIP.Delta == Vector2.East)
-                    {
-                        deltaRep = (char)9508;
-                    }
-                    else if (selectedIP.Delta == Vector2.South)
-                    {
-                        deltaRep = (char)9524;
-                    }
-                    else if (selectedIP.Delta == Vector2.West)
-                    {
-                        deltaRep = (char)9500;
-                    }
-                    else
-                    {
-                        //TODO - Choose a different symbol
-                        deltaRep = '?';
-                    }
+                    sb.Append("Edit");
                     break;
             }
+            sb.Append(" ");
 
-            //Generates a strings which is always five chars wide, with the number stuck to the ','
-            //Like " 0,8 " , "17,5 " , "10,10", " 8,49"
-            string IP_Pos = "";
-            Vector2 vec_pos = selectedIP.Position.Data;
-            IP_Pos += vec_pos.x.ToString().Length == 1 ? ' ' : vec_pos.x.ToString()[0];
-            IP_Pos += vec_pos.x.ToString().Length == 1 ? vec_pos.x.ToString()[0] : vec_pos.x.ToString()[1];
-            IP_Pos += ',';
-            IP_Pos += vec_pos.y.ToString().Length == 1 ? vec_pos.y.ToString()[0] : vec_pos.y.ToString()[0];
-            IP_Pos += vec_pos.y.ToString().Length == 1 ? ' ' : vec_pos.y.ToString()[1];
-
-            ConEx.ConEx_Draw.InsertCharacter(deltaRep, UI_BOTTOM, (UI_RIGHT - 1) - IP_Pos.Length - 1, ConsoleColor.Cyan);
-            ConEx.ConEx_Draw.InsertString(IP_Pos, UI_BOTTOM, (UI_RIGHT - 1) - IP_Pos.Length, false);
-            ConEx.ConEx_Draw.InsertString(modeStr, UI_BOTTOM, (UI_RIGHT - 1) - (IP_Pos.Length) - (1) - (12/*Maximum Possible Length for modeStr*/), false);
-            
-
-            for (int i = 0; i < IP_Pos.Length; i++)
+            //Based on the IP's delta show it's delta as a unicode arrow/symbol
+            if (selectedIP.Delta == Vector2.North)
             {
-                int col = (UI_RIGHT - 1) - (IP_Pos.Length + i);
-                ConEx.ConEx_Draw.SetAttributes(UI_BOTTOM, (UI_RIGHT - 1) - (IP_Pos.Length - i), ConsoleColor.Cyan, ConsoleColor.Black);//Color should be the same as movement color    
+                sb.Append((char)9516);
+            }
+            else if (selectedIP.Delta == Vector2.East)
+            {
+                sb.Append((char)9508);
+            }
+            else if (selectedIP.Delta == Vector2.South)
+            {
+                sb.Append((char)9524);
+            }
+            else if (selectedIP.Delta == Vector2.West)
+            {
+                sb.Append((char)9500);
+            }
+            else
+            {
+                //TODO - Choose a different symbol
+                sb.Append('?');
+            }
+
+            //Save where in the string our delta representative is
+            int deltaRepIndex = sb.Length - 1;
+
+            sb.Append(" ");
+            
+            //Append
+            if (mode == BoardMode.Edit && SelectionActive == true)
+            {
+                sb.Append(_selection.handle);
+            }
+            else
+            {
+                sb.Append((Vector2)selectedIP.Position.Data);
+            }
+
+            ConEx.ConEx_Draw.InsertString(sb.ToString(), UI_BOTTOM, 0, false);
+            
+            for (int c = deltaRepIndex; c < sb.ToString().Length; c++)
+            {
+                ConEx.ConEx_Draw.SetAttributes(UI_BOTTOM, c, ConsoleColor.Cyan, ConsoleColor.Black);//Color should be the same as movement color    
             }
         }
 
         private void DrawSelection(BoardMode mode)
         {
-            //Fix the perminate 1 cell in [0,0] bug
-            if (_selection.content.Count == 0)
+            if (this.SelectionActive == false)
             {
                 return;
             }
-
+            FungeSpaceArea dimensions = _selection.GenerateArea();
             //Draw selection
-            for (int c = _selection.dimensions.left; c <= _selection.dimensions.right; c++)
+            for (int c = dimensions.left; c <= dimensions.right; c++)
             {
-                for (int r = _selection.dimensions.top; r <= _selection.dimensions.bottom; r++)
+                for (int r = dimensions.top; r <= dimensions.bottom; r++)
                 {
-                    int value = 0;
+                    int relative_row = r - Program.Interpreter.ViewScreen.top;
+                    int relative_column = c - Program.Interpreter.ViewScreen.left;
 
-                    FungeSpace.FungeNode lookup = Program.Interpreter.FungeSpace.GetNode(r,c);
-                    if (lookup == null)
+                    //Ensures that we will never draw inside the UI or Sidebar Pane
+                    if (relative_row < Program.Interpreter.ViewScreen.Height && relative_column < Program.Interpreter.ViewScreen.Width)
                     {
-                        value = ' ';
+                        ConEx.ConEx_Draw.SetAttributes(relative_row,
+                                                       relative_column,
+                                                       ConEx.ConEx_Draw.GetForegroundColor(relative_row, relative_column),
+                                                       ConsoleColor.DarkGreen);
                     }
-                    else
-                    {
-                        value = lookup.Data.value;
-                    }
-
-                    ConsoleColor color = ConsoleColor.White;
-                    
-                    if(value >= ' ' && value <= '~')
-                    {
-                        color = Instructions.InstructionManager.InstructionSet[value].Color;
-                    }
-	                        
-                    ConEx.ConEx_Draw.SetAttributes(r - Program.Interpreter.ViewScreen.top, c - Program.Interpreter.ViewScreen.left, color, ConsoleColor.DarkGreen);
                 }
             }
         }
@@ -345,7 +339,7 @@ namespace BefungeSharp
             _inputRep.Clear();
         }
 
-        public void Update(BoardMode mode, ConsoleKeyInfo[] keysHit)
+		public void Update(BoardMode mode, IEnumerable<ConsoleKeyInfo> keysHit)
         {
             //Based on what mode it is handle those keys
             switch (mode)
@@ -359,14 +353,14 @@ namespace BefungeSharp
                 case BoardMode.Edit:
                     HandleModifiers(mode, keysHit);
                     bool keep_selection_active = false;
-                    for (int i = 0; i < keysHit.Length; i++)
+                    for (int i = 0; i < keysHit.Count(); i++)
                     {
                         //--Debugging key presses
-                        System.ConsoleKey k = keysHit[i].Key;
-                        var m = keysHit[i].Modifiers;
+                        //System.ConsoleKey k = keysHit.ElementAt(i).Key;
+                        //var m = keysHit.ElementAt(i).Modifiers;
                         //------------------------
                        
-                        switch (keysHit[i].Key)
+                        switch (keysHit.ElementAt(i).Key)
                         {
                             case ConsoleKey.UpArrow:
                             case ConsoleKey.LeftArrow:
@@ -376,22 +370,19 @@ namespace BefungeSharp
                                 if (ConEx.ConEx_Input.ShiftDown == true)
                                 {
                                     //If we are starting a new selection
-                                    if (_selection.content.Count == 0)
+                                    if (this.SelectionActive == false)
                                     {
                                         //Set everything to the cell we are currently in
-                                        _selection.dimensions.left = _interpRef.EditIP.Position.Data.x;
-                                        _selection.dimensions.top =  _interpRef.EditIP.Position.Data.y;
-                                        _selection.dimensions.bottom = _interpRef.EditIP.Position.Data.y;
-                                        _selection.dimensions.right =  _interpRef.EditIP.Position.Data.x;
+                                        _selection.origin = _selection.handle = Program.Interpreter.EditIP.Position.Data;
                                     }
-                                    UpdateSelection(k);
+									UpdateSelection(keysHit.ElementAt(i).Key);
                                 
-                                    //Clear if we used an arrow key without shift
+                                    //Don't clear if we used an arrow key with shift
                                     keep_selection_active = true;
                                 }
                                 break;
                             case ConsoleKey.Delete:
-                                if (_selection.content.Count != 0)
+                                if (this.SelectionActive == true)
                                 {
                                     DeleteSelection();
                                     keep_selection_active = true;
@@ -399,13 +390,13 @@ namespace BefungeSharp
                                 break;
                            
                             default:
-                                //Explicityly say that any other keystroke will clear the selection
+                                //Explicitly say that any other keystroke will clear the selection
                                 keep_selection_active = false;
                                 break;
                         }
-                        if (keep_selection_active == false)// && _selection.active == false)
+                        if (keep_selection_active == false)
                         {
-                            ClearSelection();
+                            _selection.Clear();
                         }
                     }
                     break;
@@ -417,9 +408,8 @@ namespace BefungeSharp
         /// </summary>
         /// <param name="mode">The mode of the program you wish to conisder</param>
         /// <param name="keysHit">an array of keys hit</param>
-        private void HandleModifiers(BoardMode mode, ConsoleKeyInfo[] keysHit)
+        private void HandleModifiers(BoardMode mode, IEnumerable<ConsoleKeyInfo> keysHit)
         {
-            bool created_selection = false;
             //Ensures that the user cannot paste when they out of the window
             if (ConEx.ConEx_Window.IsActive() == false)
             {
@@ -460,12 +450,26 @@ namespace BefungeSharp
             bool v = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_V);
             if (v && control)
             {
-                this._selection = ClipboardTools.FromWindowsClipboard(_interpRef.EditIP.Position.Data);
+                this._selection = ClipboardTools.FromWindowsClipboard(Program.Interpreter.EditIP.Position.Data);
                 PutSelectionContents();
                 //Emergancy sleep so we don't get a whole bunch of operations at once
                 System.Threading.Thread.Sleep(150);
             }
 
+            if (mode == BoardMode.Edit)
+            {
+                //Resets the board back to its original state
+                bool r = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_R);
+                if (r && alt)
+                {
+                    List<List<int>> originalSource = FileUtils.ReadFile(FileUtils.LastUserOpenedPath, false, true, true);
+                    if (originalSource == null)
+                    {
+                        originalSource = new List<List<int>>();
+                    }
+                    Program.Interpreter = new Interpreter(originalSource);
+                }
+            }
             //TODO:FEATURE? What does Select All mean to us in text editor mode? Do we want this?
             /*bool a = ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_A);
             if (a && control)
@@ -477,6 +481,7 @@ namespace BefungeSharp
             return;
         }
 
+#region Selection
         /// <summary>
         /// Gets the contents of the selection box
         /// </summary>
@@ -484,13 +489,12 @@ namespace BefungeSharp
         public List<string> GetSelectionContents()
         {
             Vector2[] cropping_bounds = new Vector2[2];
-            //cropping_bounds[0] = new Vector2 (0,0);
-            //cropping_bounds[1] = new Vector2 (9,9);
 
-            cropping_bounds[0] = new Vector2(_selection.dimensions.left, _selection.dimensions.top);
-            cropping_bounds[1] = new Vector2(_selection.dimensions.right, _selection.dimensions.bottom);
+            FungeSpaceArea dimensions = _selection.GenerateArea();
+            cropping_bounds[0] = new Vector2(dimensions.left, dimensions.top);
+            cropping_bounds[1] = new Vector2(dimensions.right, dimensions.bottom);
  
-            List<string> outlines = FungeSpace.FungeSpaceUtils.MatrixToStringList(Program.Interpreter.FungeSpace, cropping_bounds);
+            List<string> outlines = FungeSpaceUtils.MatrixToStringList(Program.Interpreter.FungeSpace, cropping_bounds);
          
             return outlines;
         }
@@ -500,8 +504,9 @@ namespace BefungeSharp
         /// </summary>
         private void PutSelectionContents()
         {
-            int top = _selection.dimensions.top;
-            int left = _selection.dimensions.left;
+            FungeSpaceArea dimensions = _selection.GenerateArea();
+            int top = dimensions.top;
+            int left = dimensions.left;
 
             //For the rows of the selection
             for (int s_row = 0; s_row < _selection.content.Count; s_row++)
@@ -510,90 +515,77 @@ namespace BefungeSharp
                 for (int s_column = 0; s_column < _selection.content[s_row].Length; s_column++)
                 {
                     //Put the character in the "real" location + the selection offset
-                    Program.Interpreter.FungeSpace.InsertCell(new FungeSpace.FungeCell(left + s_column, top + s_row, _selection.content[s_row][s_column]));
+                    Program.Interpreter.FungeSpace.InsertCell(new FungeCell(left + s_column, top + s_row, _selection.content[s_row][s_column]));
                 }
             }
-                        
-            if (_interpRef.EditIP.Delta == Vector2.North || _interpRef.EditIP.Delta == Vector2.West)
+
+            Vector2 moveDelta = Program.Interpreter.EditIP.Delta;
+            FungeNode currentPosition = Program.Interpreter.EditIP.Position;
+            
+            if (Program.Interpreter.EditIP.Delta == Vector2.North)
             {
-                _interpRef.EditIP.Move();
+                Program.Interpreter.EditIP.Position = FungeSpaceUtils.MoveTo(currentPosition, currentPosition.Data.y - (dimensions.Height), currentPosition.Data.x);
             }
-            else if(_interpRef.EditIP.Delta == Vector2.East)
+            else if(Program.Interpreter.EditIP.Delta == Vector2.East)
             {
-                _interpRef.EditIP.Move((_selection.dimensions.right-_selection.dimensions.left));
+                Program.Interpreter.EditIP.Position = FungeSpaceUtils.MoveTo(currentPosition, currentPosition.Data.y, currentPosition.Data.x + (dimensions.Width));
             }
-            else if(_interpRef.EditIP.Delta == Vector2.South)
+            else if(Program.Interpreter.EditIP.Delta == Vector2.South)
             {
-                _interpRef.EditIP.Move((_selection.dimensions.bottom-_selection.dimensions.top));
+                Program.Interpreter.EditIP.Position = FungeSpaceUtils.MoveTo(currentPosition, currentPosition.Data.y + (dimensions.Height), currentPosition.Data.x);
             }
+            else if(Program.Interpreter.EditIP.Delta == Vector2.West)
+            {
+                Program.Interpreter.EditIP.Position = FungeSpaceUtils.MoveTo(currentPosition, currentPosition.Data.y, currentPosition.Data.x - (dimensions.Width));
+            }
+            
+            _selection.Clear();
         }
         
-
+        /// <summary>
+        /// Update the selection bounds based on 
+        /// </summary>
+        /// <param name="k"></param>
         private void UpdateSelection(ConsoleKey k)
         {
             //Finally get to the changing of the directions!
             if (k == ConsoleKey.UpArrow)
-                _selection.dimensions.bottom--;
+                _selection.handle.y--;
             if (k == ConsoleKey.LeftArrow)
-                _selection.dimensions.right--;
+                _selection.handle.x--;
             if (k == ConsoleKey.DownArrow)
-                _selection.dimensions.bottom++;
+                _selection.handle.y++;
             if (k == ConsoleKey.RightArrow)
-                _selection.dimensions.right++;
+                _selection.handle.x++;
 
-            //Now we do a post check to see if we made a bad selection
-            bool error_creating_selection = false;
-
-            //Test to see if the selection box has warped backwards on itself
-            error_creating_selection |= _selection.dimensions.right < _selection.dimensions.left;
-            error_creating_selection |= _selection.dimensions.bottom < _selection.dimensions.top;
-
-            if (error_creating_selection == true)
+            //If the selection is bigger than the screen will hold move the view screen
+            if (_selection.handle.y < Program.Interpreter.ViewScreen.top)
             {
-                ClearSelection();
+                Program.Interpreter.MoveViewScreen(Vector2.North);
             }
-            else
+            if (_selection.handle.x < Program.Interpreter.ViewScreen.left)
             {
-                _selection.content = GetSelectionContents();
-                //If the selection is bigger than the screen will hold move the view screen
-                if (_selection.dimensions.right > Program.Interpreter.ViewScreen.right)
-                {
-                    Program.Interpreter.MoveViewScreen(Vector2.East);
-                }
-
-                //If the selection is bigger than the screen will hold move the view screen
-                if (_selection.dimensions.bottom > Program.Interpreter.ViewScreen.bottom)
-                {
-                    Program.Interpreter.MoveViewScreen(Vector2.South);
-                }
+                Program.Interpreter.MoveViewScreen(Vector2.West);
+            }
+            if (_selection.handle.y > Program.Interpreter.ViewScreen.bottom)
+            {
+                Program.Interpreter.MoveViewScreen(Vector2.South);
+            }
+            if (_selection.handle.x > Program.Interpreter.ViewScreen.right)
+            {
+                Program.Interpreter.MoveViewScreen(Vector2.East);
             }
         }
         
         private void DeleteSelection()
         {
-            int top = _selection.dimensions.top;
-            int left = _selection.dimensions.left;
-
-            //For the rows of the selection
-            for (int s_row = 0; s_row < _selection.content.Count; s_row++)
+            Program.Interpreter.FungeSpace.EnumerationArea = _selection.GenerateArea();
+            foreach (var node in Program.Interpreter.FungeSpace)
             {
-                //For every letter in each row
-                for (int s_column = 0; s_column < _selection.content[s_row].Length; s_column++)
-                {
-                    //Put the character in the "real" location + the selection offset
-                    Program.Interpreter.FungeSpace.InsertCell(new FungeSpace.FungeCell(left + s_column, top + s_row, ' '));
-                }
+                node.Data = new FungeCell(node.Data.x, node.Data.y, ' ');
             }
         }
-
-        private void ClearSelection()
-        {
-            _selection.content.Clear();
-            _selection.dimensions.bottom = 0;
-            _selection.dimensions.left = 0;
-            _selection.dimensions.right = 0;
-            _selection.dimensions.top = 0;
-        }
+#endregion Selection
 
         public char GetCharacter()
         {

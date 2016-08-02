@@ -19,8 +19,7 @@ namespace BefungeSharp.Instructions.Delta
         /// </summary>
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
-        /// <param name="value">The new delta which will be applied to the IP</param>
-        public DeltaInstruction(char inName, int minimum_flags) : base(inName, CommandType.Movement, ConsoleColor.Cyan, minimum_flags) { }
+        public DeltaInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, CommandType.Movement, minimum_flags) { }
     }
 
     /// <summary>
@@ -34,7 +33,7 @@ namespace BefungeSharp.Instructions.Delta
         /// <param name="inName">The name of the instruction</param>
         /// <param name="minimum_flags">The required interpreter flags needed for this instruction to work</param>
         /// <param name="value">Must be North, East, South, or West or an exception will be throw</param>
-        public CardinalInstruction(char inName, int minimum_flags, Vector2 delta) : base(inName, minimum_flags) 
+        public CardinalInstruction(char inName, RuntimeFeatures minimum_flags, Vector2 delta) : base(inName, minimum_flags) 
         {
             if (delta != Vector2.North &&
                 delta != Vector2.East &&
@@ -61,12 +60,12 @@ namespace BefungeSharp.Instructions.Delta
     /// </summary>
     public class RandomDeltaInstruction : DeltaInstruction
     {
-        public RandomDeltaInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public RandomDeltaInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
             Random rnd = new Random();
-            ip.Delta = Vector2.CardinalDirections[rnd.Next(0, 4)];
+            ip.Delta = newDelta = Vector2.CardinalDirections[rnd.Next(0, 4)];
             return true;
         }
     }
@@ -76,16 +75,15 @@ namespace BefungeSharp.Instructions.Delta
     /// </summary>
     public class SetDeltaInstruction : DeltaInstruction, IRequiresPop
     {
-        public SetDeltaInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public SetDeltaInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
             StackUtils.EnsureStackSafety(ip.Stack, this.RequiredCells());
-
+            
             //Set the new delta to the a vector popped off the stack
-            newDelta.x = ip.Stack.Pop();
-            newDelta.y = ip.Stack.Pop();
-
+            newDelta = StackUtils.VectorPop(ip.Stack);
+            
             //Set the Delta
             ip.Delta = newDelta;
 
@@ -105,7 +103,7 @@ namespace BefungeSharp.Instructions.Delta
     /// </summary>
     public class ReverseDeltaInstruction : DeltaInstruction
     {
-        public ReverseDeltaInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public ReverseDeltaInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -119,35 +117,30 @@ namespace BefungeSharp.Instructions.Delta
     }
 
     /// <summary>
-    /// The rotate instruction, sets the IP's delta to be either 90 degrees clockwise or counter clockwise, [,]
+    /// Rotates the IP's delta by -90 degrees
     /// </summary>
-    public class RotateDeltaInstruction : DeltaInstruction, IPartnerSwappable
+    public class TurnLeftInstruction : DeltaInstruction//, IPartnerSwappable
     {
-        protected bool rotate_clockwise;
-
-        public RotateDeltaInstruction(char inName, int minimum_flags, bool clockwise)
-            : base(inName, minimum_flags)
-        {
-            rotate_clockwise = clockwise;
-        }
-        
+        public TurnLeftInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }     
         
         public override bool Preform(IP ip)
         {
-            if(rotate_clockwise == true)//Rotate 90 degrees counter clockwise
-            {
-                ip.Delta = new Vector2(ip.Delta.y * -1, ip.Delta.x);
-            }
-            else if(rotate_clockwise == false)//Rotate 90's clockwise
-            {
-                ip.Delta = new Vector2(ip.Delta.y, ip.Delta.x * -1);
-            }
+            ip.Delta = new Vector2(ip.Delta.y, ip.Delta.x * -1);
             return true;
         }
+    }
+
+    /// <summary>
+    /// Rotates the IP's delta by 90 degrees
+    /// </summary>
+    public class TurnRightInstruction : DeltaInstruction//, IPartnerSwappable
+    {
+        public TurnRightInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }      
         
-        void IPartnerSwappable.SwapMeaningWithPair()
+        public override bool Preform(IP ip)
         {
-            rotate_clockwise = !rotate_clockwise;
+            ip.Delta = new Vector2(ip.Delta.y * -1, ip.Delta.x);
+            return true;
         }
     }
 }

@@ -8,12 +8,12 @@ namespace BefungeSharp.Instructions.String
 {
     public abstract class StringInstruction : Instruction
     {
-        public StringInstruction(char inName, int minimum_flags) : base(inName, CommandType.Nop, ConsoleColor.DarkYellow, minimum_flags) { }
+        public StringInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, CommandType.String, minimum_flags) { }
     }
 
     public class ToggleStringModeInstruction : StringInstruction
     {
-        public ToggleStringModeInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public ToggleStringModeInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -25,7 +25,7 @@ namespace BefungeSharp.Instructions.String
 
     public class FetchCharacterInstruction : StringInstruction
     {
-        public FetchCharacterInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public FetchCharacterInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -40,7 +40,7 @@ namespace BefungeSharp.Instructions.String
 
     public class StoreCharacterInstruction : StringInstruction, IRequiresPop
     {
-        public StoreCharacterInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public StoreCharacterInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {

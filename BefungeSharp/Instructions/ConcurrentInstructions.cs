@@ -8,12 +8,12 @@ namespace BefungeSharp.Instructions.Concurrent
 {
     public abstract class ConcurrentInstruction : Instruction
     {
-        public ConcurrentInstruction(char inName, int minimum_flags) : base(inName, CommandType.Concurrent, ConsoleColor.Blue, minimum_flags) { }
+        public ConcurrentInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, CommandType.Concurrent, minimum_flags) { }
     }
 
     public class SplitInstruction : ConcurrentInstruction
     {
-        public SplitInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public SplitInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {

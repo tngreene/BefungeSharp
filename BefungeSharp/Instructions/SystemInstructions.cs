@@ -5,16 +5,16 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
-namespace BefungeSharp.Instructions.SystemCalls
+namespace BefungeSharp.Instructions.SystemCall
 {
     public abstract class SystemInstruction : Instruction
     {
-        public SystemInstruction(char inName, int minimum_flags) : base(inName, CommandType.System, ConsoleColor.DarkMagenta, minimum_flags) { }
+        public SystemInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, CommandType.System, minimum_flags) { }
     }
 
     public class ExecuteInstruction : SystemInstruction, IRequiresPop
     {
-        public ExecuteInstruction(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public ExecuteInstruction(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -60,7 +60,7 @@ namespace BefungeSharp.Instructions.SystemCalls
 
     public class GetSysInfo : SystemInstruction, IRequiresPop
     {
-        public GetSysInfo(char inName, int minimum_flags) : base(inName, minimum_flags) { }
+        public GetSysInfo(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { }
 
         public override bool Preform(IP ip)
         {
@@ -128,29 +128,34 @@ namespace BefungeSharp.Instructions.SystemCalls
                         }
                         break;
 					#endregion
-                    #region case 18
-					case 18:
-                        //18. Size of each stack in the stack stack listed from TOSS to BOSS (ip specific)
+                    #region 18. Size of each stack in the stack stack listed from TOSS to BOSS (ip specific)
+                    case 18:
                         {
-                            //iterate through the whole stack stack, top to bottom
-                            //TODO when stack stack is implemented - for each stack get it's count and push it, if it is the TOSS push intialTOSS_Size instead
-                            ip.Stack.Push(initialTOSS_Size);
+                            foreach (var stack in ip.StackStack.Reverse())
+                            {
+                                //If this is the TOSS
+                                if (stack == ip.Stack)
+                                {
+                                    ip.Stack.Push(initialTOSS_Size);
+                                }
+                                else
+                                {
+                                    ip.Stack.Push(stack.Count);
+                                }
+                            }
                         }
                         break;
 					#endregion
-                    #region case 17
+                    #region 17. Number of stacks on the stack stack (ip specific)
                     case 17:
-                        //17. Number of stacks on the stack stack (ip specific)
                         {
-                            //TODO when stack stack is implemented
-                            //For now, push the count of the one stack we have
-                            ip.Stack.Push(1);
+                            ip.Stack.Push(ip.StackStack.Count);
                         }
                         break;
                     #endregion
-                    #region case 16
+					#region 16. The current hour, minute, and second (local environment)
 					case 16:
-                        //16. The current hour, minute, and second (local environment)
+                        
                         {
                             System.DateTime time = System.DateTime.Now;
                             int hours = time.Hour * 256 * 256;
@@ -226,19 +231,17 @@ namespace BefungeSharp.Instructions.SystemCalls
                         }
                         break;
 					#endregion
-                    #region case 8
+					#region 8. A cell containing the unique ID for the current ip (ip specific)
 					case 8:
-                        //8. A cell containing the unique ID for the current ip (ip specific)
                         //Used in Concurrent Funge
                         {
                             ip.Stack.Push(ip.ID);
                         }
                         break;
 					#endregion
-                    #region case 7
+                    #region 7. A cell containing the dimensions of the interpreter (global environment)
 					case 7:
-                        //7. A cell containing the dimensions of the interpreter
-                        //1 for Unefunge, 2 for Befunge, 3 for Trefunge, etc. (global environment)
+						//1 for Unefunge, 2 for Befunge, 3 for Trefunge, etc. 
                         {
                             //For now we'll just push 2
                             ip.Stack.Push(2);
@@ -264,20 +267,17 @@ namespace BefungeSharp.Instructions.SystemCalls
                         }
                         break;
 					#endregion
-                    #region case 4
+					#region 4. A cell containing this implementation's version number 
 					case 4:
-                        //4. A cell containing this implementation's version number 
                         //where all .'s are stripped out (local environment)
                         {
-                            //I'd say we're more than half way and really rocking the application
-                            //development making our current version 6.8
-                            ip.Stack.Push(68);
+                            //With only Trefunge and more Fingerprints to add, I'd say we're 88% there!
+                            ip.Stack.Push(088);
                         }
                         break;
 					#endregion
-                    #region case 3
+					#region 3. A cell containing this implementation's handprint (local environment)
 					case 3:
-                        //3. A cell containing this implementation's handprint (local environment)
                         //Our handprint is BSHP for BefungeSharp! Oh so clever.
                         {
                             //0x42534850, aka 
@@ -291,22 +291,25 @@ namespace BefungeSharp.Instructions.SystemCalls
                         }
                         break;
 					#endregion
-                    #region case 2
+					#region 2. A cell containing the number of bytes per cell
 					case 2:
-                        //2. A cell containing the number of bytes per cell
                         {
                             ip.Stack.Push(sizeof(int));
                         }
                         break;
 					#endregion
-                    #region case 1
+					#region //1. A cell containing various flags relating to which instructions
 					case 1:
-                        //1. A cell containing various flags relating to which instructions
-                        //Are implemented
                         {
                             //ip.Stack.Push((int)flags);
                             //t,= implemented, StdIO acts like getch()
-                            ip.Stack.Push(0x01 | 0x08 | 0x10);
+							RuntimeFeatures flags = 0x0;
+							flags |= OptionsManager.Get<bool>("I", "LF_CONCURRENCY") == true ? RuntimeFeatures.CONCURRENT_FUNGE : 0x0;
+							flags |= OptionsManager.Get<bool>("I", "LF_FILE_INPUT")  == true ? RuntimeFeatures.FILE_INPUT : 0x0;
+							flags |= OptionsManager.Get<bool>("I", "LF_FILE_OUTPUT") == true ? RuntimeFeatures.FILE_OUTPUT : 0x0;
+							flags |= OptionsManager.Get<int>("I", "LF_EXECUTE_STYLE") > 0    ? RuntimeFeatures.EXECUTE : 0x0;
+							flags |= OptionsManager.Get<int>("I", "LF_STD_INPUT_STYLE") > 0  ? RuntimeFeatures.UNBUFFERED_IO : 0x0;
+							ip.Stack.Push((int)flags);
                         }
                         break;
 					#endregion
@@ -344,7 +347,7 @@ namespace BefungeSharp.Instructions.SystemCalls
 
     public class NotImplemented : SystemInstruction
     {
-        public NotImplemented(char inName, int minimum_flags) : base(inName, minimum_flags) { color = ConsoleColor.DarkRed; }
+        public NotImplemented(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { Color = ConsoleColor.DarkRed; }
 
         public override bool Preform(IP ip)
         {
@@ -358,7 +361,7 @@ namespace BefungeSharp.Instructions.SystemCalls
 
     public class Breakpoint : SystemInstruction, IAffectsRunningMode
     {
-        public Breakpoint(char inName, int minimum_flags) : base(inName, minimum_flags) { color = ConsoleColor.Red; }
+        public Breakpoint(char inName, RuntimeFeatures minimum_flags) : base(inName, minimum_flags) { Color = ConsoleColor.Red; }
 
         public override bool Preform(IP ip)
         {

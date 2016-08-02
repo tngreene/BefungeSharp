@@ -4,42 +4,48 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BefungeSharp.FungeSpace;
+using BefungeSharp.Instructions;
+using BefungeSharp.Instructions.Fingerprints;
 
 namespace BefungeSharp
 {
     public class IP
     {
-        //The position of the IP in funge space
-        private FungeNode _position;
-
         /// <summary>
         /// The position of the IP in funge space
         /// </summary>
-        public FungeNode Position { get { return _position; } set { _position = value; } }
+        public FungeNode Position { get; set; }
 
-        /// <summary>
+		/// <summary>
         /// The velocity vector d of the IP
         /// </summary>
-        private Vector2 _delta;
+        public Vector2 Delta { get; set; }
+
+		/// <summary>
+		/// The storage offset of the IP
+		/// </summary>
+        public Vector2 StorageOffset { get; set; }
 
         /// <summary>
-        /// The velocity vector d of the IP
+        /// A public interface for dealing with the TOSS (which is what most people ever will use)
         /// </summary>
-        public Vector2 Delta { get { return _delta; } set { _delta = value; } }
+		public Stack<int> Stack { get { return StackStack.Peek(); } }
 
-        private Vector2 _storageOffset;
-        public Vector2 StorageOffset { get { return _storageOffset; } set { _storageOffset = value; } }
+        /// <summary>
+        /// A public interface for dealing with the real stack stack
+        /// </summary>
+        public Stack<Stack<int>> StackStack { get; private set; }
 
-        //Needed for concurrent-98, TODO - Implement the stack stack system
-        private Stack<int> _stack;
-        public Stack<int> Stack { get { return _stack; } set { _stack = value; } }
+		/// <summary>
+		/// The dictionary of ip's loaded fingerprints, by default is loaded with "NULL"
+		/// </summary>
+		public List<Fingerprint> LoadedFingerprints { get; private set; }
 
         /// <summary>
         /// Active is whether the IP should be drawn/updated/moved/anything. It is not the same a stopped IP
         /// All IPs start out inactive and are only activated when ready
         /// </summary>
-        private bool _active;
-        public bool Active { get { return _active; } set { _active = value; } }
+        public bool Active { get; set; }
 
         //A static counter to ensure that each added IP gets a unique ID starting with 0
         private static int ID_Counter = 0;
@@ -47,12 +53,10 @@ namespace BefungeSharp
         //Beware! Only to be used when ending the interpreter!
         public static void ResetCounter() { ID_Counter = 0; }
 
-        private int _IP_ParentID;
-        public int IP_ParentID { get { return _IP_ParentID; } }
+        public int IP_ParentID { get; private set; }
 
         //An ID for debugging purposes/concurrency
-        private int _IP_ID;
-        public int ID { get { return _IP_ID; } }
+        public int ID { get; private set; }
 
         /// <summary>
         /// For if we are currently picking up chars in a string mode 
@@ -61,64 +65,83 @@ namespace BefungeSharp
 
         public IP()
         {
-            _position = null;
-            _delta = Vector2.East;
-            _storageOffset = Vector2.Zero;
+            Position = null;
+            Delta = Vector2.East;
+            StorageOffset = Vector2.Zero;
 
-            _stack = new Stack<int>();
-            _active = false;
+            StackStack = new Stack<Stack<int>>();
+            StackStack.Push(new Stack<int>());
+            Active = false;
 
-            _IP_ParentID = 0;
-            _IP_ID = ID_Counter;
+            IP_ParentID = 0;
+            ID = ID_Counter;
             ID_Counter++;
             StringMode = false;
+
+			LoadedFingerprints = new List<Fingerprint>();
+			LoadedFingerprints.Add(new Instructions.Fingerprints.NULL.NULL());
+			LoadedFingerprints.First().Load();
         }
 
-        public IP(FungeNode position, Vector2 delta, Vector2 storageOffset, Stack<int> stack, int parent_id, bool willIncrementCounter)
+        public IP(FungeNode position, Vector2 delta, Vector2 storageOffset, Stack<Stack<int>> stack_stack, int parent_id, bool willIncrementCounter)
         {
-            _position = position;
-            _delta = delta;
-            _storageOffset = storageOffset;
+            Position = position;
+            Delta = delta;
+            StorageOffset = storageOffset;
 
-            _stack = stack;
-            _active = false;
+            StackStack = stack_stack;
+            Active = false;
 
-            _IP_ParentID = parent_id;
+            IP_ParentID = parent_id;
 
             if (willIncrementCounter == false)
             {
-                _IP_ID = -1;
+                ID = -1;
             }
             else
             {
-                _IP_ID = ID_Counter;
+                ID = ID_Counter;
                 ID_Counter++;
             }
             StringMode = false;
+
+			LoadedFingerprints = new List<Fingerprint>();
+			LoadedFingerprints.Add(new Instructions.Fingerprints.NULL.NULL());
+			LoadedFingerprints.First().Load();
         }
 
         //For use with Funge-98C
         public IP(IP parent)
         {
-            this._position = parent._position;
-            this._delta = parent._delta;
-            this._storageOffset = parent._storageOffset;
+            this.Position = parent.Position;
+            this.Delta = parent.Delta;
+            this.StorageOffset = parent.StorageOffset;
             
-            //Copies the array instead of assaigning the reference!
-            this._stack = new Stack<int>(parent._stack);
+            this.StackStack = new Stack<Stack<int>>();
+            //Copy the exact contents and order of the stack stack
+            for (int stackNumber = parent.StackStack.Count - 1; stackNumber >= 0; stackNumber--)
+            {
+                this.StackStack.Push(new Stack<int>());
+                Stack<int> currentStack = parent.StackStack.ElementAt(stackNumber);
+                for (int i = currentStack.Count - 1; i >= 0; i--)
+                {
+                    this.StackStack.Peek().Push(currentStack.ElementAt(i));
+                }
+            }
+            Active = false;
 
-            _active = false;
-
-            this._IP_ParentID = parent._IP_ParentID;
-            this._IP_ID = ID_Counter;
+            this.IP_ParentID = parent.IP_ParentID;
+            this.ID = ID_Counter;
             ID_Counter++;
 
             StringMode = false;
+
+			LoadedFingerprints = new List<Fingerprint>(parent.LoadedFingerprints);
         }
 
         public void Move()
         {
-            this._position = FungeSpaceUtils.MoveBy(this._position, this._delta);
+            this.Position = FungeSpaceUtils.MoveBy(this.Position, this.Delta);
         }
 
         public void Move(int repeat)
@@ -132,40 +155,57 @@ namespace BefungeSharp
         //TODO - fix pass by value/reference problem
         public void Negate()
         {
-            this._delta.Negate();
+			this.Delta = new Vector2(this.Delta.x, this.Delta.y);
         }
 
         public void Reset()
         {
-            _position = _position.ParentMatrix.Origin;
-            _delta = Vector2.East;
-            _stack.Clear();
+            Position = Position.ParentMatrix.Origin;
+            Delta = Vector2.East;
+            StackStack = new Stack<Stack<int>>();
 
-            _active = false;
+            Active = false;
             StringMode = false;
         }
 
         public void Stop()
         {
-            _delta.Clear();
+            Delta.Clear();
         }
 
-        //For when you need 
-        public FungeNode GetPosition()
-        {
-            return _position;
-        }
         /// <summary>
         /// Get's the cell currently under the IP and returns it's value
         /// </summary>
         /// <returns></returns>
         public FungeCell GetCurrentCell()
         {
-            return _position.Data;
+            return Position.Data;
         }
+
+		public void CallFingerprintMember(char c)
+		{
+			if (c < 'A' || c > 'Z')
+			{
+				return;
+			}
+
+			//From the top to the bottom, check if the fingerprint has a member
+			//Eventually it will reach NULL, and quit
+			for (int i = LoadedFingerprints.Count(); i >= 0; --i)
+			{
+				Instruction inst = LoadedFingerprints.ElementAt(i).Members[c];
+				if (inst != null)
+				{
+					inst.Preform(this);
+					return;
+				}
+			}
+		}
+		//---------------------------------------------------------------------
+
         public override string ToString()
         {
-            return "P: " + this._position + ", D: " + this._delta + ", S:" + this._stack + ", ID: " + this._IP_ID;
+            return "P: " + this.Position + ", D: " + this.Delta + ", TOSS:" + this.Stack + ", ID: " + this.ID;
         }
     }
 }

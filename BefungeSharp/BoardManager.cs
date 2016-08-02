@@ -11,60 +11,18 @@ namespace BefungeSharp
         /// <summary>
         /// Creates a new BoardManager with the options to set up its entire intial state and run type
         /// </summary>
-        /// <param name="rows">Number of rows</param>
-        /// <param name="columns">Number of columns</param>
-        /// <param name="initStrings">
+        /// <param name="init_board">
         /// Each element in the array represents a row of text.
         /// If you wish a blank board pass in an empty array
         /// </param>
         /// <param name="initGlobalStack">Initialize the input stack with preset numbers</param>
         /// <param name="mode">Chooses what mode you would like to start the board in</param>
-        public BoardManager(int rows, int columns, List<string> initStrings = null,
+        public BoardManager(List<List<int>> init_board,
                             Stack<int> initGlobalStack = null, BoardMode mode = BoardMode.Edit)
         {
-            List<List<int>> int_array = null;
-            if (initStrings == null)
-            {
-                int_array = new List<List<int>>();
-                //Fill up the whole rectangle with spaces
-                for (int y = 0; y < rows; y++)
-                {
-                    int_array.Add(new List<int>());
-                    for (int x = 1; x < columns; x++)
-                    {
-                        int_array[y].Add(' ');
-                    }
-                }
-            }
-            else
-            {
-                int_array = new List<List<int>>();
-                //Fill up the whole rectangle with the intial load
-                for (int y = 0; y < initStrings.Count; y++)
-                {
-                    int_array.Add(new List<int>());
-                    for (int x = 0; x < initStrings[y].Length; x++)
-                    {
-                        int_array[y].Add(initStrings[y][x]);
-                    }
-                }
-            }
-
-            Program.Interpreter = new Interpreter(int_array, initGlobalStack, mode);
-
-            Program.WindowUI = new WindowUI(Program.Interpreter);
-            Program.WindowSideBar = new WindowSideBar(this, Program.Interpreter);
-          
-            Console.CursorVisible = false;
-         
-            //Draw the field and ui and reset the position
-            Program.WindowUI.ClearArea(Program.Interpreter.CurMode);
-            Program.WindowUI.Draw(Program.Interpreter.CurMode);
-
-            Program.WindowSideBar.ClearArea(Program.Interpreter.CurMode);
-            Program.WindowSideBar.Draw(Program.Interpreter.CurMode);
-           
-            ConEx.ConEx_Draw.DrawScreen();
+            Program.Interpreter = new Interpreter(init_board, initGlobalStack, mode);
+            Program.WindowUI = new WindowUI();
+            Program.WindowSideBar = new WindowSideBar();
         }
 
         /// <summary>
@@ -82,11 +40,11 @@ namespace BefungeSharp
                 bool control = ConEx.ConEx_Input.CtrlDown;
                
                 //Get the current keys
-                ConsoleKeyInfo[] keysHit = ConEx.ConEx_Input.GetInput();
+                IEnumerable<ConsoleKeyInfo> keysHit = ConEx.ConEx_Input.GetInput();
                 
-                Instructions.CommandType type =  Program.Interpreter.Update( Program.Interpreter.CurMode, keysHit);
+                Instructions.CommandType type =  Program.Interpreter.Update(Program.Interpreter.CurMode, keysHit);
                                                  Program.WindowUI.Update(Program.Interpreter.CurMode, keysHit);
-                                                 Program.WindowSideBar.Update( Program.Interpreter.CurMode, keysHit);
+                                                 Program.WindowSideBar.Update(Program.Interpreter.CurMode, keysHit);
 
                 //Based on what mode it is handle those keys
                 switch ( Program.Interpreter.CurMode)
@@ -101,12 +59,12 @@ namespace BefungeSharp
                         HandleModifiers( Program.Interpreter.CurMode, keysHit);
 
                         #region --HandleInput-------------
-                        for (int i = 0; i < keysHit.Length; i++)
+                        for (int i = 0; i < keysHit.Count(); i++)
                         {
-                            System.ConsoleKey k = keysHit[i].Key;
-                            var m = keysHit[i].Modifiers;
+                            //System.ConsoleKey k = keysHit.ElementAt(i).Key;
+                            //var m = keysHit.ElementAt(i).Modifiers;
 
-                            switch (keysHit[i].Key)
+                            switch (keysHit.ElementAt(i).Key)
                             {
                                 case ConsoleKey.UpArrow:
                                 case ConsoleKey.LeftArrow:
@@ -128,7 +86,7 @@ namespace BefungeSharp
                                 case ConsoleKey.F4:
                                     if(ConEx.ConEx_Input.AltDown)
                                     {
-                                        Environment.Exit(1);//End the program
+                                        Program.QuitProgram(0);
                                     }
                                     break;
                                 default:
@@ -149,7 +107,7 @@ namespace BefungeSharp
                 }
                 double mm = watch.ElapsedMilliseconds;
                 //Based on the mode sleep the program so it does not scream by
-                System.Threading.Thread.Sleep((int) Program.Interpreter.CurMode);
+                System.Threading.Thread.Sleep(ClockDelay(Program.Interpreter.CurMode));
             }//while(true)
         }//Update()
         
@@ -158,7 +116,7 @@ namespace BefungeSharp
         /// </summary>
         /// <param name="mode">The mode of the program you wish to conisder</param>
         /// <param name="keysHit">an array of keys hit</param>
-        private void HandleModifiers(BoardMode mode, ConsoleKeyInfo[] keysHit)
+        private void HandleModifiers(BoardMode mode, IEnumerable<ConsoleKeyInfo> keysHit)
         {
             //Ensures that the user cannot paste when they out of the window
             if (ConEx.ConEx_Window.IsActive() == false)
@@ -196,7 +154,9 @@ namespace BefungeSharp
             if (s && alt)
             {
                 ConEx.ConEx_Input.IsKeyPressed(ConEx.ConEx_Input.VK_Code.VK_CONTROL);
-                FileUtils.SaveFungeSpace();
+                Menus.SaveSimpleMenu save = new Menus.SaveSimpleMenu();
+                save.RunLoop();
+
                 //Emergancy sleep so we don't get a whole bunch of operations at once
                 System.Threading.Thread.Sleep(150);
             }            
@@ -222,7 +182,34 @@ namespace BefungeSharp
 
             ConEx.ConEx_Draw.DrawScreen();
         }
-      
-        
+
+        /// <summary>
+        /// How much delay between clock ticks there is, in milliseconds
+        /// </summary>
+        public static int ClockDelay(BoardMode mode)
+        {
+            //Translate between the current number and desired number of
+            //milliseconds. Milliseconds 50,100,200 were chosen because
+            //they seemed to work well
+            switch (mode)
+            {
+                case BoardMode.Run_MAX:
+                    return 0;
+                case BoardMode.Run_TERMINAL:
+                    return 0;
+                case BoardMode.Run_FAST:
+                    return 50;
+                case BoardMode.Run_MEDIUM:
+                    return 100;
+                case BoardMode.Run_SLOW:
+                    return 200;
+                case BoardMode.Run_STEP:
+                    return 100;
+                case BoardMode.Edit:
+                case BoardMode.Debug:
+                default:
+                    return 0;
+            }
+        }
     }//class BoardManager
 }//Namespace BefungeSharp
