@@ -163,7 +163,7 @@ namespace BefungeSharp.Instructions.SystemCall
                         }
                         break;
 					#endregion
-                    #region case 15. The current year, month, and day (local environment)
+                    #region 15. The current year, month, and day (local environment)
 					case 15:
                         {
                             System.DateTime time = System.DateTime.Now;
@@ -175,7 +175,7 @@ namespace BefungeSharp.Instructions.SystemCall
                         }
                         break;
 					#endregion
-					#region case 14. A vector pointing to the greatest non-empty space relative to the least point (local environment)
+					#region 14. A vector pointing to the greatest non-empty space relative to the least point (local environment)
 					case 14:
                         //If you were to have a non-empty cell at 79, 24 this point is 0 + 79, 0 + 24 
                         {
@@ -235,10 +235,9 @@ namespace BefungeSharp.Instructions.SystemCall
 					#endregion
                     #region 07. A cell containing the dimensions of the interpreter (global environment)
 					case 7:
-						//1 for Unefunge, 2 for Befunge, 3 for Trefunge, etc. 
+						//1 for Unefunge, 2 for Befunge, 3 for Trefunge, etc
                         {
-                            //For now we'll just push 2
-                            ip.Stack.Push(2);
+                            ip.Stack.Push(OptionsManager.Get<int>("I","LF_DIMENSIONS"));
                         }
                         break;
 					#endregion
@@ -281,14 +280,14 @@ namespace BefungeSharp.Instructions.SystemCall
                         }
                         break;
 					#endregion
-					#region 02. A cell containing the number of bytes per cell
+					#region 02. A cell containing the number of bytes per cell (local environment)
 					case 2:
                         {
                             ip.Stack.Push(sizeof(int));
                         }
                         break;
 					#endregion
-					#region 01. A cell containing various flags relating to which instructions
+					#region 01. A cell containing various flags relating to which instructions (local environment)
 					case 1:
                         {
                             //ip.Stack.Push((int)flags);
@@ -303,7 +302,7 @@ namespace BefungeSharp.Instructions.SystemCall
                         }
                         break;
 					#endregion
-                    #region default
+                    #region > 20. Stack "Peek-like" action (ip specific)
                     default:
                         {
                             //Since it is impossible to get stack[20-20]
