@@ -35,86 +35,61 @@ namespace BefungeSharp.FungeSpace
         //Attributes
         private FungeCell data;
 
-        private FungeNode north;
-        private FungeNode east;
-        private FungeNode south;
-        private FungeNode west;
-
         //One day, for when we create our Three-Torus
         //private FungeNode up;
         //private FungeNode down;
 
-        private FungeSparseMatrix parentMatrix;
-        public FungeSparseMatrix ParentMatrix
-        {
-            get
-            {
-                return parentMatrix;
-            }
-            internal set 
-            {
-                parentMatrix = value; 
-            }
-        }
+		public FungeSparseMatrix ParentMatrix { get; internal set; }
+
         /// <summary>
         /// Gets and sets the data of this node
         /// </summary>
-        public FungeCell Data
-        {
-            get { return data; }
-            set { data = value; }
-        }
+		public FungeCell Data { get { return data; } internal set { data = value; } }
 
+		public int X { get { return data.x; } }
+
+		public int Y { get { return data.y; } }
+
+		public int Value { get { return data.value; } set { data.value = value; } }
+
+		public Vector2 Location { get { return new Vector2(X, Y); } }
         /// <summary>
         /// Gets and sets the north Node,
         /// set is internal so the matrix cannot be pulled apart
         /// </summary>
-        public FungeNode North
-        {
-            get { return north; }
-            internal set { north = value; }
-        }
+        public FungeNode North  { get; internal set; }
+
         /// <summary>
         /// Gets and sets the east Node,
         /// set is internal so the matrix cannot be pulled apart
         /// </summary>
-        public FungeNode East
-        {
-            get { return east; }
-            internal set { east = value; }
-        }
+		public FungeNode East { get; internal set; }
+
         /// <summary>
         /// Gets and sets the south Node
         /// set is internal so the matrix cannot be pulled apart
         /// </summary>
-        public FungeNode South
-        {
-            get { return south; }
-            internal set { south = value; }
-        }
+        public FungeNode South  { get; internal set; }
+
         /// <summary>
         /// Gets and sets the west Node,
         /// set is internal so the matrix cannot be pulled apart
         /// </summary>
-        public FungeNode West
-        {
-            get { return west; }
-            internal set { west = value; }
-        }
-
+        public FungeNode West  { get; internal set; }
+ 
         /// <summary>
         /// Creates new Node with data
         /// </summary>
         /// <param name="data">A funge cell to store in node</param>
         public FungeNode(FungeCell data, FungeSparseMatrix parent)
         {
-            this.data = data;
-            this.parentMatrix = parent;
+            this.Data = data;
+            this.ParentMatrix = parent;
             //All sides wrap around to themselfs unless otherwise set
-            north = this;
-            east = this;
-            south = this;
-            west = this;
+            North = this;
+            East = this;
+            South = this;
+            West = this;
         }
 
         public override string ToString()

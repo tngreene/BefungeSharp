@@ -141,7 +141,7 @@ namespace BefungeSharp
 
         public void Move()
         {
-            this.Position = FungeSpaceUtils.MoveBy(this.Position, this.Delta);
+            this.Position = FungeNodeUtils.GetNodeAtOrWrap(this.Position, this.Delta);
         }
 
         public void Move(int repeat)

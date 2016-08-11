@@ -315,27 +315,27 @@ namespace BefungeSharp
                                     int nextY = EditIP.Position.Data.y + direction.y;
                                     //Since the EditIP wraps around the viewing screen we need to use the old
                                     Vector2 wrappedPosition = WrapEditIPViewScreen(nextX, nextY);
-                                    EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, wrappedPosition.y, wrappedPosition.x);
+                                    EditIP.Position = FungeNodeUtils.GetNodeAtOrCreate(EditIP.Position, wrappedPosition.y, wrappedPosition.x);
                                 }
                                 break;
                             case ConsoleKey.Enter:
                                 {
                                     //Move down a line                                    
-                                    EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, EditIP.Position.Data.y + Vector2.South.y, EditIP.Position.Data.x + Vector2.South.x);
+                                    EditIP.Position = FungeNodeUtils.GetNodeAtOrCreate(EditIP.Position, EditIP.Position.Data.y + Vector2.South.y, EditIP.Position.Data.x + Vector2.South.x);
                                     EditIP.Delta = Vector2.East;
                                 }
                                 break;
                             case ConsoleKey.Delete:
                                 {
-                                    FungeSpaceUtils.ChangeData(EditIP.Position, ' ');
+                                    EditIP.Position.Value = ' ';
                                 }
                                 break;
                             case ConsoleKey.Backspace:
                                 {
                                     Vector2 nVec = EditIP.Delta;
                                     nVec.Negate();
-                                    EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, EditIP.Position.Data.y + nVec.y, EditIP.Position.Data.x + nVec.x);
-                                    FungeSpaceUtils.ChangeData(EditIP.Position, ' ');
+                                    EditIP.Position = FungeNodeUtils.GetNodeAtOrCreate(EditIP.Position, EditIP.Position.Data.y + nVec.y, EditIP.Position.Data.x + nVec.x);
+									EditIP.Position.Value = ' ';
                                 }
                                 break;
                             case ConsoleKey.Insert:
@@ -358,8 +358,9 @@ namespace BefungeSharp
                                     {
                                         snippet += "W";
                                     }
-                                                                        
-                                    EditIP.Position = FungeSpaceUtils.ChangeDataRange(EditIP.Position,  OptionsManager.Get<string>("E", snippet), EditIP.Delta);
+
+									EditIP.Position = FungeSpaceUtils.ImportData(FungeSpace, EditIP.Delta, OptionsManager.Get<string>("E", snippet).Select<char, int>(snippet_c => (int)snippet_c).ToList<int>());
+									EditIP.Position = FungeNodeUtils.GetNodeAtOrCreate(EditIP.Position, EditIP.Delta);
                                 }
                                 break;
                             case ConsoleKey.F1:
@@ -397,7 +398,7 @@ namespace BefungeSharp
                                     int nextX = EditIP.Position.Data.x + EditIP.Delta.x;
                                     int nextY = EditIP.Position.Data.y + EditIP.Delta.y;
                                     
-                                    EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, nextY, nextX);
+                                    EditIP.Position = FungeNodeUtils.GetNodeAtOrCreate(EditIP.Position, nextY, nextX);
                                 }
                                 break;
                         }
@@ -408,7 +409,7 @@ namespace BefungeSharp
                         Vector2 confirmedPosition = WrapEditIPViewScreen(EditIP.Position.Data.x, EditIP.Position.Data.y);
                         if (confirmedPosition != EditIP.Position.Data)
                         {
-                            EditIP.Position = FungeSpaceUtils.MoveTo(EditIP.Position, confirmedPosition.y, confirmedPosition.x);
+                            EditIP.Position = FungeNodeUtils.GetNodeAtOrCreate(EditIP.Position, confirmedPosition.y, confirmedPosition.x);
                         }
                     }
                     
@@ -498,7 +499,7 @@ namespace BefungeSharp
 						IPs[n].StringMode == false   &&
 						SpecVersion == 98)
                 {
-                    drawing_position = FungeSpaceUtils.MoveBy(drawing_position, IPs[n].Delta);
+                    drawing_position = FungeNodeUtils.GetNodeAtOrWrap(drawing_position, IPs[n].Delta);
                     value = drawing_position.Data.value;
                 }
                 value = drawing_position.Data.value;

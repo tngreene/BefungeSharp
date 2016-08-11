@@ -57,7 +57,7 @@ namespace BefungeSharp.Instructions.StackStack
             }
             
             StackUtils.VectorPush(SOSS, ip.StorageOffset);
-            ip.StorageOffset = FungeSpace.FungeSpaceUtils.MoveBy(ip.Position, ip.Delta).Data;
+            ip.StorageOffset = FungeSpace.FungeNodeUtils.GetNodeAtOrWrap(ip.Position, ip.Delta).Data;
             return true;
         }
 

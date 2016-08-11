@@ -36,8 +36,11 @@ namespace BefungeSharp.Instructions.FileIO
                 FungeSparseMatrix overlay_matrix = new FungeSparseMatrix(openedFile);
                 FungeSpaceUtils.OverlayMatrix(ip.Position.ParentMatrix, overlay_matrix, Va);
 
-                Vector2[] worldBounds = FungeSpaceUtils.GetRealWorldBounds(overlay_matrix);
-                Vector2 Vb = Va + worldBounds[1];
+                
+				Vector2[] bounds = new Vector2[2];
+                overlay_matrix.GetRealWorldBounds(ref bounds);
+
+                Vector2 Vb = Va + bounds[1];
 
                 StackUtils.VectorPush(ip.Stack, Va);
                 StackUtils.VectorPush(ip.Stack, Vb);
@@ -120,7 +123,7 @@ namespace BefungeSharp.Instructions.FileIO
             }
             else
             {
-                outArray = FungeSpaceUtils.MatrixToDynamicArray(ip.Position.ParentMatrix, new Vector2[] {Va, Vb});
+                outArray = FungeSpaceUtils.ExportData(ip.Position.ParentMatrix, new FungeSpaceArea(Va, Vb));
             }
 
             //Attempt to open a file and its contents

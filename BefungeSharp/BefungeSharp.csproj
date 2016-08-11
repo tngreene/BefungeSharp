@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FungeSpace\FungeNode.cs" />
+    <Compile Include="FungeSpace\FungeNodeUtils.cs" />
     <Compile Include="Instructions\ConcurrentInstructions.cs" />
     <Compile Include="Instructions\FileIOInstructions.cs" />
     <Compile Include="Instructions\Fingerprints\FingerprintInstruction.cs" />

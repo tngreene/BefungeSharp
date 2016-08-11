@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Text.RegularExpressions;
+using BefungeSharp.FungeSpace;
 
 namespace BefungeSharp.Menus
 {
@@ -121,10 +122,10 @@ namespace BefungeSharp.Menus
                 bounds[0].x = 0;
                 bounds[0].y = 0;
 
-                List<List<int>> outStrings = FungeSpace.FungeSpaceUtils.MatrixToDynamicArray(Program.Interpreter.FungeSpace, bounds);
+                List<List<int>> out_strings = FungeSpaceUtils.ExportData(Program.Interpreter.FungeSpace, new FungeSpaceArea(bounds));
                     
                 Console.WriteLine("Attempting to save {0}", path);
-                bool success = FileUtils.WriteFile(path, outStrings, false, true);
+                bool success = FileUtils.WriteFile(path, out_strings, false, true);
 
                 //--General FileMenu content-----
                 if (success == false)

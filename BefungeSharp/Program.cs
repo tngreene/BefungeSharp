@@ -35,7 +35,7 @@ namespace BefungeSharp
             //2. FileUtils
             Console.WriteLine("Loading " + OptionsManager.OptionsFileName);
             FileUtils.DisplayCurrentDirectory();
-
+			//FungeSpaceUtils.ListListToString(new List<List<int>>(10));
             //Size of field + border + width_of_sidebar
             int width_of_sidebar = 36;//Seems right?
             Console.Title = "BefungeSharp, the Premier Funge-98 IDE for Windows";

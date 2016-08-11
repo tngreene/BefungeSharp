@@ -30,7 +30,7 @@ namespace BefungeSharp.Instructions.String
         public override bool Preform(IP ip)
         {
             Vector2 nextPosition = ip.Position.Data + ip.Delta;
-            ip.Position = FungeSpace.FungeSpaceUtils.MoveTo(ip.Position, nextPosition.y, nextPosition.x);
+            ip.Position = FungeSpace.FungeNodeUtils.GetNodeAtOrCreate(ip.Position, nextPosition);
 
             ip.Stack.Push(ip.GetCurrentCell().value);
             //The IP will be moved again when the instruction is finised calling

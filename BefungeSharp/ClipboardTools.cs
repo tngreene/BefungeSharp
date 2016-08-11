@@ -22,9 +22,9 @@ namespace BefungeSharp.UI
         /// <summary>
         /// The cached content of the selection
         /// </summary>
-        public List<string> content;
+        public List<List<int>> content;
 
-        /// <summary>
+		/// <summary>
         /// Create a FungeSpaceArea from the selection
         /// </summary>
         /// <returns>The generated FungeSpaceArea</returns>
@@ -69,7 +69,7 @@ namespace BefungeSharp.UI
         public void Clear()
         {
             origin = handle = Vector2.Zero;
-            content = new List<string>();
+			content = new List<List<int>>();
         }
     }
 
@@ -78,8 +78,8 @@ namespace BefungeSharp.UI
         public static Selection FromWindowsClipboard(Vector2 origin)
         {
             Selection s = new Selection();
-            s.content = new List<string>();
-            s.content.Add("");
+            s.content = new List<List<int>>();
+            s.content.Add(new List<int>());
             s.origin = s.handle = origin;
             
             string input;
@@ -114,7 +114,7 @@ namespace BefungeSharp.UI
                 {
                     //We are garunteed no new line at the end of this
                     //So always add a new line
-                    s.content.Add("");
+					s.content.Add(new List<int>());
                     //Increase the dimensions
                     s.handle.y++;
                 }
@@ -128,12 +128,12 @@ namespace BefungeSharp.UI
                       //  c = ' ';
                     }
 
-                    s.content[s.content.Count - 1] += c;
+                    s.content[s.content.Count - 1].Add(c);
                     
                     int width = s.handle.x - s.origin.x + 1;
                     //Make sure the bounds of the selection always capture
                     //The longest line
-                    if (s.content[s.content.Count - 1].Length > width)
+                    if (s.content[s.content.Count - 1].Count() > width)
                     {
                         s.handle.x++;
                     }
@@ -148,14 +148,20 @@ namespace BefungeSharp.UI
             if (selection.content.Count > 0)
             {
                 string output = "";
-                for (int i = 0; i < selection.content.Count; i++)
-                {
-                    output += selection.content[i];
-                    output += "\n";
-                }
+				foreach (var row in selection.content)
+				{
+					foreach (var column in row)
+					{
+						//TODO: Is this the right way to handle selecting binary data?
+						//Perhaps just saying "cannot copy binary data"?
+						output += (char)Math.Min(column,(int)char.MaxValue);
+					}
+					output += '\n';
+				}
+
                 try
                 {
-                    System.Windows.Clipboard.SetText(output);
+                    System.Windows.Clipboard.SetData(System.Windows.DataFormats.UnicodeText,(output));
                 }
                 catch
                 {

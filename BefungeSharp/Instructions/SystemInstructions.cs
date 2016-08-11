@@ -73,6 +73,7 @@ namespace BefungeSharp.Instructions.SystemCall
 
             //Which option we will start examining
             int toExamine = ip.Stack.Pop();
+
             //Start with assuming we're just interested in one of them
             int toTake = 1;
 
@@ -85,10 +86,9 @@ namespace BefungeSharp.Instructions.SystemCall
             while (toTake > 0)
             {
                 switch (toExamine)
-                {
-                    #region case 20
+				{
+					#region 20. A series of strings containing the environment variables (global environment)
 					case 20:
-                        //20. A series of strings containing the environment variables (global environment)
                         {
                             foreach (System.Collections.DictionaryEntry entry in System.Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Machine))
                             {
@@ -107,12 +107,9 @@ namespace BefungeSharp.Instructions.SystemCall
                         }
                         break;
 					#endregion
-                    #region case 19
+					#region 19. A doubly null terminated sequence of strings containing the file name, followed by all of the commandline arguments passed into the interpreter. The string of strings is terminated with double null terminators (global environment)
 					case 19:
-                        //19. A sequence of strings containing the file name, followed by all of the commandline arguments
-                        //Passed into the interpreter.Each string is, of course, terminated with a '\0' and the whole is terminated with
-                        //'\0''\0'. Two null string arguments will result in the command end parsing too early. This is rare
-                        // (global environment)
+                        
                         {
                             StackUtils.StringPush(ip.Stack, "Your File Name Here!");
 
@@ -166,9 +163,8 @@ namespace BefungeSharp.Instructions.SystemCall
                         }
                         break;
 					#endregion
-                    #region case 15
+                    #region case 15. The current year, month, and day (local environment)
 					case 15:
-                        //15. The current year, month, and day (local environment)
                         {
                             System.DateTime time = System.DateTime.Now;
                             int year = (time.Year - 1900) * 256 * 256;
@@ -179,59 +175,57 @@ namespace BefungeSharp.Instructions.SystemCall
                         }
                         break;
 					#endregion
-                    #region case 14
+					#region case 14. A vector pointing to the greatest non-empty space relative to the least point (local environment)
 					case 14:
-                        //14. A vector pointing to the greatest non-empty space relative to the least point
-                        //If you were to have a non-empty cell at 79, 24 this point is 0 + 79, 0 + 24 (local environment)
+                        //If you were to have a non-empty cell at 79, 24 this point is 0 + 79, 0 + 24 
                         {
-                            //For now we push 79, 24 until we create the advanced funge space system
-                            StackUtils.VectorPush(ip.Stack, new Vector2(0 + 79, 0 + 24));
+							Vector2[] bounds = new Vector2[2];
+							ip.Position.ParentMatrix.GetRealWorldBounds(ref bounds);
+							StackUtils.VectorPush(ip.Stack, bounds[1]);
                         }
                         break;
 					#endregion
-                    #region case 13
+					#region 13. A vector pointing to the least non-empty space relative to the origin (local environment)
 					case 13:
-                        //13. A vector pointing to the least non-empty space relative to the origin
                         {
-                            Vector2[] realBounds = FungeSpace.FungeSpaceUtils.GetRealWorldBounds(ip.Position.ParentMatrix);
-                            StackUtils.VectorPush(ip.Stack, realBounds[0]);
+							//TODO: What if dy were run in empty fungespace?
+							//This is really a pendantic question for a future spec
+							Vector2[] bounds = new Vector2[2];
+                            ip.Position.ParentMatrix.GetRealWorldBounds(ref bounds);
+                            StackUtils.VectorPush(ip.Stack, bounds[0]);
                         }
                         break;
 					#endregion
-                    #region case 12
+					#region 12. A vector containing the storage offset of the ip (ip specific)
 					case 12:
-                        //12. A vector containing the storage offset of the ip (ip specific)
                         {
-                            StackUtils.VectorPush(ip.Stack, new Vector2(ip.StorageOffset.x,ip.StorageOffset.y));
+                            StackUtils.VectorPush(ip.Stack, ip.StorageOffset);
                         }
                         break;
 					#endregion
-                    #region case 11
+					#region 11. A vector containing the delta of the ip (ip specific)
 					case 11:
-                        //11. A vector containing the delta of the ip (ip specific)
                         {
                             StackUtils.VectorPush(ip.Stack, ip.Delta);
                         }
                         break;
 					#endregion
-                    #region case 10
+					#region 10. A vector containing the position of the ip (ip specific)
 					case 10:
-                        //10. A vector containing the position of the ip (ip specific)
                         {
-                            StackUtils.VectorPush(ip.Stack, new Vector2(ip.Position.Data.x, ip.Position.Data.y));
+                            StackUtils.VectorPush(ip.Stack, ip.Position.Location);
                         }
                         break;
 					#endregion
-                    #region case 9
+					#region 09. A cell containing a unique team number (ip specific)
 					case 9:
-                        //9. A cell containing a unique team number (ip specific)
                         //This appears to be useless, not even appearing in RC/Funge
                         {
                             ip.Stack.Push(0);
                         }
                         break;
 					#endregion
-					#region 8. A cell containing the unique ID for the current ip (ip specific)
+					#region 08. A cell containing the unique ID for the current ip (ip specific)
 					case 8:
                         //Used in Concurrent Funge
                         {
@@ -239,7 +233,7 @@ namespace BefungeSharp.Instructions.SystemCall
                         }
                         break;
 					#endregion
-                    #region 7. A cell containing the dimensions of the interpreter (global environment)
+                    #region 07. A cell containing the dimensions of the interpreter (global environment)
 					case 7:
 						//1 for Unefunge, 2 for Befunge, 3 for Trefunge, etc. 
                         {
@@ -248,35 +242,31 @@ namespace BefungeSharp.Instructions.SystemCall
                         }
                         break;
 					#endregion
-                    #region case 6
+					#region 06. A cell containing the path sperator for use with 'i' and 'o' (global environment)
 					case 6:
-                        //6. A cell containing the path sperator for use with 'i' and 'o' (global environment)
                         {
                             //Give this is a windows system the seperator is that aweful \
-                            ip.Stack.Push('\\');
+                            ip.Stack.Push(System.IO.Path.DirectorySeparatorChar);
                         }
                         break;
 					#endregion
-                    #region case 5
+					#region 05. A cell containing an ID code for the Operating Paradigm, used for understanding how the '=' instruction will handle input (global environment)
 					case 5:
-                        //5. A cell containing an ID code for the Operating Paradigm,
-                        //used for understanding how the '=' instruction will handle input (global environment)
                         {
-                            //1 means C-system style calling
-                            ip.Stack.Push(1);
+                            ip.Stack.Push(OptionsManager.Get<int>("I", "LF_EXECUTE_STYLE"));
                         }
                         break;
 					#endregion
-					#region 4. A cell containing this implementation's version number 
+					#region 04. A cell containing this implementation's version number (local environment)
 					case 4:
-                        //where all .'s are stripped out (local environment)
+                        //where all .'s are stripped out 
                         {
                             //With only Trefunge and more Fingerprints to add, I'd say we're 88% there!
                             ip.Stack.Push(088);
                         }
                         break;
 					#endregion
-					#region 3. A cell containing this implementation's handprint (local environment)
+					#region 03. A cell containing this implementation's handprint (local environment)
 					case 3:
                         //Our handprint is BSHP for BefungeSharp! Oh so clever.
                         {
@@ -291,24 +281,24 @@ namespace BefungeSharp.Instructions.SystemCall
                         }
                         break;
 					#endregion
-					#region 2. A cell containing the number of bytes per cell
+					#region 02. A cell containing the number of bytes per cell
 					case 2:
                         {
                             ip.Stack.Push(sizeof(int));
                         }
                         break;
 					#endregion
-					#region //1. A cell containing various flags relating to which instructions
+					#region 01. A cell containing various flags relating to which instructions
 					case 1:
                         {
                             //ip.Stack.Push((int)flags);
                             //t,= implemented, StdIO acts like getch()
 							RuntimeFeatures flags = 0x0;
 							flags |= OptionsManager.Get<bool>("I", "LF_CONCURRENCY") == true ? RuntimeFeatures.CONCURRENT_FUNGE : 0x0;
-							flags |= OptionsManager.Get<bool>("I", "LF_FILE_INPUT")  == true ? RuntimeFeatures.FILE_INPUT : 0x0;
-							flags |= OptionsManager.Get<bool>("I", "LF_FILE_OUTPUT") == true ? RuntimeFeatures.FILE_OUTPUT : 0x0;
-							flags |= OptionsManager.Get<int>("I", "LF_EXECUTE_STYLE") > 0    ? RuntimeFeatures.EXECUTE : 0x0;
-							flags |= OptionsManager.Get<int>("I", "LF_STD_INPUT_STYLE") > 0  ? RuntimeFeatures.UNBUFFERED_IO : 0x0;
+							flags |= OptionsManager.Get<bool>("I", "LF_FILE_INPUT")  == true ? RuntimeFeatures.FILE_INPUT       : 0x0;
+							flags |= OptionsManager.Get<bool>("I", "LF_FILE_OUTPUT") == true ? RuntimeFeatures.FILE_OUTPUT      : 0x0;
+							flags |= OptionsManager.Get<int>("I", "LF_EXECUTE_STYLE") > 0    ? RuntimeFeatures.EXECUTE          : 0x0;
+							flags |= OptionsManager.Get<int>("I", "LF_STD_INPUT_STYLE") > 0  ? RuntimeFeatures.UNBUFFERED_IO    : 0x0;
 							ip.Stack.Push((int)flags);
                         }
                         break;

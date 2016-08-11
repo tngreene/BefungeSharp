@@ -486,7 +486,7 @@ namespace BefungeSharp
         /// Gets the contents of the selection box
         /// </summary>
         /// <returns>A list of strings, one for each row of the selection</returns>
-        public List<string> GetSelectionContents()
+        public List<List<int>> GetSelectionContents()
         {
             Vector2[] cropping_bounds = new Vector2[2];
 
@@ -494,7 +494,7 @@ namespace BefungeSharp
             cropping_bounds[0] = new Vector2(dimensions.left, dimensions.top);
             cropping_bounds[1] = new Vector2(dimensions.right, dimensions.bottom);
  
-            List<string> outlines = FungeSpaceUtils.MatrixToStringList(Program.Interpreter.FungeSpace, cropping_bounds);
+            List<List<int>> outlines = FungeSpaceUtils.ExportData(Program.Interpreter.FungeSpace, new FungeSpaceArea(cropping_bounds));
          
             return outlines;
         }
@@ -512,7 +512,7 @@ namespace BefungeSharp
             for (int s_row = 0; s_row < _selection.content.Count; s_row++)
             {
                 //For every letter in each row
-                for (int s_column = 0; s_column < _selection.content[s_row].Length; s_column++)
+                for (int s_column = 0; s_column < _selection.content[s_row].Count(); s_column++)
                 {
                     //Put the character in the "real" location + the selection offset
                     Program.Interpreter.FungeSpace.InsertCell(new FungeCell(left + s_column, top + s_row, _selection.content[s_row][s_column]));
@@ -524,19 +524,19 @@ namespace BefungeSharp
             
             if (Program.Interpreter.EditIP.Delta == Vector2.North)
             {
-                Program.Interpreter.EditIP.Position = FungeSpaceUtils.MoveTo(currentPosition, currentPosition.Data.y - (dimensions.Height), currentPosition.Data.x);
+                Program.Interpreter.EditIP.Position = FungeNodeUtils.GetNodeAtOrCreate(currentPosition, currentPosition.Data.y - (dimensions.Height), currentPosition.Data.x);
             }
             else if(Program.Interpreter.EditIP.Delta == Vector2.East)
             {
-                Program.Interpreter.EditIP.Position = FungeSpaceUtils.MoveTo(currentPosition, currentPosition.Data.y, currentPosition.Data.x + (dimensions.Width));
+                Program.Interpreter.EditIP.Position = FungeNodeUtils.GetNodeAtOrCreate(currentPosition, currentPosition.Data.y, currentPosition.Data.x + (dimensions.Width));
             }
             else if(Program.Interpreter.EditIP.Delta == Vector2.South)
             {
-                Program.Interpreter.EditIP.Position = FungeSpaceUtils.MoveTo(currentPosition, currentPosition.Data.y + (dimensions.Height), currentPosition.Data.x);
+                Program.Interpreter.EditIP.Position = FungeNodeUtils.GetNodeAtOrCreate(currentPosition, currentPosition.Data.y + (dimensions.Height), currentPosition.Data.x);
             }
             else if(Program.Interpreter.EditIP.Delta == Vector2.West)
             {
-                Program.Interpreter.EditIP.Position = FungeSpaceUtils.MoveTo(currentPosition, currentPosition.Data.y, currentPosition.Data.x - (dimensions.Width));
+                Program.Interpreter.EditIP.Position = FungeNodeUtils.GetNodeAtOrCreate(currentPosition, currentPosition.Data.y, currentPosition.Data.x - (dimensions.Width));
             }
             
             _selection.Clear();
@@ -582,7 +582,7 @@ namespace BefungeSharp
             Program.Interpreter.FungeSpace.EnumerationArea = _selection.GenerateArea();
             foreach (var node in Program.Interpreter.FungeSpace)
             {
-                node.Data = new FungeCell(node.Data.x, node.Data.y, ' ');
+                node.Value = ' ';
             }
         }
 #endregion Selection
