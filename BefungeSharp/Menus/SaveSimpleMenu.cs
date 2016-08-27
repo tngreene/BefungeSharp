@@ -117,10 +117,10 @@ namespace BefungeSharp.Menus
                     }
                 }
 
-                Vector2[] bounds = FungeSpace.FungeSpaceUtils.GetMatrixBounds(Program.Interpreter.FungeSpace);
-                //Make sure we're only saving Q1
-                bounds[0].x = 0;
-                bounds[0].y = 0;
+                Vector2[] bounds = Program.Interpreter.FungeSpace.MatrixBounds;
+                
+				//Make sure we're only saving Q1
+                bounds[0] = Vector2.Zero;
 
                 List<List<int>> out_strings = FungeSpaceUtils.ExportData(Program.Interpreter.FungeSpace, new FungeSpaceArea(bounds));
                     

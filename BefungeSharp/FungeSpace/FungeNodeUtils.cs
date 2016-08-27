@@ -8,14 +8,78 @@ namespace BefungeSharp.FungeSpace
 {
 	public static class FungeNodeUtils
 	{
-		public static bool IsOnOrAfterEdge(FungeSparseMatrix matrix, Vector2 position)
+		/// <summary>
+		/// Tests if a position is on or after the edge of a quadrent, and left in the void. WARNING: Uses GetOrCreateNode!
+		/// </summary>
+		/// <param name="matrix">The matrix to test</param>
+		/// <param name="position">The position to test</param>
+		/// <param name="search_direction">The direction to search if there is anything non-void ahead</param>
+		/// <param name="space_is_void">True if you want to consider a squence of spaces as non-void</param>
+		/// <returns>True if on or after non-void, flase if inside non-void space, including inner holes</returns>
+		public static bool IsOnOrAfterEdge(FungeSparseMatrix matrix, Vector2 position, Vector2 search_direction, bool space_is_void=true)
 		{
-			FungeNode node = matrix.GetNode(position);
-			//if(node
-			return true;
+			//Cases, where x is non space and non void, ? is the one we're testing, and ... is the edge, the void
+			//We always start in the middle
+			//Space is void
+			//['x'][' ']['x']...
+			//['x']['x'][' ']...
+			//[' ']['x']['x']...
+
+			//If wraps around before start node changes you are in a gap
+			//TODO: What if position is? What if it is in a gap?
+			FungeNode start_node = null;
+			FungeNode traverse = start_node = matrix.GetOrCreateNode(position);
+			
+			FungeNode last_known_good = null;
+
+			//How to tell if space is strech in the middle or on edge
+			//If discover space, set last known good to the one before it
+			//if we wrap around before that changes again you're on a big section of space before the void
+			//otherwise we're in a gap
+			do
+			{
+				if (traverse.Value == ' ' && space_is_void == false)
+				{
+					last_known_good = traverse;
+				}
+				else if (traverse.Value != ' ')
+				{
+					last_known_good = traverse;
+				}
+
+				//Get the next node
+				traverse = FungeNodeUtils.GetNodeAtOrWrap(traverse, search_direction);
+
+				double last_known_mag = Math.Sqrt(Math.Pow(last_known_good.X, 2.0) + Math.Pow(last_known_good.Y, 2.0));
+				double dot = (last_known_good.X * traverse.X) + (last_known_good.Y * traverse.Y);
+
+				if (dot <= 0)
+				{
+					//We've wrapped around without finding something good!
+					if (last_known_good == null)
+					{
+						return true;
+					}
+					else
+					{
+						return false;
+					}
+				}
+				else if (last_known_good != null) //We found non-void before wrapping around
+				{
+					return false;
+				}
+				else
+				{
+					continue;
+				}
+			}
+			while (traverse != start_node);
+
+			return false;
 		}
 
-		public static bool IsInGap(FungeSparseMatrix matrix, Vector2 position)
+		public static bool IsInGap(FungeSparseMatrix matrix, Vector2 position, Vector2 search_direction)
 		{
 			return true;
 		}
@@ -92,7 +156,7 @@ namespace BefungeSharp.FungeSpace
 				Vector2 origin = new Vector2(position.Data.x, position.Data.y);
 				Vector2 traverse = origin;
 
-				Vector2[] bounds = FungeSpaceUtils.GetMatrixBounds(position.ParentMatrix);
+				Vector2[] bounds = position.ParentMatrix.MatrixBounds;
 				do
 				{
 					//Test if our next move will actually be out of bounds

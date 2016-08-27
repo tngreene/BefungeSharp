@@ -20,7 +20,7 @@ namespace BefungeSharp.Instructions.FlowControl
             Vector2 nextPosition = ip.Position.Data + ip.Delta;
             //TODO: This is majorly slow, if we could figure out a way to make sure it uses MoveBy as much as possible it would
             //really help
-            ip.Position = FungeSpace.FungeNodeUtils.GetNodeAtOrCreate(ip.Position, nextPosition);//.y, nextPosition.x);
+            ip.Position = FungeSpace.FungeNodeUtils.GetNodeAtOrCreate(ip.Position, nextPosition);
             return true;
         }
     }

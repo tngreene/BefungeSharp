@@ -31,26 +31,6 @@ namespace BefungeSharp.FungeSpace
         /// </summary>
         public int Height { get { return (bottom - top) + 1; } }
 
-		/// <summary>
-		/// Constructs the FungeSpaceArea based on an array of bounds
-		/// </summary>
-		/// <param name="bounds">Where [0] is top-left and [1] is bottom-right</param>
-		public FungeSpaceArea(Vector2[] bounds)
-		{
-			this.left   = bounds[0].x;
-			this.top    = bounds[0].y;
-			this.right  = bounds[1].x;
-			this.bottom = bounds[1].y;
-		}
-
-        public FungeSpaceArea(Vector2 top_left, Vector2 bottom_right)
-        {
-            this.left = top_left.x;
-            this.top = top_left.y;
-            this.right = bottom_right.x;
-            this.bottom = bottom_right.y;
-        }
-
         public FungeSpaceArea(int top, int left, int bottom, int right)
         {
            this.left = left;
@@ -60,6 +40,37 @@ namespace BefungeSharp.FungeSpace
            this.right = right;
         }
 
+		/// <summary>
+		/// Constructs the FungeSpaceArea based on an array of bounds
+		/// </summary>
+		/// <param name="bounds">Where [0] is top-left and [1] is bottom-right</param>
+		public FungeSpaceArea(Vector2[] bounds)
+		{
+			this.left = bounds[0].x;
+			this.top = bounds[0].y;
+			this.right = bounds[1].x;
+			this.bottom = bounds[1].y;
+		}
+
+		public FungeSpaceArea(Vector2 top_left, Vector2 bottom_right)
+		{
+			this.left = top_left.x;
+			this.top = top_left.y;
+			this.right = bottom_right.x;
+			this.bottom = bottom_right.y;
+		}
+
+		public static implicit operator Vector2[](FungeSpaceArea area)
+		{
+			return new Vector2[] { new Vector2(area.left, area.top), new Vector2(area.right, area.bottom) };
+		}
+
+		/// <summary>
+		/// Tests if these co-ordinantes are inside this area (inclusive)
+		/// </summary>
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <returns></returns>
         public bool Contains(int x, int y)
         {
             if (x >= left && x <= right)
@@ -191,25 +202,6 @@ namespace BefungeSharp.FungeSpace
             }
             return outMatrix;
         }
-        
-        /// <summary>
-        /// Get's a matrix upper and lower bounds
-        /// </summary>
-        /// <param name="matrix">The matrix to query</param>
-        /// <returns>A vector where [0] is the upper left and [1] is the bottom right </returns>
-        public static Vector2[] GetMatrixBounds(FungeSparseMatrix matrix)
-        {
-            //Where bounds[0] is the upper left bound and bounds[1] is the bottom right
-            Vector2[] bounds = new Vector2[2];
-
-            bounds[0].x = matrix.MatrixBounds.left;
-            bounds[0].y = matrix.MatrixBounds.top;
-            bounds[1].x = matrix.MatrixBounds.right;
-            bounds[1].y = matrix.MatrixBounds.bottom;
-            return bounds;
-        }
-
-        
 
         public static void DrawFungeSpace(FungeNode draw_origin, FungeSpaceArea drawable_bounds)
         {
@@ -237,7 +229,7 @@ namespace BefungeSharp.FungeSpace
                                                      row,
                                                      column,
                                                      color,
-                                                     ConsoleColor.DarkGray);//Change if you want to debug where FungeSpaceCells have been inserted
+                                                     ConsoleColor.Black);//Change if you want to debug where FungeSpaceCells have been inserted
                 }
             }
         }
