@@ -8,8 +8,8 @@ BefungeSharp is a Funge-98 IDE that aims to have the best Befunge code editor, a
 Be sure to read the "4 Minute Intro" if you are unfamiliar with Befunge.
 
 ![The interpreter running itoroman.bf](./BefungeSharp/doc/screenshots/editor_window_1.png "The interpreter running itoroman.bf")
-  
-<br/>
+ 
+ If you are running on Windows 10, you will likely need to turn on "Legacy Command Prompt", and possibly run the program in compatability mode. Expect some graphical glitches as the console refresh timing is different on newer computers.
 
 Why does this need to exist?
 ============================
@@ -46,6 +46,7 @@ Completed Features
 	- [x] Very colorful menus
 	- [x] Entirely open source
 	- [x] Does not alter cmd.exe settings
+	- [X] A properly chosen open source license (the unlicense)
 	
 Planned features
 ----------------
@@ -71,11 +72,10 @@ Planned features
 * Other features
 	- [ ] Add use of command line arguments
 	- [ ] Using MonoGame for graphics and input instead of (cleverly) twisting the console's intended usage
-	- [ ] A properly chosen open source license
 	- [ ] An even more awesome icon for the program
 
 System Requirements
 -------------------
-.NET Framewrk 4.5 Runtime Libraries, Visual Studio 2012 or greater for compiling.
+.NET Framework 4.5 Runtime Libraries, Visual Studio 2012 or greater for compiling.
 
 Please enjoy, and if you'd really like to be a pal send the author a bug report or a comment about it!
