@@ -2,7 +2,6 @@ BefungeSharp - The Premier Funge-98 IDE for Windows
 ===================================================
 BefungeSharp is a Funge-98 IDE that aims to have the best Befunge code editor, a fully compliant interpreter, and useful debugging features like edit and continue, all while being very easy to use!
 
-[Download Latest Release](http://www.tedngreene.com/projects/befunge/befungesharp_latest.zip)
 =========================
 
 Be sure to read the "4 Minute Intro" if you are unfamiliar with Befunge.
