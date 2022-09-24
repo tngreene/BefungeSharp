@@ -155,7 +155,7 @@ namespace BefungeSharp
         //TODO - fix pass by value/reference problem
         public void Negate()
         {
-			this.Delta = new Vector2(this.Delta.x, this.Delta.y);
+			this.Delta = new Vector2(-this.Delta.x, -this.Delta.y);
         }
 
         public void Reset()

@@ -35,8 +35,9 @@ namespace BefungeSharp.Instructions.Concurrent
                 }
 			}
 
-            childIP.Active = true;
             childIP.Negate();
+            childIP.Move();
+            childIP.Active = true;
             return true;
         }
     }
