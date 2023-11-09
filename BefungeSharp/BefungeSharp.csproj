@@ -1,135 +1,22 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{85FC9B5C-ECA0-4D4D-B070-1EC53434161C}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BefungeSharp</RootNamespace>
-    <AssemblyName>BefungeSharp</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <TargetFrameworks>net4.5;net4.8;net6.0-windows</TargetFrameworks>
+    <ProjectGuid>{85FC9B5C-ECA0-4D4D-B070-1EC53434161C}</ProjectGuid>
+    <Description>A Funge-98 IDE for Windows</Description>
+    <Product>BefungeSharp</Product>
+    <Copyright>Copyright ©  2015</Copyright>
+    <Version>1.0.0.0</Version>
+    <FileVersion>1.0.0.0</FileVersion>
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ConEx, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>.\ConEx.dll</HintPath>
+    <Reference Include="ConEx">
+      <HintPath>ConEx.dll</HintPath>
     </Reference>
-    <Reference Include="PresentationCore" />
     <Reference Include="SharpConfig">
-      <HintPath>.\SharpConfig.dll</HintPath>
+      <HintPath>SharpConfig.dll</HintPath>
     </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="FungeSpace\FungeNode.cs" />
-    <Compile Include="Instructions\ConcurrentInstructions.cs" />
-    <Compile Include="Instructions\FileIOInstructions.cs" />
-    <Compile Include="Instructions\Fingerprints\FingerprintInstruction.cs" />
-    <Compile Include="Instructions\Fingerprints\Fingerprint.cs" />
-    <Compile Include="Instructions\Fingerprints\HRTI\HRTI.cs" />
-    <Compile Include="Instructions\Fingerprints\HRTI\HRTI_Instructions.cs" />
-    <Compile Include="Instructions\Fingerprints\NULL\NULL.cs" />
-    <Compile Include="Instructions\Fingerprints\NULL\NULL_Instructions.cs" />
-    <Compile Include="Instructions\Fingerprints\REFC\REFC.cs" />
-    <Compile Include="Instructions\Fingerprints\REFC\REFC_Instructions.cs" />
-    <Compile Include="Instructions\Fingerprints\ROMA\ROMA.cs" />
-    <Compile Include="Instructions\Fingerprints\ROMA\ROMA_Instructions.cs" />
-    <Compile Include="Instructions\StackStackInstructions.cs" />
-    <Compile Include="Instructions\StandardIOInstructions.cs" />
-    <Compile Include="Menus\HelpMenu.cs" />
-    <Compile Include="Menus\Menu.cs" />
-    <Compile Include="Menus\MainMenu.cs" />
-    <Compile Include="Menus\OpenSimpleMenu.cs" />
-    <Compile Include="Menus\OptionsMenu.cs" />
-    <Compile Include="Menus\SaveSimpleMenu.cs" />
-    <Compile Include="OptionsManager.cs" />
-    <Compile Include="WindowSideBar.cs" />
-    <Compile Include="BoardManager.cs" />
-    <Compile Include="WindowUI.cs" />
-    <Compile Include="Interpreter.cs" />
-    <Compile Include="ClipboardTools.cs" />
-    <Compile Include="FileUtils.cs" />
-    <Compile Include="FungeSpace\FungeSpaceUtils.cs" />
-    <Compile Include="FungeSpace\FungeSparseMatrix.cs" />
-    <Compile Include="Instructions\ArithmeticInstructions.cs" />
-    <Compile Include="Instructions\DeltaInstructions.cs" />
-    <Compile Include="Instructions\FlowControlInstructions.cs" />
-    <Compile Include="Instructions\Instructions.cs" />
-    <Compile Include="Instructions\LogicInstructions.cs" />
-    <Compile Include="Instructions\NopInstructions.cs" />
-    <Compile Include="Instructions\NumberInstructions.cs" />
-    <Compile Include="Instructions\StackInstructions.cs" />
-    <Compile Include="Instructions\StorageInstructions.cs" />
-    <Compile Include="Instructions\StringInstructions.cs" />
-    <Compile Include="Instructions\SystemInstructions.cs" />
-    <Compile Include="IP.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StackUtils.cs" />
-    <Compile Include="Vector2.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="App.config" />
-    <None Include="examples\calculator.bf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="examples\itoroman.bf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="examples\itoroman_min.bf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="examples\lessismore.bf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="examples\print_ascii.bf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="examples\rnp.bf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="ConEx.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
